@@ -1,26 +1,31 @@
-import React from 'react';
-import logo from './logo.svg';
+import React,{Component} from 'react';
+import RSA from './npm/react-super-app/react-super-app';
+import CommingSoon from './components/comming-soon/commin-soon';
+import AIOService from './npm/aio-service/aio-service';
+import apis from './apis';
+import AppContext from './app-context';
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export default class App extends Component{
+  constructor(props){
+    super(props);
+    this.state = {
+      comming_soon:true
+    }
+    this.state.apis = AIOService({getState:()=>this.state,apis})
+  }
+  render(){
+    let {comming_soon} = this.state;
+    
+    return (
+      <AppContext.Provider value={this.state}>
+        {comming_soon && <CommingSoon/>}
+        {
+          !comming_soon && 
+          <RSA/>
+        }
+      </AppContext.Provider>
+      
+    )
+  }
 }
-
-export default App;
