@@ -1,8 +1,7 @@
 import Axios from 'axios';
 export default function Apis({getState,token,getDateAndTime,showAlert,AIOServiceShowAlert,baseUrl}){
     return {
-        sabte_shomare_tamas(shomare_tamas){
-            debugger;
+        async sabte_shomare_tamas(shomare_tamas){
 
     
             //نمونه درخواست get
@@ -21,6 +20,7 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                   }
                 ]
               });
+              debugger;
         }
     }
 }
