@@ -20,7 +20,8 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                   }
                 ]
               });
-              debugger;
+              if(res.data.isSuccess){return true}
+              else {return res.data.message}
         }
     }
 }
