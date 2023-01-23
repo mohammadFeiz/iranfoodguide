@@ -7,7 +7,7 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
             //let res = await Axios.get(url);
             //نمونه درخواست post
             let url='https://iranfoodguide.ir/api/People/AddMobileNumber';
-            //let url='https://localhost:7203/api/People/AddMobileNumber';
+           // let url='https://localhost:7203/api/People/AddMobileNumber';
 
             try{
                 let res = await Axios.post(url,
@@ -21,7 +21,7 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                     AIOServiceShowAlert({
                         type:'success',
                         text:'شماره شما با موفقیت ثبت شد',
-                        subtext:res.data.message
+                        subtext:res.data.Message
                     })
                     return true
                 }
@@ -29,7 +29,7 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                     AIOServiceShowAlert({
                         type:'error',
                         text:'شماره ثبت نشد',
-                        subtext:res.data.message
+                        subtext:res.data.Message
                     })
                     return false
                 }
