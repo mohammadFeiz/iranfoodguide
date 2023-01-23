@@ -17,7 +17,6 @@ export default class CommingSoon extends Component {
             return;
         }
         if(!phone){return}
-        if(phone.length < 11){return}
         let res = await apis({api:'sabte_shomare_tamas',parameter:phone})
         if(res !== false){
             this.setState({submited:true})
