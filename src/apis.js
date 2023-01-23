@@ -8,13 +8,13 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
             //نمونه درخواست post
             let url='https://iranfoodguide.ir/api/People/AddMobileNumber';
             
-            let res = await Axios.post(url,
-              {
-                    "PersonId":1,
-                    "MobileNumber": shomare_tamas,
-                    "IsDefault": true
-              });
-              try{
+            try{
+                let res = await Axios.post(url,
+                {
+                        "PersonId":1,
+                        "MobileNumber": shomare_tamas,
+                        "IsDefault": true
+                });
                 if(res.data.isSuccess){
                     AIOServiceShowAlert({
                         type:'success',
@@ -31,15 +31,17 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                     })
                     return false
                 }
-              }
-              catch(error){
+            }
+            catch(error){
                 AIOServiceShowAlert({
                     type:'error',
                     text:'شماره ثبت نشد',
-                    subtext:error.message
+                    subtext:'سرویس دهنده در دسترس نیست'
                 })
                 return false
-              }
+            }
+            
+              
         }
     }
 }
