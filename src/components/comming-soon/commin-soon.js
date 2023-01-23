@@ -23,25 +23,55 @@ export default class CommingSoon extends Component {
             this.setState({submited:true})
         }
     }
+    header_layout(){
+        return (
+            {
+                row: [
+                    { html: logo },
+                    { flex: 1 },
+                    { html: '021 - 1234698', className: 'h-48 bgFF5900 colorFFF align-vh p-h-24 br-24', style: { direction: 'ltr' } }
+                ]
+            }
+        )
+    }
+    body_layout_big(){
+        let { phone,submited } = this.state;
+        return {
+            column:[
+                {html: comminsoonSVG({width:'300',height:'300'}), align: 'vh'},
+                {html: 'می خوای زودتر از همه اطلاع پیدا کنی ؟ شمارتو وارد کن', align: 'vh',className:'fs-14'},
+                {size:24},
+                {
+                    row:[
+                        {
+                            align:'h',style:{boxSizing:'border-box'},
+                            html: (
+                                <input
+                                    className='h-48 p-h-24 colorFFF no-border br-12 bgECECED' type='text' value={phone}
+                                    placeholder='شماره موبایل خود را وارد کنید '
+                                    style={{boxSizing:'border-box',width:260,color:'#000',textAlign:'center'}}
+                                    onChange={(e) => this.setState({ phone: e.target.value })}
+                                />
+                            )
+                        },
+                        {size:12},
+                        { html: <button onClick={()=>this.onSubmit()} className='h-48 p-h-24 bgFF5900 colorFFF no-border br-12'>{submited?'شماره شما ثبت شد':'ثبت شماره'}</button>,align:'vh' },    
+                    ]
+                }
+            ]
+        }
+    }
     render() {
         let { phone,submited } = this.state;
         return (
             <>
                 <RVD
                     layout={{
-                        className: 'fullscreen p-12 bgFFF bg-comming-soon', show_xs: true,
-                        row: [
-                            {
+                        className: 'fullscreen p-12 bgFFF bg-comming-soon ofy-auto', show_xs: true,
                                 flex: 1,
                                 column: [
-                                    {
-                                        row: [
-                                            { html: logo },
-                                            { flex: 1 },
-                                            { html: '021 - 1234698', className: 'h-48 bgFF5900 colorFFF align-vh p-h-24 br-24', style: { direction: 'ltr' } }
-                                        ]
-                                    },
-                                    { flex: 1 },
+                                    this.header_layout(),
+                                    { flex: 1 ,style:{minHeight:24}},
                                     {
                                         html: comminsoonSVG({ width: 240, height: 240,style:{background:'rgba(255,255,255,0.7)',padding:12,borderRadius:12} }), align: 'vh'
                                     },
@@ -65,54 +95,24 @@ export default class CommingSoon extends Component {
                                     { html: <button onClick={()=>this.onSubmit()} className='h-48 p-h-24 bgFF5900 colorFFF no-border br-12' style={{border:'1px solid #fff',width:260}}>{submited?'شماره شما ثبت شد':'ثبت شماره'}</button>,align:'vh' },    
                                     { flex: 2 }
                                 ]
-                            },
-
-                        ]
+                        
                     }}
                 />
                 <RVD
                     layout={{
-                        className: 'fullscreen of-auto',style:{background:'#eee'},hide_xs:true,
+                        className: 'fullscreen ofy-auto',style:{background:'#eee'},hide_xs:true,
                         row:[
                             {flex:1},
                             {
                                 style:{background:'#fff',padding:24},
                                 row: [
                                     {
-                                        //style: { maxWidth: 1100 },
+                                        style: { maxWidth: 1100,minWidth:400 },
+                                        className:'of-auto',
                                         column: [
-                                            {
-                                                row: [
-                                                    { html: logo },
-                                                    { flex: 1 },
-                                                    { html: '021 - 1234698', className: 'h-48 bgFF5900 colorFFF align-vh p-h-24 br-24', style: { direction: 'ltr' } }
-                                                ]
-                                            },
-                                            { flex: 1 },
-                                            {
-                                                html: comminsoonSVG({width:'300',height:'300'}), align: 'vh'
-                                            },
-                                            {
-                                                html: 'می خوای زودتر از همه اطلاع پیدا کنی ؟ شمارتو وارد کن', align: 'vh',className:'fs-14'
-                                            },
-                                            {size:24},
-                                            {
-                                                row:[
-                                                    {
-                                                        align:'h',style:{boxSizing:'border-box'},
-                                                        html: (
-                                                            <input
-                                                                className='h-48 p-h-24 colorFFF no-border br-12 bgECECED' type='text' value={phone}
-                                                                placeholder='شماره موبایل خود را وارد کنید '
-                                                                style={{boxSizing:'border-box',width:260,color:'#000',textAlign:'center'}}
-                                                                onChange={(e) => this.setState({ phone: e.target.value })}
-                                                            />
-                                                        )
-                                                    },
-                                                    {size:12},
-                                                    { html: <button onClick={()=>this.onSubmit()} className='h-48 p-h-24 bgFF5900 colorFFF no-border br-12'>{submited?'شماره شما ثبت شد':'ثبت شماره'}</button>,align:'vh' },    
-                                                ]
-                                            },
+                                            this.header_layout(),
+                                            { flex: 1 ,style:{minHeight:24}},
+                                            this.body_layout_big(),
                                             { flex: 1 }
                                         ]
                                     },
