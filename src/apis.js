@@ -6,15 +6,17 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
             //نمونه درخواست get
             //let res = await Axios.get(url);
             //نمونه درخواست post
-            let url='https://iranfoodguide.ir/api/People/AddMobileNumber';
-            
+            //let url='https://iranfoodguide.ir/api/People/AddMobileNumber';
+            let url='https://localhost:7203/api/People/AddMobileNumber';
+
             try{
                 let res = await Axios.post(url,
                 {
-                        "PersonId":1,
+                        "PersonId":3,
                         "MobileNumber": shomare_tamas,
                         "IsDefault": true
                 });
+
                 if(res.data.isSuccess){
                     AIOServiceShowAlert({
                         type:'success',
@@ -33,11 +35,25 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                 }
             }
             catch(error){
+
+                debugger
+
+            if(error.code=='ERR_NETWORK')    
+            {
                 AIOServiceShowAlert({
                     type:'error',
                     text:'شماره ثبت نشد',
-                    subtext:'سرویس دهنده در دسترس نیست'
+                    subtext:'مشکل برقراری اینترنت'
                 })
+            }
+            else
+            {
+                AIOServiceShowAlert({
+                    type:'error',
+                    text:'شماره ثبت نشد',
+                    subtext:error.response.data.Message
+                })
+            }
                 return false
             }
             
