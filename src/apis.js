@@ -6,8 +6,8 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
             //نمونه درخواست get
             //let res = await Axios.get(url);
             //نمونه درخواست post
-            //let url='https://iranfoodguide.ir/api/People/AddMobileNumber';
-            let url='https://localhost:7203/api/People/AddMobileNumber';
+            let url='https://iranfoodguide.ir/api/People/AddMobileNumber';
+            //let url='https://localhost:7203/api/People/AddMobileNumber';
 
             try{
                 let res = await Axios.post(url,
@@ -35,8 +35,6 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                 }
             }
             catch(error){
-
-                debugger
 
             if(error.code=='ERR_NETWORK')    
             {
