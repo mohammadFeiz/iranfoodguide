@@ -12,7 +12,7 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
             try{
                 let res = await Axios.post(url,
                 {
-                        "PersonId":3,
+                        "PersonId":1,
                         "MobileNumber": shomare_tamas,
                         "IsDefault": true
                 });
