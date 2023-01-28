@@ -22,11 +22,11 @@ export default class CommingSoon extends Component {
             this.setState({submited:true})
         }
     }
-    header_layout(){
+    header_layout(type){
         return (
             {
                 row: [
-                    { html: logo },
+                    { html: logo({fill:type === 'xs'?'#fff':undefined}) },
                     { flex: 1 },
                     { html: '021 - 1234698', className: 'h-48 bgFF5900 colorFFF align-vh p-h-24 br-24', style: { direction: 'ltr' } }
                 ]
@@ -69,14 +69,18 @@ export default class CommingSoon extends Component {
                         className: 'fullscreen p-12 bgFFF bg-comming-soon ofy-auto', show_xs: true,
                                 flex: 1,
                                 column: [
-                                    this.header_layout(),
+                                    this.header_layout('xs'),
                                     { flex: 1 ,style:{minHeight:24}},
                                     {
                                         html: comminsoonSVG({ width: 240, height: 240,style:{background:'rgba(255,255,255,0.7)',padding:12,borderRadius:12} }), align: 'vh'
                                     },
                                     {size:12},
                                     {
-                                        html: <div style={{background:'rgba(255,255,255,0.7)',textAlign:'center'}} className='align-vh br-12 p-12 w-240'>می خوای زودتر از همه اطلاع پیدا کنی ؟ شمارتو وارد کن</div>, align: 'vh', className: 'fs-12 bold'
+                                        html: <div style={{background:'rgba(255,255,255,0.7)',textAlign:'center',display:'flex',flexDirection:'column'}} className='align-vh br-12 p-12 w-240'>
+                                            <div>{`می خوای زودتر از همه اطلاع پیدا کنی ؟`}</div>
+                                            <div>{`شمارتو وارد کن`}</div>
+                                        </div>, 
+                                        align: 'vh', className: 'fs-12 bold'
                                     },
                                     { size: 12 },
                                     {
