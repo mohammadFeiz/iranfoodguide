@@ -347,7 +347,9 @@
 .align-v{display:flex; align-items: center;}
 .align-h{display: flex; justify-content: center;}
 .align-vh{display: flex; align-items: center; justify-content: center;}
-
+.fd-column{
+  flex-direction: column;
+}
 .fullscreen{
   position:fixed;
   left:0;

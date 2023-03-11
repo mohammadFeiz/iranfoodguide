@@ -21,3 +21,31 @@ button,input{
 .bgECECED{
   background:#ECECED;
 }
+.orange-color{
+  color:#FF6715;
+}
+.orange-bg{
+  background:#FF6715;
+}
+.rsa-header{
+  background:#FF6715;
+  height:72px;
+}
+.header-icon{
+  border:1px solid #fff;
+  width:36px;
+  height:36px;
+  border-radius:100%;
+  padding:6px;
+  box-sizing: border-box;
+}
+.header-badge{
+  position:absolute;
+  background:#fff;
+  height:16px;
+  line-height:16px;
+  border-radius:12px;
+  padding:0 3px;
+  right:0;
+  top:-3px;
+}

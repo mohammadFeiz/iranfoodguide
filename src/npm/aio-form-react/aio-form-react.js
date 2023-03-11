@@ -56,11 +56,11 @@ export default class AIOForm extends Component {
     let {onChange} = this.props;
     if (input.onChange) {return await input.onChange(value);} 
     else if(onChange){
-      onChange(this.setValue(input.field,value,{model:this.getModel()}).model)
+      onChange(this.setValue(input.field,value,{model:this.getModel()}).model,this.isThereError)
     }
   }
   getInput_text({className,value,onChange,options,disabled,style,placeholder,min,max}, input){
-    let props = {min,max,...input.attrs,autoHeight:input.autoHeight,type:input.type,value,className,onChange,options,disabled,style,placeholder,options,optionText:input.optionText,optionValue:input.optionValue};
+    let props = {min,max,...input.attrs,maxLength:input.maxLength,autoHeight:input.autoHeight,type:input.type,value,className,onChange,options,disabled,style,placeholder,options,optionText:input.optionText,optionValue:input.optionValue};
     let {defaults = {}} = this.props;
     let def = defaults[input.type]
     def = def === undefined?{}:def;
@@ -90,9 +90,9 @@ export default class AIOForm extends Component {
     if(type === 'boolean'){
       let {theme:themeProps = {}} = this.props;
       let {theme:themeInput = {}} = input;
-      let p = !!themeProps[key];
-      let i = !!themeInput[key];
-      return p || i;
+      let p = themeProps[key];
+      let i = themeInput[key];
+      return i === undefined?p:i;
     }
     
   }
@@ -501,13 +501,13 @@ export default class AIOForm extends Component {
     }
   }
   render() {
-    let {tabs = [],style,className} = this.props;
+    let {tabs = [],style,className,rtl} = this.props;
     this.isThereError = false;
     return (
       <ReactVirtualDom
         layout={{
           attrs:{ref:this.dom},
-          className: 'aio-form' + (className?' ' + className:''),
+          className: 'aio-form' + (className?' ' + className:'') + (rtl?' rtl':''),
           style,
           column: [
             this.header_layout(),
@@ -587,7 +587,10 @@ class Input extends Component{
     }
   }
   onChange(value){
-    let {type,onChange} = this.props;
+    let {type,onChange,maxLength = Infinity} = this.props;
+    if(value && value.toString().length > maxLength){
+      value = value.toString().slice(0,maxLength);
+    }
     if (type === 'number') {
       if(value){value = +value;}
     } 
@@ -595,7 +598,7 @@ class Input extends Component{
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
       onChange(value)
-    }, 800);
+    }, 400);
   }
   getOptions(uid){
     let {optionText,options} = this.props;
@@ -652,26 +655,18 @@ class Input extends Component{
     let {options,type} = this.props;
     let {error,prevValue,value} = this.state;   
     if (this.props.value !== prevValue) {setTimeout(() => {
-        if(value === undefined){
-            this.state.value = undefined;
-            this.state.prevValue = undefined;
-            this.setState({value:undefined,prevValue:undefined})
-        }
-        else{
-            this.setState({value:this.props.value,prevValue:this.props.value})
-        }
-        
+      this.setState({value:this.props.value,prevValue:this.props.value});
     }, 0);}
     if(error !== false){
       return <div className='aio-form-inline-error aio-form-input' onClick={()=>this.setState({error:false})}>{error}</div>
     }
-    let props = { ...this.props, value, onChange: (e) => this.onChange(e.target.value) ,ref:this.dom};
+    let props = { ...this.props, onChange: (e) => this.onChange(e.target.value) ,ref:this.dom};
     let uid = 'a' + Math.random();
     return type === 'textarea' ? (
-      <textarea {...props} />
+      <textarea {...props} value={value === undefined?'':value}/>
     ) : (
       <>
-        <input {...props} list={uid}/>
+        <input {...props} value={value === undefined?'':value} list={uid}/>
         {Array.isArray(options) && options.length !== 0 && this.getOptions(uid)}
       </>
     );
