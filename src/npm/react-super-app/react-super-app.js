@@ -118,12 +118,12 @@ export default class ReactSuperApp extends Component {
         let {header,sides = [],title = ()=>nav.text} = this.props;
         if(header === false){return false}
         return {
-          style:{flex:'none'},align:'v',className:'rsa-header',
+          style:{flex:'none',width:'100%'},align:'v',className:'rsa-header of-visible',
           row:[
             {size:60,show:!!sides.length,html:<Icon path={mdiMenu} size={1}/>,align:'vh',attrs:{onClick:()=>this.setState({sideOpen:!this.state.sideOpen})}},
             {show:!sides.length,size:24},
-            {flex:1,html:title(nav),className:'rsa-header-title'},
-            {show:!!header,html:()=>header(this.state)},
+            {show:title !== false,flex:1,html:()=>title(nav),className:'rsa-header-title'},
+            {flex:1,show:!!header,html:()=>header(this.state),className:'of-visible'},
           ]
         }
     }

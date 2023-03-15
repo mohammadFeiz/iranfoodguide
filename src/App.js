@@ -16,14 +16,31 @@ export default class App extends Component{
     super(props);
     this.state = {
       comming_soon:false,
-      profile:{
-        firstname:'احمد',
-        lastname:'بهرامی',
-        mobile:'09123534314',
-        wallet:123456789
-      }
+      profile:{},
+      discounts:[],
+      SetState:(obj)=>this.setState(obj)
     }
     this.state.apis = AIOService({getState:()=>this.state,apis})
+  }
+  async getProfile(){
+    let {apis} = this.state;
+    await apis({
+      api:'getProfile',
+      callback:(res)=>this.setState({profile:res}),
+      errorMessage:'دریافت اطلاعات پروفایل با خطا روبرو شد'
+    });
+  }
+  async get_takhfif_ha(){
+    let {apis} = this.state;
+    await apis({
+      api:'takhfif_ha',
+      callback:(res)=>this.setState({takhfif_ha:res}),
+      errorMessage:'دریافت اطلاعات تخفیف ها با خطا روبرو شد'
+    });
+  }
+  componentDidMount(){
+    this.getProfile();
+    this.get_takhfif_ha();
   }
   render(){
     let {comming_soon} = this.state;
@@ -50,6 +67,11 @@ export default class App extends Component{
               if(navId === 'profile'){
                 return <Profile/>
               }
+            }}
+            getActions={({addPopup,removePopup})=>{
+              let obj = {addPopup,removePopup}
+              this.state.rsa_actions = obj;
+              this.setState({rsa_actions:obj})
             }}
             header={()=>{
               return (

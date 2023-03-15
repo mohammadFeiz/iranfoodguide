@@ -3,7 +3,7 @@ import RVD from './../npm/react-virtual-dom/react-virtual-dom';
 import ACS from './../npm/aio-content-slider/aio-content-slider';
 import AIOButton from "../npm/aio-button/aio-button";
 import Card from './../card/card';
-import AIODate from './../npm/aio-date/aio-date';
+import Timer from "../components/timer";
 import frame210 from './../images/Frame 210.png';
 import cat_irani_src from './../images/cat-irani.png';
 import cat_sobhane_src from './../images/cat-sobhane.png';
@@ -20,135 +20,131 @@ import ghaem_image from './../images/ghaem_image.png';
 import ghaem_logo from './../images/ghaem_logo.png';
 
 import { icons } from "../icons";
+import AppContext from "../app-context";
 export default class Sefareshe_ghaza extends Component {
+    static contextType = AppContext;
     state = { 
         data: data(),
-        content:[
-            {
-                type:'billboard',
-                srcs:[frame210,frame210,frame210,frame210]
-            },
-            {
-                type:'categories',
-                categories:[
-                    { name: 'فست فود', src: cat_fastfood_src, id: '0' },
-                    { name: 'ایرانی', src: cat_irani_src, id: '1' },
-                    { name: 'صبحانه', src: cat_sobhane_src, id: '2' },
-                    { name: 'سالاد بار', src: cat_saladbar_src, id: '3' },
-                    { name: 'شیرینی', src: cat_shirini_src, id: '4' },
-                    { name: 'آجیل', src: cat_ajil_src, id: '5' },
-                    { name: 'آبمیوه بستنی', src: cat_abmive_src, id: '6' },
-                    { name: 'کافه', src: cat_kafe_src, id: '7' },
-                ]
-            },
-            {
-                type:'slider',
-                name:'رستوران های تخفیف دار',
-                items:[
-                    {
-                        name:'رستوران شاندیز گالریا',image:shandiz_image,logo:shandiz_logo,rate:3.4,distance:3,time:35,
-                        tags:['ایرانی ','سنتی','فست فود','ملل']
-                    },
-                    {
-                        name:'رستوران شاندیز گالریا',image:shandiz_image,logo:shandiz_logo,rate:3.4,distance:3,time:35,
-                        tags:['ایرانی ','سنتی','فست فود','ملل']
-                    },
-                    {
-                        name:'رستوران شاندیز گالریا',image:shandiz_image,logo:shandiz_logo,rate:3.4,distance:3,time:35,
-                        tags:['ایرانی ','سنتی','فست فود','ملل']
-                    }
-                ]
-            },
-            {
-                type:'slider',
-                name:'نزدیک ترین ها به شما',
-                items:[
-                    {
-                        name:'رستوران شاندیز گالریا',image:shandiz_image,logo:shandiz_logo,rate:3.4,distance:3,time:35,
-                        tags:['ایرانی ','سنتی','فست فود','ملل']
-                    },
-                    {
-                        name:'رستوران شاندیز گالریا',image:shandiz_image,logo:shandiz_logo,rate:3.4,distance:3,time:35,
-                        tags:['ایرانی ','سنتی','فست فود','ملل']
-                    },
-                    {
-                        name:'رستوران شاندیز گالریا',image:shandiz_image,logo:shandiz_logo,rate:3.4,distance:3,time:35,
-                        tags:['ایرانی ','سنتی','فست فود','ملل']
-                    }
-                ]
-            },
-            {
-                type:'slider',
-                name:'غذا های تخفیف دار',
-                cardSize:{width:160},
-                header:{
-                    maxDiscount:15,
-                    endDate:new Date().getTime() + (6 * 60 * 60 * 1000)
-                },
-                items:[
-                    {
-                        name:'پاستا آلفردو ',shopName:'رستوران شاندیز گالریا',rate:3.4,
-                        price:210000,discount:15,image:pasta_alferedo
-                    },
-                    {
-                        name:' rtyrty rty rty rtyپاستا آلفردو ',shopName:'رستوران شاندیز گالریا',rate:3.4,
-                        price:210000,discount:15,image:pasta_alferedo
-                    },
-                    {
-                        name:'پاستا آلفردو ',shopName:'رستوران شاندیز گالریا',rate:3.4,
-                        price:210000,discount:15,image:pasta_alferedo
-                    },
-                    {
-                        name:'پاستا آلفردو ',shopName:'رستوران شاندیز گالریا',rate:3.4,
-                        price:210000,discount:15,image:pasta_alferedo
-                    }
-                ]
-            },
-            {
-                type:'slider',
-                name:'جدید ترین رزروی ها',
-                items:[
-                    {
-                        name:'رستوران قایم',distance:3,rate:3.4,logo:ghaem_logo,image:ghaem_image,
-                        details:[
-                            ['نوع میز','میز و آلاچیق'],['مدت زمان تاخیر','15 دقیقه'],['قابلیت مراسم','تولد و VIP']
-                        ],
-                        tags:['ایرانی','فست فود','ملل','قلیان','موسیقی زنده']
-                    },
-                    {
-                        name:'رستوران قایم',distance:3,rate:3.4,logo:ghaem_logo,image:ghaem_image,
-                        details:[
-                            ['نوع میز','میز و آلاچیق'],['مدت زمان تاخیر','15 دقیقه'],['قابلیت مراسم','تولد و VIP']
-                        ],
-                        tags:['ایرانی','فست فود','ملل','قلیان','موسیقی زنده']
-                    },
-                    {
-                        name:'رستوران قایم',distance:3,rate:3.4,logo:ghaem_logo,image:ghaem_image,
-                        details:[
-                            ['نوع میز','میز و آلاچیق'],['مدت زمان تاخیر','15 دقیقه'],['قابلیت مراسم','تولد و VIP']
-                        ],
-                        tags:['ایرانی','فست فود','ملل','قلیان','موسیقی زنده']
-                    },
-                    {
-                        name:'رستوران قایم',distance:3,rate:3.4,logo:ghaem_logo,image:ghaem_image,
-                        details:[
-                            ['نوع میز','میز و آلاچیق'],['مدت زمان تاخیر','15 دقیقه'],['قابلیت مراسم','تولد و VIP']
-                        ],
-                        tags:['ایرانی','فست فود','ملل','قلیان','موسیقی زنده']
-                    },
-                    {
-                        name:'رستوران قایم',distance:3,rate:3.4,logo:ghaem_logo,image:ghaem_image,
-                        details:[
-                            ['نوع میز','میز و آلاچیق'],['مدت زمان تاخیر','15 دقیقه'],['قابلیت مراسم','تولد و VIP']
-                        ],
-                        tags:['ایرانی','فست فود','ملل','قلیان','موسیقی زنده']
-                    }
-                ]
+        addressId:false,
+        addresses:[],
+        content:[]
+    }
+    contentValidation(res){
+        if(!Array.isArray(res)){
+            return 'خروجی باید یک آرایه باشد'
+        }
+        for(let i = 0; i < res.length; i++){
+            let o = res[i];
+            if(typeof o !== 'object'){
+                return 'رکورد نا معتبر. رکورد ها باید آبجکت باشند' +  + ' ( ' + JSON.stringify(o) + ' )'
             }
-        ],
+            let {type} = o;
+            if(type === 'categories'){
+                let error = 'in each object of categories array';
+                let {categories} = o;
+                if(!Array.isArray(categories)){
+                    error += ' categories property should be an array'
+                    error += ` - ${categories}`    
+                    return error
+                }
+                for(let j = 0; j < categories.length; j++){
+                    let cat = categories[j];
+                    error += ' in each category'
+                    if(typeof cat.name !== 'string'){
+                        error += ' name property should be an string';
+                        error += ` - ${cat.name}`;
+                        return error;    
+                    }
+                    if(typeof cat.src !== 'string'){
+                        error += ' src property should be an string';
+                        error += ` - ${cat.src}`;
+                        return error;    
+                    }
+                    if(typeof cat.id !== 'string'){
+                        error += ' id property should be an string';
+                        error += ` - ${cat.id}`;
+                        return error;    
+                    }
+                }
+            }
+            else if (type === 'billboard'){
+                let error = 'in billboard type';
+                let {srcs} = o;
+                if(!Array.isArray(srcs)){
+                    error += ' srcs property should be an array'
+                    error += ` - ${srcs}`    
+                    return error
+                }
+                for(let j = 0; j < srcs.length; j++){
+                    let src = srcs[j];
+                    if(typeof src !== 'string'){
+                        error += ' each member of srcs array'
+                        error += ' should be an string';
+                        error += ` - ${src}`;
+                        return error;    
+                    }
+                }
+            }
+            else if(type === 'slider'){
+                let {name,items} = o;
+                let error = 'in slider type';
+                if(typeof name !== 'string'){
+                    error += ' name property'
+                    error += ' should be an string';
+                    error += ` - ${name}`;
+                    return error;    
+                }
+                if(!Array.isArray(items)){
+                    error += ' items property'
+                    error += ' should be an array';
+                    error += ` - ${items}`;
+                    return error;    
+                }
+                for(let j = 0; j < items.length; j++){
+                    let item = items[j];
+                    let {name,image,logo,rate,distance,time,tags} = item;
+                    error += ' in each item' 
+                    if(typeof name !== 'string'){
+                        error += ' name property';
+                        error += ' should be an string';
+                        error += ` - ${name}`;
+                        return error;    
+                    }
+                    if(typeof image !== 'string'){
+                        error += ' image property';
+                        error += ' should be an string';
+                        error += ` - ${image}`;
+                        return error;    
+                    }
+                    if(typeof logo !== 'string'){
+                        error += ' logo property';
+                        error += ' should be an string';
+                        error += ` - ${logo}`;
+                        return error;    
+                    }
+                    
+                }
+            }
+            else {
+                return 'تایپ نا معتبر' + ' ( ' + type + ' )'
+            }
+        }
+    }
+    async componentDidMount(){
+        let { profile,apis } = this.context;
+        let {addresses,addressId} = profile;
+        let content = await apis({
+            api:'safheye_sefaresh',
+            errorMessage:'دریافت اطلاعات صفحه سفارش غذا با خطا روبرو شد',
+            validation:(res)=>{
+                
+            }
+        })
+        this.setState({addresses,addressId,content})
     }
     address_layout() {
-        let { address, addresses } = this.state.data;
+        let {addresses,addressId} = this.state;
+        let address = addresses.find(({id})=>id === addressId) || {address:''}
         return {
             size:48,className:'p-h-12',
             row: [
@@ -159,10 +155,14 @@ export default class Sefareshe_ghaza extends Component {
                     html: (
                         <AIOButton
                             type='select'
-                            value={address()}
-                            options={addresses()}
+                            value={addressId}
+                            options={addresses}
+                            text={address.address.slice(0,54)}
                             style={{background:'none',width:'100%'}}
+                            optionText='option.address.slice(0,54)'
+                            optionValue='option.id'
                             caretAttrs={{ style: { color: '#FF5900' } }}
+                            onChange={(value)=>this.setState({addressId:value})}
                         />
                     )
                 }
@@ -257,37 +257,7 @@ export default class Sefareshe_ghaza extends Component {
         )
     }
 }
-class Timer extends Component{
-    constructor(props){
-        super(props);
-        let {endDate} = props;
-        let delta = AIODate().getDelta({date:endDate,pattern:'{hour}:{minute}:{second}'})
-        this.state = {delta}
-        setInterval(()=>{
-            let delta = AIODate().getDelta({date:endDate,pattern:'{hour}:{minute}:{second}'})
-            this.setState({delta})
-        },1000)
-    }
-    render(){
-        let {delta} = this.state;
-        return (
-            <RVD
-                layout={{
-                    className:'br-12 orange-bg',style:{height:256,width:96,color:'#fff',height:16},
-                    row:[
-                        {flex:1},
-                        {
-                            style:{background:'#fff',borderRadius:12,width:'fit-content',color:'#333'},
-                            className:'fs-14 bold p-h-6',
-                            row:[{html:delta,align:'v'},{size:6},{html:icons('time'),align:'vh'}]
-                        },
-                        {flex:1}
-                    ]   
-                }}
-            />
-        )
-    }
-}
+
 class MaxDiscount extends Component{
     render(){
         let {maxDiscount} = this.props;

@@ -112,7 +112,8 @@ export default class Table extends Component {
       if(column.show === false){continue}
       let value = getValueByField(row,column);
       values[column.dataColumnId] = value;
-      json[column.title] = value === undefined?'':value;
+      let title = column.title || column.label;
+      json[title] = value === undefined?'':value;
       let cell = (striped)=>{
         let {_show} = this.getRowDetailById(id);
         if(_show === false){return null}
@@ -502,6 +503,7 @@ class TableUnit extends Component{
     let {hide_xs,hide_sm,hide_md,hide_lg,show_xs,show_sm,show_md,show_lg} = column;
     if(setFlex){width = undefined; flex = 1}
     if(width === undefined && flex === undefined){flex = 1;}
+    let title = column.title || column.label || '';
     return {
       hide_xs,hide_sm,hide_md,hide_lg,show_xs,show_sm,show_md,show_lg,
       size:width,align:'vh',flex,style:{minWidth,height:headerHeight || rowHeight,...titleAttrs.style},
@@ -531,7 +533,7 @@ class TableUnit extends Component{
 
       row:[
         this.resize_layout(column,resizable,'start'),
-        {html:column.title || '',flex:1,align:column.titleJustify !== false?'h':undefined},
+        {html:title,flex:1,align:column.titleJustify !== false?'h':undefined},
         this.filter_layout(column),
         this.resize_layout(column,resizable,'end')
       ]
@@ -554,7 +556,7 @@ class TableUnit extends Component{
       setColumn(column,{filter:{}})
     }
     let {items = [],booleanType = 'or',add,operators,valueOptions} = filter;
-    
+    let title = column.title || column.label || '';
     return {
       html:(
         <AIOButton
@@ -564,7 +566,7 @@ class TableUnit extends Component{
             let {columns} = this.props;
             return (
               <AIOTableFilterPopup 
-                title={column.title}
+                title={title}
                 translate={translate} type={type} items={items} booleanType={booleanType} add={add} operators={operators} valueOptions={valueOptions}
                 onChangeBooleanType={(booleanType)=>{
                   let {filter} = column;
@@ -742,7 +744,8 @@ class Toolbar extends Component{
     let {columns,setColumn} = state;
     if(!columns || !columns.length){return false}
     let options = columns.filter(({toggle})=>toggle).map((column)=>{
-      return {column,text:column.title,checked:column.show !== false}
+      let title = column.title || column.label || '';
+      return {column,text:title,checked:column.show !== false}
     })
     if(!options.length){return false}
     return (
@@ -1208,7 +1211,7 @@ function Sort(getProps,getState,setColumns){
           let column = columns[i];
           setColumn(column,{sort:{}})
         }
-        let {sort,field,dataColumnId,title} = columns[i];
+        let {sort,field,dataColumnId,label,title = label || ''} = columns[i];
         let {dir = 'inc',order,active = true} = sort;
         let type = sort.type || columns[i].type || 'text';
         if(order === undefined){
@@ -1335,7 +1338,7 @@ function Group (getProps,getState,setColumns){
       for(let i = 0; i < columns.length; i++){
         if(!columns[i].group){continue}
         if(typeof columns[i].group !== 'object'){columns[i].group = {};}
-        let {group,type = 'text',field,dataColumnId,title} = columns[i];
+        let {group,type = 'text',field,dataColumnId,label,title = label || ''} = columns[i];
         let {order,active = true} = group;
         if(order === undefined){
           let newOrder = 0;

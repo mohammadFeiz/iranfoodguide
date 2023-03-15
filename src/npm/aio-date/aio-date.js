@@ -422,7 +422,7 @@ export default function AIODate(){
           return false;
         }
         let {date,otherDate = new Date().getTime(),pattern} = obj;
-        let dif = $$.getTime(date) - $$.getTime(otherDate);
+        let dif = $$.getTime({date}) - $$.getTime({date:otherDate});
         let res;
         if(dif === 0){res = {day:0,hour:0,minute:0,second:0,tenthsecond:0,type:'now'}}
         if(dif < 0 ){res = {...$$.getDif(-dif),type:'passed'}}

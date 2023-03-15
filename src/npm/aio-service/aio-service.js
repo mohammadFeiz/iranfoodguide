@@ -139,7 +139,7 @@ function Service(services,loader) {
         result = def === undefined?result:def;
       }
     }
-    if(callback){callback(result)}
+    if(callback && result !== undefined && typeof result !== 'string'){callback(result)}
     if(types.length){
       let isMatch = false;
       for(let i = 0; i < types.length; i++){
