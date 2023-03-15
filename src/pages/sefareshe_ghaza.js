@@ -30,6 +30,43 @@ export default class Sefareshe_ghaza extends Component {
         content:[]
     }
     contentValidation(res){
+        let conf = {
+            type:'array of objects',
+            fields:(o)=>{
+                if(o.type === 'categories'){
+                    return {
+                        type:'array of objects',
+                        fields:{
+                            name:{type:'string'},
+                            src:{type:'string'},
+                            id:{type:'string'}
+                        }
+                    }
+                }
+                if(o.type === 'billboard'){
+                    return {
+                        srcs:{type:'array of strings'}
+                    }
+                }
+                if(o.type === 'slider'){
+                    return {
+                        name:{type:'string'},
+                        items:{
+                            type:'array of objects',
+                            fields:{
+                                name:{type:'string'},
+                                image:{type:'string'},
+                                logo:{type:'string'},
+                                rate:{type:'number'},
+                                distance:{type:'number'},
+                                time:{type:'number'},
+                                tags:{type:'array of strings'}
+                            }
+                        }
+                    }
+                }
+            }
+        }
         if(!Array.isArray(res)){
             return 'خروجی باید یک آرایه باشد'
         }
@@ -38,8 +75,15 @@ export default class Sefareshe_ghaza extends Component {
             if(typeof o !== 'object'){
                 return 'رکورد نا معتبر. رکورد ها باید آبجکت باشند' +  + ' ( ' + JSON.stringify(o) + ' )'
             }
+
             let {type} = o;
             if(type === 'categories'){
+                let conf = {
+                    categories:{
+                        type:'array of objects',
+                        fields:{name:{type:'string'},src:{type:'string'},id:{type:'string'}}
+                    }
+                }
                 let error = 'in each object of categories array';
                 let {categories} = o;
                 if(!Array.isArray(categories)){
@@ -68,6 +112,9 @@ export default class Sefareshe_ghaza extends Component {
                 }
             }
             else if (type === 'billboard'){
+                let conf = {
+                    srcs:{type:'array of strings'}
+                }
                 let error = 'in billboard type';
                 let {srcs} = o;
                 if(!Array.isArray(srcs)){
@@ -86,6 +133,21 @@ export default class Sefareshe_ghaza extends Component {
                 }
             }
             else if(type === 'slider'){
+                let conf = {
+                    name:{type:'string'},
+                    items:{
+                        type:'array of objects',
+                        fields:{
+                            name:{type:'string'},
+                            image:{type:'string'},
+                            logo:{type:'string'},
+                            rate:{type:'number'},
+                            distance:{type:'number'},
+                            time:{type:'number'},
+                            tags:{type:'array of strings'}
+                        }
+                    }
+                }
                 let {name,items} = o;
                 let error = 'in slider type';
                 if(typeof name !== 'string'){
@@ -121,6 +183,41 @@ export default class Sefareshe_ghaza extends Component {
                         error += ' should be an string';
                         error += ` - ${logo}`;
                         return error;    
+                    }
+                    if(typeof rate !== 'number'){
+                        error += ' rate property';
+                        error += ' should be a number';
+                        error += ` - ${rate}`;
+                        return error;    
+                    }
+                    if(distance && typeof distance !== 'number'){
+                        error += ' distance property';
+                        error += ' should be a number';
+                        error += ` - ${distance}`;
+                        return error;    
+                    }
+                    if(time && typeof time !== 'number'){
+                        error += ' time property';
+                        error += ' should be a number';
+                        error += ` - ${time}`;
+                        return error;    
+                    }
+                    if(tags){
+                        if(!Array.isArray(tags)){
+                            error += ' tags property';
+                            error += ' should be an array';
+                            error += ` - ${tags}`;
+                            return error;    
+                        }
+                        for(let j = 0; j < tags.length; j++){
+                            let tag = tags[j];
+                            if(typeof tag !== 'string'){
+                                error += ' each member of tags array'
+                                error += ' should be an string';
+                                error += ` - ${tag}`;
+                                return error;    
+                            }
+                        }
                     }
                     
                 }
