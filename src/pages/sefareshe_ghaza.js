@@ -29,203 +29,61 @@ export default class Sefareshe_ghaza extends Component {
         addresses:[],
         content:[]
     }
+    getType(value){
+        let type = typeof value;
+        if(Array.isArray(value)){type = 'array'}
+        return type
+    }
+    checkType(config,res){
+        if(typeof config === 'function'){config = config(res)}
+        if(Array.isArray(config)){
+            if(this.getType(res) !== 'array'){return 'error'}
+            for(let i = 0; i < res.length; i++){
+                let o = res[i];
+                let result = this.checkType(config[0],o)
+                if(result){return result}
+            }
+        }
+        if(typeof config === 'object'){
+            if(this.getType(res) !== 'object'){return 'error'}
+            for(let prop in config){
+                let result = this.checkType(config[prop],res[prop])
+                if(result){return result}
+            }
+        }
+        if(typeof config !== typeof res){return 'error'}
+    }
     contentValidation(res){
-        let conf = {
-            type:'array of objects',
-            fields:(o)=>{
+        let config = [
+            (o)=>{
                 if(o.type === 'categories'){
                     return {
-                        type:'array of objects',
-                        fields:{
-                            name:{type:'string'},
-                            src:{type:'string'},
-                            id:{type:'string'}
-                        }
+                        categories:[
+                            {name:'string',src:'string',id:'string'}
+                        ]
                     }
                 }
                 if(o.type === 'billboard'){
-                    return {
-                        srcs:{type:'array of strings'}
-                    }
+                    return {srcs:['string']}
                 }
                 if(o.type === 'slider'){
                     return {
-                        name:{type:'string'},
-                        items:{
-                            type:'array of objects',
-                            fields:{
-                                name:{type:'string'},
-                                image:{type:'string'},
-                                logo:{type:'string'},
-                                rate:{type:'number'},
-                                distance:{type:'number'},
-                                time:{type:'number'},
-                                tags:{type:'array of strings'}
+                        name:'string',
+                        items:[
+                            {
+                                name:'string',
+                                image:'string',
+                                logo:'string',
+                                rate:'number',
+                                distance:'number',
+                                time:'number',
+                                tags:['string']
                             }
-                        }
+                        ]
                     }
                 }
             }
-        }
-        if(!Array.isArray(res)){
-            return 'خروجی باید یک آرایه باشد'
-        }
-        for(let i = 0; i < res.length; i++){
-            let o = res[i];
-            if(typeof o !== 'object'){
-                return 'رکورد نا معتبر. رکورد ها باید آبجکت باشند' +  + ' ( ' + JSON.stringify(o) + ' )'
-            }
-
-            let {type} = o;
-            if(type === 'categories'){
-                let conf = {
-                    categories:{
-                        type:'array of objects',
-                        fields:{name:{type:'string'},src:{type:'string'},id:{type:'string'}}
-                    }
-                }
-                let error = 'in each object of categories array';
-                let {categories} = o;
-                if(!Array.isArray(categories)){
-                    error += ' categories property should be an array'
-                    error += ` - ${categories}`    
-                    return error
-                }
-                for(let j = 0; j < categories.length; j++){
-                    let cat = categories[j];
-                    error += ' in each category'
-                    if(typeof cat.name !== 'string'){
-                        error += ' name property should be an string';
-                        error += ` - ${cat.name}`;
-                        return error;    
-                    }
-                    if(typeof cat.src !== 'string'){
-                        error += ' src property should be an string';
-                        error += ` - ${cat.src}`;
-                        return error;    
-                    }
-                    if(typeof cat.id !== 'string'){
-                        error += ' id property should be an string';
-                        error += ` - ${cat.id}`;
-                        return error;    
-                    }
-                }
-            }
-            else if (type === 'billboard'){
-                let conf = {
-                    srcs:{type:'array of strings'}
-                }
-                let error = 'in billboard type';
-                let {srcs} = o;
-                if(!Array.isArray(srcs)){
-                    error += ' srcs property should be an array'
-                    error += ` - ${srcs}`    
-                    return error
-                }
-                for(let j = 0; j < srcs.length; j++){
-                    let src = srcs[j];
-                    if(typeof src !== 'string'){
-                        error += ' each member of srcs array'
-                        error += ' should be an string';
-                        error += ` - ${src}`;
-                        return error;    
-                    }
-                }
-            }
-            else if(type === 'slider'){
-                let conf = {
-                    name:{type:'string'},
-                    items:{
-                        type:'array of objects',
-                        fields:{
-                            name:{type:'string'},
-                            image:{type:'string'},
-                            logo:{type:'string'},
-                            rate:{type:'number'},
-                            distance:{type:'number'},
-                            time:{type:'number'},
-                            tags:{type:'array of strings'}
-                        }
-                    }
-                }
-                let {name,items} = o;
-                let error = 'in slider type';
-                if(typeof name !== 'string'){
-                    error += ' name property'
-                    error += ' should be an string';
-                    error += ` - ${name}`;
-                    return error;    
-                }
-                if(!Array.isArray(items)){
-                    error += ' items property'
-                    error += ' should be an array';
-                    error += ` - ${items}`;
-                    return error;    
-                }
-                for(let j = 0; j < items.length; j++){
-                    let item = items[j];
-                    let {name,image,logo,rate,distance,time,tags} = item;
-                    error += ' in each item' 
-                    if(typeof name !== 'string'){
-                        error += ' name property';
-                        error += ' should be an string';
-                        error += ` - ${name}`;
-                        return error;    
-                    }
-                    if(typeof image !== 'string'){
-                        error += ' image property';
-                        error += ' should be an string';
-                        error += ` - ${image}`;
-                        return error;    
-                    }
-                    if(typeof logo !== 'string'){
-                        error += ' logo property';
-                        error += ' should be an string';
-                        error += ` - ${logo}`;
-                        return error;    
-                    }
-                    if(typeof rate !== 'number'){
-                        error += ' rate property';
-                        error += ' should be a number';
-                        error += ` - ${rate}`;
-                        return error;    
-                    }
-                    if(distance && typeof distance !== 'number'){
-                        error += ' distance property';
-                        error += ' should be a number';
-                        error += ` - ${distance}`;
-                        return error;    
-                    }
-                    if(time && typeof time !== 'number'){
-                        error += ' time property';
-                        error += ' should be a number';
-                        error += ` - ${time}`;
-                        return error;    
-                    }
-                    if(tags){
-                        if(!Array.isArray(tags)){
-                            error += ' tags property';
-                            error += ' should be an array';
-                            error += ` - ${tags}`;
-                            return error;    
-                        }
-                        for(let j = 0; j < tags.length; j++){
-                            let tag = tags[j];
-                            if(typeof tag !== 'string'){
-                                error += ' each member of tags array'
-                                error += ' should be an string';
-                                error += ` - ${tag}`;
-                                return error;    
-                            }
-                        }
-                    }
-                    
-                }
-            }
-            else {
-                return 'تایپ نا معتبر' + ' ( ' + type + ' )'
-            }
-        }
+        ]
     }
     async componentDidMount(){
         let { profile,apis } = this.context;
@@ -233,9 +91,6 @@ export default class Sefareshe_ghaza extends Component {
         let content = await apis({
             api:'safheye_sefaresh',
             errorMessage:'دریافت اطلاعات صفحه سفارش غذا با خطا روبرو شد',
-            validation:(res)=>{
-                
-            }
         })
         this.setState({addresses,addressId,content})
     }
