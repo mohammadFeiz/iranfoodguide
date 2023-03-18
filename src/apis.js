@@ -135,11 +135,21 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                     name:'رستوران های تخفیف دار',
                     items:[
                         {
-                            name:'رستوران شاندیز گالریا',image:shandiz_image,logo:shandiz_logo,rate:3.4,distance:3,time:35,
+                            name:'رستوران شاندیز گالریا',
+                            image:shandiz_image,
+                            logo:shandiz_logo,
+                            rate:3.4,
+                            distance:3,
+                            time:35,
                             tags:['ایرانی ','سنتی','فست فود','ملل']
                         },
                         {
-                            name:'رستوران شاندیز گالریا',image:shandiz_image,logo:shandiz_logo,rate:3.4,distance:3,time:35,
+                            name:'رستوران شاندیز گالریا',
+                            image:shandiz_image,
+                            logo:shandiz_logo,
+                            rate:3.4,
+                            distance:3,
+                            time:35,
                             tags:['ایرانی ','سنتی','فست فود','ملل']
                         },
                         {
@@ -200,7 +210,18 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                         {
                             name:'رستوران قایم',distance:3,rate:3.4,logo:ghaem_logo,image:ghaem_image,
                             details:[
-                                ['نوع میز','میز و آلاچیق'],['مدت زمان تاخیر','15 دقیقه'],['قابلیت مراسم','تولد و VIP']
+                               { 
+                                title:'نوع میز',  
+                                value:'میز و آلاچیق'  
+                               },
+                               { 
+                                title:'مدت زمان تاخیر',  
+                                value:'15 دقیقه'  
+                               },
+                               { 
+                                title:'قابلیت مراسم',  
+                                value:'تولد و VIP'  
+                               }
                             ],
                             tags:['ایرانی','فست فود','ملل','قلیان','موسیقی زنده']
                         },
@@ -214,22 +235,55 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                         {
                             name:'رستوران قایم',distance:3,rate:3.4,logo:ghaem_logo,image:ghaem_image,
                             details:[
-                                ['نوع میز','میز و آلاچیق'],['مدت زمان تاخیر','15 دقیقه'],['قابلیت مراسم','تولد و VIP']
-                            ],
+                                { 
+                                 title:'نوع میز',  
+                                 value:'میز و آلاچیق'  
+                                },
+                                { 
+                                 title:'مدت زمان تاخیر',  
+                                 value:'15 دقیقه'  
+                                },
+                                { 
+                                 title:'قابلیت مراسم',  
+                                 value:'تولد و VIP'  
+                                }
+                             ],
                             tags:['ایرانی','فست فود','ملل','قلیان','موسیقی زنده']
                         },
                         {
                             name:'رستوران قایم',distance:3,rate:3.4,logo:ghaem_logo,image:ghaem_image,
                             details:[
-                                ['نوع میز','میز و آلاچیق'],['مدت زمان تاخیر','15 دقیقه'],['قابلیت مراسم','تولد و VIP']
-                            ],
+                                { 
+                                 title:'نوع میز',  
+                                 value:'میز و آلاچیق'  
+                                },
+                                { 
+                                 title:'مدت زمان تاخیر',  
+                                 value:'15 دقیقه'  
+                                },
+                                { 
+                                 title:'قابلیت مراسم',  
+                                 value:'تولد و VIP'  
+                                }
+                             ],
                             tags:['ایرانی','فست فود','ملل','قلیان','موسیقی زنده']
                         },
                         {
                             name:'رستوران قایم',distance:3,rate:3.4,logo:ghaem_logo,image:ghaem_image,
                             details:[
-                                ['نوع میز','میز و آلاچیق'],['مدت زمان تاخیر','15 دقیقه'],['قابلیت مراسم','تولد و VIP']
-                            ],
+                                { 
+                                 title:'نوع میز',  
+                                 value:'میز و آلاچیق'  
+                                },
+                                { 
+                                 title:'مدت زمان تاخیر',  
+                                 value:'15 دقیقه'  
+                                },
+                                { 
+                                 title:'قابلیت مراسم',  
+                                 value:'تولد و VIP'  
+                                }
+                             ],
                             tags:['ایرانی','فست فود','ملل','قلیان','موسیقی زنده']
                         }
                     ]
