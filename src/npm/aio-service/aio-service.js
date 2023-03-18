@@ -105,7 +105,7 @@ function Service(services,loader) {
     loading.remove()
   }
   return async (obj) => {
-    let { api,callback, parameter, loading = true, cache, cacheName,def,validation,loadingParent = 'body',errorMessage,successMessage,types = []} = obj
+    let { api,callback, parameter, loading = true, cache, cacheName,def,validation,loadingParent = 'body',errorMessage,successMessage} = obj
     let loadingId;
     if (loading) {
       loadingId = 'b' + Math.random()
@@ -133,32 +133,13 @@ function Service(services,loader) {
     }
     removeLoading(loadingId);
     if(validation){
-      let message = validation(result);
+      let message = JSONValidator(result,validation);
       if(typeof message === 'string'){
         AIOServiceShowAlert({type:'error',text:`apis().${api}`,subtext:message});
         result = def === undefined?result:def;
       }
     }
     if(callback && result !== undefined && typeof result !== 'string'){callback(result)}
-    if(types.length){
-      let isMatch = false;
-      for(let i = 0; i < types.length; i++){
-        let type = types[i];
-        let Type = typeof result;
-        if(type === true && result === true){isMatch = true; break;}
-        if(type === 'boolean' && Type === 'boolean'){isMatch = true; break;}
-        if(type === 'array' && Array.isArray(result)){isMatch = true; break;}
-        if(type === 'object' && !Array.isArray(result) && Type === 'object'){isMatch = true; break;}
-        if(type === 'undefined' && Type === 'undefined'){isMatch = true; break;}
-        if(type === 'string' && Type === 'string'){isMatch = true; break;}
-        if(type === 'number' && Type === 'number'){isMatch = true; break;}
-        if(type === 'function' && Type === 'function'){isMatch = true; break;}
-      }
-      if(!isMatch){
-        AIOServiceShowAlert({type:'error',text:`apis().${api}`,subtext:`should return ${types.join(' or ')}`});
-        return def;
-      }
-    }
     if(typeof result === 'string' && errorMessage){
       AIOServiceShowAlert({type:'error',text:typeof errorMessage === 'function'?errorMessage():errorMessage,subtext:result});
       return def;
@@ -172,3 +153,58 @@ function Service(services,loader) {
   }
 }
 
+function JSONValidator(json,config){
+  let obj = {
+    getType(value){
+        let type = typeof value;
+        if(Array.isArray(value)){type = 'array'}
+        return type
+    },
+    checkType_req(config,res,resultText,shouldBe){
+      if(typeof config === 'function'){config = config(res)}
+      if(Array.isArray(config)){
+        if(this.getType(res) !== 'array'){
+          return `AIOService validation error. ${resultText} is ${this.getType(res)} ${shouldBe !== undefined?` but should be ${JSON.stringify(shouldBe)}`:''}`
+        }
+        for(let i = 0; i < res.length; i++){
+          let o = res[i];
+          let result = this.checkType(config[0],o,`${resultText}[${i}]`,config[0])
+          if(result){
+              return result
+          }
+        }
+      }
+      else if(typeof config === 'object'){
+        if(this.getType(res) !== 'object'){
+          return `AIOService validation error. ${resultText} is ${this.getType(res)} ${shouldBe !== undefined?` but should be ${JSON.stringify(shouldBe)}`:''}`
+        }
+        for(let prop in config){
+          let result = this.checkType(config[prop],res[prop],prop,config[prop])
+          if(result){
+            return result
+          }
+        }
+      }
+      else if(config !== this.getType(res)){
+        return `AIOService validation error. ${resultText} is ${JSON.stringify(res)} ${shouldBe !== undefined?` but should be ${JSON.stringify(shouldBe)}`:''}`
+      }
+    },
+    checkType(config,res,resultText = 'result'){
+      if(typeof config === 'string' && config.indexOf(',') !== -1){
+        config = config.split(',');
+        let finalResult;
+        let isThereError = true;
+        for(let i = 0; i < config.length; i++){
+          let result = this.checkType_req(config[i],res,resultText,config)
+          if(result){finalResult = result}
+          else{isThereError = false}
+        }
+        if(isThereError){return finalResult}
+      }
+      else{
+        return this.checkType_req(config,res,resultText,config)
+      }
+    }
+  }
+  return obj.checkType(config,json)
+}

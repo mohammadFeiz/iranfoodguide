@@ -1,4 +1,18 @@
 import Axios from 'axios';
+import frame210 from './images/Frame 210.png';
+import cat_irani_src from './images/cat-irani.png';
+import cat_sobhane_src from './images/cat-sobhane.png';
+import cat_ajil_src from './images/cat-ajil.png';
+import cat_abmive_src from './images/cat-abmive.png';
+import cat_saladbar_src from './images/cat-saladbar.png';
+import cat_fastfood_src from './images/cat-fastfood.png';
+import cat_kafe_src from './images/cat-kafe.png';
+import cat_shirini_src from './images/cat-shirini.png';
+import shandiz_logo from './images/shandiz_logo.png';
+import shandiz_image from './images/shandiz_image.png';
+import pasta_alferedo from './images/pasta_alferedo.png';
+import ghaem_image from './images/ghaem_image.png';
+import ghaem_logo from './images/ghaem_logo.png';
 export default function Apis({getState,token,getDateAndTime,showAlert,AIOServiceShowAlert,baseUrl}){
     return {
         async sabte_shomare_tamas(shomare_tamas){
@@ -187,19 +201,19 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                     items:[
                         {
                             name:'پاستا آلفردو ',shopName:'رستوران شاندیز گالریا',rate:3.4,
-                            price:210000,discount:15,image:pasta_alferedo
+                            price:210000,discount:15,image:pasta_alferedo,tags:[]
                         },
                         {
                             name:' rtyrty rty rty rtyپاستا آلفردو ',shopName:'رستوران شاندیز گالریا',rate:3.4,
-                            price:210000,discount:15,image:pasta_alferedo
+                            price:210000,discount:15,image:pasta_alferedo,tags:[]
                         },
                         {
                             name:'پاستا آلفردو ',shopName:'رستوران شاندیز گالریا',rate:3.4,
-                            price:210000,discount:15,image:pasta_alferedo
+                            price:210000,discount:15,image:pasta_alferedo,tags:[]
                         },
                         {
                             name:'پاستا آلفردو ',shopName:'رستوران شاندیز گالریا',rate:3.4,
-                            price:210000,discount:15,image:pasta_alferedo
+                            price:210000,discount:15,image:pasta_alferedo,tags:[]
                         }
                     ]
                 },
