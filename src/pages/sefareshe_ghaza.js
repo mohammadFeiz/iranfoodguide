@@ -4,20 +4,6 @@ import ACS from './../npm/aio-content-slider/aio-content-slider';
 import AIOButton from "../npm/aio-button/aio-button";
 import Card from './../card/card';
 import Timer from "../components/timer";
-import frame210 from './../images/Frame 210.png';
-import cat_irani_src from './../images/cat-irani.png';
-import cat_sobhane_src from './../images/cat-sobhane.png';
-import cat_ajil_src from './../images/cat-ajil.png';
-import cat_abmive_src from './../images/cat-abmive.png';
-import cat_saladbar_src from './../images/cat-saladbar.png';
-import cat_fastfood_src from './../images/cat-fastfood.png';
-import cat_kafe_src from './../images/cat-kafe.png';
-import cat_shirini_src from './../images/cat-shirini.png';
-import shandiz_logo from './../images/shandiz_logo.png';
-import shandiz_image from './../images/shandiz_image.png';
-import pasta_alferedo from './../images/pasta_alferedo.png';
-import ghaem_image from './../images/ghaem_image.png';
-import ghaem_logo from './../images/ghaem_logo.png';
 
 import { icons } from "../icons";
 import AppContext from "../app-context";
@@ -29,68 +15,43 @@ export default class Sefareshe_ghaza extends Component {
         addresses:[],
         content:[]
     }
-    getType(value){
-        let type = typeof value;
-        if(Array.isArray(value)){type = 'array'}
-        return type
-    }
-    checkType(config,res){
-        if(typeof config === 'function'){config = config(res)}
-        if(Array.isArray(config)){
-            if(this.getType(res) !== 'array'){return 'error'}
-            for(let i = 0; i < res.length; i++){
-                let o = res[i];
-                let result = this.checkType(config[0],o)
-                if(result){return result}
-            }
-        }
-        if(typeof config === 'object'){
-            if(this.getType(res) !== 'object'){return 'error'}
-            for(let prop in config){
-                let result = this.checkType(config[prop],res[prop])
-                if(result){return result}
-            }
-        }
-        if(typeof config !== typeof res){return 'error'}
-    }
-    contentValidation(res){
-        let config = [
-            (o)=>{
-                if(o.type === 'categories'){
-                    return {
-                        categories:[
-                            {name:'string',src:'string',id:'string'}
-                        ]
-                    }
-                }
-                if(o.type === 'billboard'){
-                    return {srcs:['string']}
-                }
-                if(o.type === 'slider'){
-                    return {
-                        name:'string',
-                        items:[
-                            {
-                                name:'string',
-                                image:'string',
-                                logo:'string',
-                                rate:'number',
-                                distance:'number',
-                                time:'number',
-                                tags:['string']
-                            }
-                        ]
-                    }
-                }
-            }
-        ]
-    }
+    
     async componentDidMount(){
         let { profile,apis } = this.context;
         let {addresses,addressId} = profile;
         let content = await apis({
             api:'safheye_sefaresh',
             errorMessage:'دریافت اطلاعات صفحه سفارش غذا با خطا روبرو شد',
+            validation:[
+                (o)=>{
+                    if(o.type === 'categories'){
+                        return {
+                            categories:[
+                                {name:'string',src:'string',id:'string'}
+                            ]
+                        }
+                    }
+                    if(o.type === 'billboard'){
+                        return {srcs:['string']}
+                    }
+                    if(o.type === 'slider'){
+                        return {
+                            name:'string',
+                            items:[
+                                {
+                                    name:'string',
+                                    image:'string',
+                                    logo:'string,undefined',
+                                    rate:'number',
+                                    distance:'number,undefined',
+                                    time:'number,undefined',
+                                    tags:['string']
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
         })
         this.setState({addresses,addressId,content})
     }
