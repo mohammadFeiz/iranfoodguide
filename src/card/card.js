@@ -111,12 +111,12 @@ function DETAILS({details}){
     if(details === undefined){return false}
     return {
         className:'p-h-6 m-b-6',
-        row:details.map(([key,value])=>{
+        row:details.map(({title,value})=>{
             return {
                 flex:1,
                 column:[
                     {html:value,className:'bold fs-12',align:'vh'},
-                    {html:key,className:'fs-10',align:'vh'}
+                    {html:title,className:'fs-10',align:'vh'}
                 ]
             }
         })
