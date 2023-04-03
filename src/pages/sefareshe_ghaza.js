@@ -27,7 +27,7 @@ export default class Sefareshe_ghaza extends Component {
                     if(o.type === 'Categories'){
                         return {
                             items:[
-                                {name:'string',src:'string',id:'string'}
+                                {name:'string',src:'string',id:'string,number'}
                             ]
                         }
                     }
