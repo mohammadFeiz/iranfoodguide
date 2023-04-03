@@ -126,10 +126,34 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
             return model
         },
         async safheye_sefaresh(){
+
+            let url='https://localhost:7203/api/PageLayout/GetListOfFoodDelivery';
+            // let url='https://localhost:7203/api/People/AddMobileNumber';
+ 
+                 let res = await Axios.post(url,
+                 {
+
+                 });
+
+debugger
+
             return [
                 {
                     type:'billboard',
-                    srcs:[frame210,frame210,frame210,frame210]
+                    items:[
+                        {
+                            src:frame210
+                        },
+                        {
+                            src:frame210
+                        },
+                        {
+                            src:frame210
+                        },
+                        {
+                            src:frame210
+                        }
+                    ]
                 },
                 {
                     type:'categories',
@@ -243,17 +267,17 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                             name:'رستوران قایم',distance:3,rate:3.4,logo:ghaem_logo,image:ghaem_image,
                             details:[
                                 { 
-                                    title:'نوع میز',  
-                                    value:'میز و آلاچیق'  
-                                   },
-                                   { 
-                                    title:'مدت زمان تاخیر',  
-                                    value:'15 دقیقه'  
-                                   },
-                                   { 
-                                    title:'قابلیت مراسم',  
-                                    value:'تولد و VIP'  
-                                   }
+                                 title:'نوع میز',  
+                                 value:'میز و آلاچیق'  
+                                },
+                                { 
+                                 title:'مدت زمان تاخیر',  
+                                 value:'15 دقیقه'  
+                                },
+                                { 
+                                 title:'قابلیت مراسم',  
+                                 value:'تولد و VIP'  
+                                }
                             ],
                             tags:['ایرانی','فست فود','ملل','قلیان','موسیقی زنده']
                         },
