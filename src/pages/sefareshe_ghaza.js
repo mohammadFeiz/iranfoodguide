@@ -24,17 +24,17 @@ export default class Sefareshe_ghaza extends Component {
             errorMessage:'دریافت اطلاعات صفحه سفارش غذا با خطا روبرو شد',
             validation:[
                 (o)=>{
-                    if(o.type === 'categories'){
+                    if(o.type === 'Categories'){
                         return {
                             items:[
                                 {name:'string',src:'string',id:'string'}
                             ]
                         }
                     }
-                    if(o.type === 'billboard'){
+                    if(o.type === 'Billboard'){
                         return {items:[{src:'string'}]}
                     }
-                    if(o.type === 'slider'){
+                    if(o.type === 'Slider'){
                         return {
                             name:'string',
                             items:[
@@ -142,13 +142,13 @@ export default class Sefareshe_ghaza extends Component {
         let {content} = this.state;
         return {
             column:content.map((o)=>{
-                if(o.type === 'slider'){
+                if(o.type === 'Slider'){
                     return {html:this.slider_layout(o)}
                 }
-                if(o.type === 'billboard'){
+                if(o.type === 'Billboard'){
                     return {html:this.billboard_layout(o.items)}
                 }
-                if(o.type === 'categories'){
+                if(o.type === 'Categories'){
                     return {html:this.categories_layout(o.items)}
                 }
             })
