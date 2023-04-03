@@ -26,7 +26,7 @@ export default class Sefareshe_ghaza extends Component {
                 (o)=>{
                     if(o.type === 'categories'){
                         return {
-                            categories:[
+                            items:[
                                 {name:'string',src:'string',id:'string'}
                             ]
                         }
@@ -93,11 +93,11 @@ export default class Sefareshe_ghaza extends Component {
             />
         )
     }
-    categories_layout(categories) {
+    categories_layout(items) {
         return (
             <div style={{ display: 'grid',gridGap:6,padding:'0 12px', gridTemplateColumns: 'auto auto auto auto' }}>
                 {
-                    categories.map(({name,src}) => {
+                    items.map(({name,src}) => {
                         return <Card type='card1' name={name} src={src}/>
                     })
                 }
@@ -149,7 +149,7 @@ export default class Sefareshe_ghaza extends Component {
                     return {html:this.billboard_layout(o.srcs)}
                 }
                 if(o.type === 'categories'){
-                    return {html:this.categories_layout(o.categories)}
+                    return {html:this.categories_layout(o.items)}
                 }
             })
         }
