@@ -135,7 +135,12 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
 
                  });
 
-debugger
+
+                 let resdata=res.data.data;
+
+                 debugger
+return resdata;
+
 
             return [
                 {
