@@ -32,7 +32,7 @@ export default class Sefareshe_ghaza extends Component {
                         }
                     }
                     if(o.type === 'billboard'){
-                        return {srcs:['string']}
+                        return {items:[{src:'string'}]}
                     }
                     if(o.type === 'slider'){
                         return {
@@ -82,10 +82,10 @@ export default class Sefareshe_ghaza extends Component {
             ]
         }
     }
-    billboard_layout(srcs) {
+    billboard_layout(items) {
         return (
             <ACS
-                items={srcs.map((src,i) => {
+                items={items.map(({src},i) => {
                     return (
                         <img key={i} src={src} width='100%' />
                     )
@@ -146,7 +146,7 @@ export default class Sefareshe_ghaza extends Component {
                     return {html:this.slider_layout(o)}
                 }
                 if(o.type === 'billboard'){
-                    return {html:this.billboard_layout(o.srcs)}
+                    return {html:this.billboard_layout(o.items)}
                 }
                 if(o.type === 'categories'){
                     return {html:this.categories_layout(o.items)}
