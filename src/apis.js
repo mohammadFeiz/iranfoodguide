@@ -133,7 +133,7 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                 },
                 {
                     type:'categories',
-                    categories:[
+                    items:[
                         { name: 'فست فود', src: cat_fastfood_src, id: '0' },
                         { name: 'ایرانی', src: cat_irani_src, id: '1' },
                         { name: 'صبحانه', src: cat_sobhane_src, id: '2' },
