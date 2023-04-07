@@ -94,6 +94,9 @@ export default function Apis({getState,token,getDateAndTime,showAlert,AIOService
                 ]
             }
         },
+        async setProfile(profile){
+            
+        },
         async takhfif_ha(){
             return [
                 {

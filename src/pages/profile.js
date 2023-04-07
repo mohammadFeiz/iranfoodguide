@@ -149,11 +149,19 @@ class Ettelaate_shakhsi extends Component {
         }
     }
     footer_layout() {
+        let {apis} = this.context;
         return {
             align: 'vh',
             className: 'p-24',
             html: (
-                <button className='button-1 w-100 h-36'>ثبت تغییرات</button>
+                <button className= 'button-1 w-100 h-36' onClick={()=>{
+                    let {model} = this.state;
+                    apis({
+                        api:'setProfile',
+                        parameter:model,
+                        callback:()=>rsa_actions.removePopup()
+                    })
+                }}>ثبت تغییرات</button>
             )
         }
     }
