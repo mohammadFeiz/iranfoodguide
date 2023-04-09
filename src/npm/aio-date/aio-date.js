@@ -345,6 +345,11 @@ export default function AIODate(){
         date = $$.convertToArray({date:date});
         otherDate = $$.convertToArray({date:otherDate});
         if(!$$.isGreater(otherDate,date)){return []}
+        let length = $$.getDelta({date,otherDate}).miliseconds / step;
+        if(isNaN(length) || length > 100){
+          console.error('AIODate().getDatesBetween() => too many dates');
+          return;
+        }
         let nextDate = $$.getNextTime({date,offset:step});
         let res = [];
         while($$.isLess(nextDate,otherDate)){
@@ -399,6 +404,7 @@ export default function AIODate(){
         return pattern
       },
       getDif(dif){
+        let miliseconds = dif;
         let day = Math.floor(dif / (24 * 60 * 60 * 1000));
         dif -= day * (24 * 60 * 60 * 1000);
         let hour = Math.floor(dif / (60 * 60 * 1000));
@@ -408,7 +414,7 @@ export default function AIODate(){
         let second = Math.floor(dif / (1000));
         dif -= second * (1000);
         let tenthsecond = Math.floor(dif / (100));
-        return {day,hour,minute,second,tenthsecond}
+        return {day,hour,minute,second,tenthsecond,miliseconds}
       },
       getDelta(obj){
         if(!obj || !obj.date){

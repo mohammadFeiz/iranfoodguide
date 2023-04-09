@@ -7,6 +7,7 @@ import Form from './../npm/aio-form-react/aio-form-react';
 import Map from './../npm/map/map';
 import Timer from "../components/timer";
 import AppContext from "../app-context";
+import Card from "../card/card";
 export default class Profile extends Component {
     static contextType = AppContext;
     constructor(props) {
@@ -16,7 +17,7 @@ export default class Profile extends Component {
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'اطلاعات شخصی', id: 'ettelaate_shakhsi' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'آدرس ها', id: 'address_ha' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'تخفیف ها',id:'takhfif_ha' },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'رستوران های محبوب' },
+                { icon: <Icon path={mdiAccount} size={1} />, text: 'رستوران های محبوب',id:'restoran_haye_mahboob' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'نظرات من' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'شبکه اجتماعی غذا' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'دعوت از دوستان' },
@@ -37,6 +38,9 @@ export default class Profile extends Component {
         }
         if (key === 'takhfif_ha') {
             addPopup({ header: false, body: () => <Takhfif_ha /> })
+        }
+        if (key === 'restoran_haye_mahboob') {
+            addPopup({ header: false, body: () => <Restoran_haye_mahboob /> })
         }
     }
     header_layout() {
@@ -149,7 +153,7 @@ class Ettelaate_shakhsi extends Component {
         }
     }
     footer_layout() {
-        let {apis} = this.context;
+        let {apis,rsa_actions} = this.context;
         return {
             align: 'vh',
             className: 'p-24',
@@ -159,7 +163,8 @@ class Ettelaate_shakhsi extends Component {
                     apis({
                         api:'setProfile',
                         parameter:model,
-                        callback:()=>rsa_actions.removePopup()
+                        callback:()=>rsa_actions.removePopup(),
+                        name:'ثبت اطلاعات پروفایل'
                     })
                 }}>ثبت تغییرات</button>
             )
@@ -206,8 +211,8 @@ class Address_ha extends Component {
                 this.setState({addresses})
                 rsa_actions.removePopup()
             },
-            errorMessage:`${type === 'add'?'افزودن':'ویرایش'} آدرس با خطا روبرو شد`,
-            successMessage:`${type === 'add'?'افزودن':'ویرایش'} آدرس با موفقیت انجام شد`
+            name:()=>`${type === 'add'?'افزودن':'ویرایش'} آدرس با خطا روبرو شد`,
+            successMessage:true
         })
     }
     add_layout() {
@@ -475,7 +480,37 @@ class Takhfif_ha extends Component{
         )
     }
 }
-
+class Restoran_haye_mahboob extends Component{
+    static contextType = AppContext;
+    state = {items:[]}
+    async componentDidMount(){
+        let {apis} = this.context;
+        apis({
+            api:'restoran_haye_mahboob',
+            name:'دریافت لیست رستوران های محبوب',
+            callback:(items)=>this.setState({items})
+        })
+    }
+    render(){
+        let {items} = this.state;
+        return (
+            <RVD
+                layout={{
+                    style:{background:'#fff',height:'100%'},
+                    column:[
+                        {html:<ProfileHeader title='رستوران های محبوب'/>},
+                        {
+                            flex:1,gap:24,className:'ofy-auto',
+                            column:items.map((o)=>{
+                                return {className:'p-h-24',html:<Card type='card2' {...o}/>}
+                            })
+                        }
+                    ]
+                }}
+            />          
+        )
+    }
+}
 
 class ProfileHeader extends Component {
     static contextType = AppContext;
@@ -499,3 +534,4 @@ class ProfileHeader extends Component {
         )
     }
 }
+

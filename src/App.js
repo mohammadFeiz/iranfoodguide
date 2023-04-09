@@ -20,14 +20,14 @@ export default class App extends Component{
       discounts:[],
       SetState:(obj)=>this.setState(obj)
     }
-    this.state.apis = AIOService({getState:()=>this.state,apis})
+    this.state.apis = AIOService({getState:()=>this.state,apis,id:'iranfoodguid'})
   }
   async getProfile(){
     let {apis} = this.state;
     await apis({
       api:'getProfile',
       callback:(res)=>this.setState({profile:res}),
-      errorMessage:'دریافت اطلاعات پروفایل با خطا روبرو شد'
+      name:'دریافت اطلاعات پروفایل'
     });
   }
   async get_takhfif_ha(){
@@ -35,7 +35,7 @@ export default class App extends Component{
     await apis({
       api:'takhfif_ha',
       callback:(res)=>this.setState({takhfif_ha:res}),
-      errorMessage:'دریافت اطلاعات تخفیف ها با خطا روبرو شد'
+      name:'دریافت اطلاعات تخفیف ها'
     });
   }
   componentDidMount(){

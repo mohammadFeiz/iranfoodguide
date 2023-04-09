@@ -60,7 +60,7 @@ export default class AIOForm extends Component {
     }
   }
   getInput_text({className,value,onChange,options,disabled,style,placeholder,min,max}, input){
-    let props = {min,max,...input.attrs,maxLength:input.maxLength,autoHeight:input.autoHeight,type:input.type,value,className,onChange,options,disabled,style,placeholder,options,optionText:input.optionText,optionValue:input.optionValue};
+    let props = {justNumber:input.justNumber,min,max,...input.attrs,maxLength:input.maxLength,autoHeight:input.autoHeight,type:input.type,value,className,onChange,options,disabled,style,placeholder,options,optionText:input.optionText,optionValue:input.optionValue};
     let {defaults = {}} = this.props;
     let def = defaults[input.type]
     def = def === undefined?{}:def;
@@ -587,13 +587,25 @@ class Input extends Component{
     }
   }
   onChange(value){
-    let {type,onChange,maxLength = Infinity} = this.props;
-    if(value && value.toString().length > maxLength){
-      value = value.toString().slice(0,maxLength);
-    }
+    let {type,onChange,maxLength = Infinity,justNumber} = this.props;
     if (type === 'number') {
-      if(value){value = +value;}
+      if(value){
+        value = +value;
+      }
     } 
+    else if(type === 'text' || value === 'textarea'){
+      if(value){
+        if(justNumber){
+          value = value.toString();
+          let lastChar = value[value.length - 1];
+          if(isNaN(+lastChar)){value = value.slice(0,value.length - 1)}
+        }
+        if(value.toString().length > maxLength){
+          value = value.toString().slice(0,maxLength);
+        }
+
+      }
+    }
     this.setState({value});
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {

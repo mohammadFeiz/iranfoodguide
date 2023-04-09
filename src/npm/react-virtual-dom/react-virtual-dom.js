@@ -192,3 +192,13 @@ export default class ReactVirtualDom extends Component {
   }
 }
 ReactVirtualDom.defaultProps = {gap:0,layout:{}};
+
+export function RVDRemoveV(selector,callback){
+  $(selector).animate({opacity:0},100).animate({height:0,padding:0},150,callback);
+}
+export function RVDRemoveH(selector,callback){
+  $(selector).animate({opacity:0},100).animate({width:0,padding:0},150,callback);
+}
+export function RVDRemove(selector,callback){
+  $(selector).animate({opacity:0},200,callback);
+}

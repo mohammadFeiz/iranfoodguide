@@ -30,7 +30,6 @@ class Radio extends Component {
     );
   }
 }
-
 class Tabs extends Component {
   static contextType = aioButtonContext;
   render(){
@@ -198,7 +197,7 @@ export default class AIOButton extends Component {
     }
     getOptions(){
       let {options,type = 'button',text} = this.props;
-      if(type === 'button' || type === 'checkbox'){return}
+      if(type === 'button' || type === 'checkbox' || type === 'file'){return}
       if(type === 'select' && !this.state.open){return;}
       this.tags = [];
       this.text = undefined;
@@ -295,12 +294,12 @@ export default class AIOButton extends Component {
           return ''
         }
       }
-      if(type === 'button'){return typeof text === 'function'?text():text}
+      if(type === 'button' || type === 'file'){return typeof text === 'function'?text():text}
       if(type === 'multiselect'){return typeof text === 'function'?text():text}
     }
     getSubtext(){
       let {type,subtext,value} = this.props;
-      if(type === 'button'){return typeof subtext === 'function'?subtext():subtext}
+      if(type === 'button' || type === 'file'){return typeof subtext === 'function'?subtext():subtext}
       if(type === 'select'){return typeof subtext === 'function'?subtext(value):subtext}
       if(type === 'multiselect'){return typeof subtext === 'function'?subtext(value):subtext}
       
@@ -327,8 +326,8 @@ export default class AIOButton extends Component {
       return (
         <aioButtonContext.Provider value={context}>
             {type === 'multiselect' && <Multiselect dom={this.dom} dataUniqId={dataUniqId} tags={this.tags} text={text} subtext={subtext} caret={caret === undefined?true:caret} style={style}/>}
-            {type === 'button' && <Button dom={this.dom} dataUniqId={dataUniqId} text={text} subtext={subtext} caret={caret === undefined?(popOver?true:false):caret}/>}
-            {type === 'select' && <Button dom={this.dom} dataUniqId={dataUniqId} text={text} subtext={subtext} caret={caret === undefined?true:caret}/>}
+            {(type === 'button' || type === 'file') && <Button dom={this.dom} dataUniqId={dataUniqId} text={text} subtext={subtext} caret={caret === undefined?(popOver?true:false):caret}/>}
+            {type === 'select' && <Button dom={this.dom} dataUniqId={dataUniqId} text={text} subtext={subtext} caret={caret === undefined?true:caret} type={type}/>}
             {(type === 'radio') && <Radio dom={this.dom} options={options}/>}
             {(type === 'tabs') && <Tabs dom={this.dom} options={options}/>}
             {type === 'checkbox' && <Checkbox dom={this.dom} {...this.props}/>}
@@ -375,21 +374,29 @@ class Checkbox extends Component{
 class Button extends Component{
   static contextType = aioButtonContext;
   render(){
-    let {onButtonClick,before,gap,attrs = {},rtl,caretAttrs,badge,badgeAttrs,after,disabled,className,style} = this.context;
+    let {type,onButtonClick,before,gap,attrs = {},rtl,caretAttrs,badge,badgeAttrs,after,disabled,className,style,onChange} = this.context;
     let {dataUniqId,text,subtext,caret,dom} = this.props;
     let props = {
       tabIndex:0,...attrs,style,onClick:onButtonClick,'data-uniq-id':dataUniqId,disabled,ref:dom,
       className:`${ABCLS.button} ${rtl?'rtl':'ltr'}${className?' ' + className:''}`,
     }
-    return (
-      <button {...props}>
+    let inside = (
+      <>
         {before !== undefined && <Before before={before} gap={gap}/>} 
         {text !== undefined && <Text text={text} subtext={subtext}/>}
         {caret !== false && <Caret caret={caret} attrs={caretAttrs}/>} 
         {after !== undefined && <After after={after} gap={gap} caret={caret}/>} 
         {badge !== undefined && <Badge badge={badge} attrs={badgeAttrs}/>}
-      </button>
+      </>
     )
+    if(type === 'file'){
+      return (
+        <label {...props}>
+          <input type='file' style={{display:'none'}} multiple onChange={(e)=>onChange(e.target.files)}/>
+          {inside}
+        </label>)
+    }
+    return (<button {...props}>{inside}</button>)
   }
 }
 function Text(props){

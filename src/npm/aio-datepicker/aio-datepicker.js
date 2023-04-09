@@ -1,6 +1,6 @@
 import React,{Component,createContext} from 'react';
 import AIOButton from './../../npm/aio-button/aio-button';
-import dateCalculator from './../../npm/aio-date/aio-date';
+import AIODate from './../aio-date/aio-date';
 import './index.css';
 export default class GAH extends Component{
   constructor(props){
@@ -11,7 +11,7 @@ export default class GAH extends Component{
   getYears(){
     let start,end;
     let {calendarType,startYear,endYear} = this.props;
-    let today = dateCalculator().getToday({calendarType});
+    let today = AIODate().getToday({calendarType});
     if(typeof startYear === 'string' && startYear.indexOf('-') === 0){
       start = today[0] - parseInt(startYear.slice(1,startYear.length));
     }
@@ -27,7 +27,7 @@ export default class GAH extends Component{
   validateValue(value){
     let {years} = this.state;
     let Value,{unit,calendarType} = this.props;
-    let {getToday,getMonthDaysLength,getSplitter} = dateCalculator();
+    let {getToday,getMonthDaysLength,getSplitter} = AIODate();
     let today = getToday({calendarType});
     let splitter = '/';
     if(typeof value === 'string' && value){
@@ -87,7 +87,7 @@ class GAHBase extends Component{
     let {splitter} = this.state;
     let [year = this.state.year,month = this.state.month || 1,day = this.state.day || 1,hour = this.state.hour || 0] = o;
     var {calendarType,years} = this.props;
-    let {getWeekDay,getToday,getWeekDays,getMonths,toGregorian,isLess,isGreater,isEqual,isBetween} = dateCalculator();
+    let {getWeekDay,getToday,getWeekDays,getMonths,toGregorian,isLess,isGreater,isEqual,isBetween} = AIODate();
     var {weekDay,index:weekDayIndex} = getWeekDay({date:[year,month,day]});
     var {weekDay:monthFirstDayWeekDay} = getWeekDay({date:[year,month,1]});
     var today = getToday({calendarType});
@@ -152,7 +152,7 @@ class GAHBase extends Component{
     if(this.lastSwipe !== undefined && dy === this.lastSwipe){return}
     this.lastSwipe = dy;
     var {unit,disabled} = this.props;
-    let {getByOffset,isMatch} = dateCalculator();
+    let {getByOffset,isMatch} = AIODate();
     if(!this.startSwipe){
       let {year,month,day,hour} = this.state;
       this.startSwipe = [year,month,day,hour]
@@ -173,7 +173,7 @@ class GAHBase extends Component{
     }
     if(unit === 'hour'){return editValue(year + splitter + month + splitter + day + ' ' + hour + ':00')}
     if(unit === 'day'){return editValue(year + splitter + month + splitter + day)}
-    if(unit === 'month'){return editValue(dateCalculator().getMonths({calendarType})[month - 1] + ' ' + year);}
+    if(unit === 'month'){return editValue(AIODate().getMonths({calendarType})[month - 1] + ' ' + year);}
   }
   render(){
     this.update = false;
@@ -271,7 +271,7 @@ class GAHFooter extends Component{
   static contextType = GAHContext;
   onToday(){
     var {unit,calendarType,SetState} = this.context;
-    var [year,month,day] = dateCalculator().getToday({calendarType});
+    var [year,month,day] = AIODate().getToday({calendarType});
     if(unit === 'month'){day = 1;}
     SetState({activeYear:year,activeMonth:month,activeDay:day});
   }
@@ -328,9 +328,9 @@ class GAHBodyDay extends Component{
   render(){
     let {calendarType,theme = []} = this.context;
     let {active} = this.props;
-    let firstDayWeekDayIndex = dateCalculator().getWeekDay({date:[active[0],active[1],1]}).index;
-    var daysLength = dateCalculator().getMonthDaysLength({date:[active[0],active[1]]});
-    let weekDays = dateCalculator().getWeekDays({calendarType});
+    let firstDayWeekDayIndex = AIODate().getWeekDay({date:[active[0],active[1],1]}).index;
+    var daysLength = AIODate().getMonthDaysLength({date:[active[0],active[1]]});
+    let weekDays = AIODate().getWeekDays({calendarType});
     return (<>
       {weekDays.map((name,i)=><GAHCell_Weekday key={'weekday' + i} name={name}/>)}
       {new Array(firstDayWeekDayIndex).fill(0).map((o,i)=><div key={'space' + i} className='gah-space gah-cell' style={{background:theme[1]}}></div>)}
@@ -364,7 +364,7 @@ class GAHCell extends Component{
   render(){
     let {unit,SetState,theme = [],onChange,dateAttrs,disabled,calendarType,getDateDetails,year,month,day,hour,value} = this.context;
     let {dateArray} = this.props;
-    let {isEqual,isMatch,getMonths,getToday} = dateCalculator();
+    let {isEqual,isMatch,getMonths,getToday} = AIODate();
     let isActive = !value?false:isEqual(dateArray,[year,month,day,hour])
     let isToday = isEqual(dateArray,getToday({calendarType}))
     let isDisabled = typeof disabled === 'boolean'?disabled:isMatch({date:dateArray,matchers:disabled})
@@ -400,13 +400,13 @@ class GAHHeader extends Component{
   }
   getMonths([activeYear,activeMonth,activeDay]){
     let {calendarType,SetState} = this.context;
-    let props = {value:activeMonth,options:dateCalculator().getMonths({calendarType}),optionText:calendarType === 'gregorian'?'option.slice(0,3)':'option',optionValue:'index + 1',
+    let props = {value:activeMonth,options:AIODate().getMonths({calendarType}),optionText:calendarType === 'gregorian'?'option.slice(0,3)':'option',optionValue:'index + 1',
     onChange:(activeMonth)=>{SetState({activeMonth})}}
     return (<GAHHeaderDropdown {...props}/>)
   }
   getDays([activeYear,activeMonth,activeDay]){
     let {calendarType,SetState} = this.context;
-    let daysLength = dateCalculator().getMonthDaysLength({date:[activeYear,activeMonth]});
+    let daysLength = AIODate().getMonthDaysLength({date:[activeYear,activeMonth]});
     let options = new Array(daysLength).fill(0).map((o,i)=>{return {text:(i + 1).toString(),value:i + 1}})
     let props = {value:activeDay,options,onChange:(activeDay)=>SetState({activeDay})}    
     return (<GAHHeaderDropdown {...props}/>)
@@ -460,7 +460,7 @@ class GAHHeaderArrow extends Component{
   change(offset,[activeYear,activeMonth,activeDay]){
     let {unit,years,SetState} = this.context;
     let date = [activeYear,activeMonth,activeDay]
-    let next = dateCalculator().getByOffset({date,offset,unit:{'hour':'day','day':'month','month':'year'}[unit]})
+    let next = AIODate().getByOffset({date,offset,unit:{'hour':'day','day':'month','month':'year'}[unit]})
     if(next[0] > years[years.length - 1]){return}
     if(next[0] < years[0]){return}
     if(unit === 'month'){SetState({activeYear:next[0]})}

@@ -21,7 +21,7 @@ export default class Sefareshe_ghaza extends Component {
         let {addresses,addressId} = profile;
         let content = await apis({
             api:'safheye_sefaresh',
-            errorMessage:'دریافت اطلاعات صفحه سفارش غذا با خطا روبرو شد',
+            name:'دریافت اطلاعات صفحه سفارش غذا',
             validation:[
                 (o)=>{
                     if(o.type === 'Categories'){

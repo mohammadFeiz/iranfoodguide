@@ -13,7 +13,8 @@ import shandiz_image from './images/shandiz_image.png';
 import pasta_alferedo from './images/pasta_alferedo.png';
 import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
-export default function Apis({getState,token,getDateAndTime,showAlert,AIOServiceShowAlert,baseUrl}){
+import { helper } from './npm/aio-service/aio-service';
+export default function Apis({getState,token,showAlert,AIOServiceShowAlert,baseUrl}){
     return {
         async sabte_shomare_tamas(shomare_tamas){
     
@@ -346,6 +347,34 @@ return resdata;
                     ]
                 }
             ]
+        },
+        async restoran_haye_mahboob(){
+            return [
+                {
+                    name:'رستوران شاندیز گالریا',
+                    image:shandiz_image,
+                    logo:shandiz_logo,
+                    rate:3.4,
+                    distance:3,
+                    time:35,
+                    tags:['ایرانی ','سنتی','فست فود','ملل']
+                },
+                
+
+            ]
+        },
+        async tarikhche_ye_kife_pool(){
+            let data = [
+                {date:new Date().getTime(),amount:'123456789',type:'in'},
+                {date:new Date().getTime(),amount:'123456789',type:'out'},
+                {date:new Date().getTime(),amount:'123456789',type:'in'},
+                {date:new Date().getTime(),amount:'123456789',type:'out'},
+                {date:new Date().getTime(),amount:'123456789',type:'in'},   
+            ]
+            return data.map((o)=>{
+                let {date,time} = helper.getDateAndTime(o.date)
+                return {...o,date,time}
+            })
         }
     }
 }
