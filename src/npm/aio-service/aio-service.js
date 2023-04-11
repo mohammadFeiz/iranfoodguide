@@ -33,22 +33,27 @@ export let helper = {
     }})
   },
   getDateAndTime(value){
-    let res = AIODate().toJalali({date:value});
-    let [year,month,day,hour,minute] = res;
-    let date = `${year}/${month}/${day}`;
-    let time = `${hour}:${minute}`;
-    let delta = AIODate().getDelta({date:value});
-    let remainingTime = delta.type === 'passed'?{day:0,hour:0,minute:0,second:0}:delta;
-    let passedTime = delta.type === 'remaining'?{day:0,hour:0,minute:0,second:0}:delta;
-    return {date,time,dateAndTime:`${date} ${time}`,remainingTime,passedTime}
+    try{
+      let res = AIODate().toJalali({date:value});
+      let [year,month,day,hour,minute] = res;
+      let date = `${year}/${month}/${day}`;
+      let time = `${hour}:${minute}`;
+      let delta = AIODate().getDelta({date:value});
+      let remainingTime = delta.type === 'passed'?{day:0,hour:0,minute:0,second:0}:delta;
+      let passedTime = delta.type === 'remaining'?{day:0,hour:0,minute:0,second:0}:delta;
+      return {date,time,dateAndTime:`${date} ${time}`,remainingTime,passedTime}
+    }
+    catch{
+      return {date:'',time:'',dateAndTime:'',remainingTime:0,passedTime:0}
+    }
   },
   arabicToFarsi(value){
     try{return value.replace(/ك/g, "ک").replace(/ي/g, "ی");}
     catch{return value}
   }
 }
-export default function services({getState,apis,token,loader,id,getResponses = ()=>{return {}},getError = ()=>{}}) {
-  if(typeof id !== 'string'){console.error('aio-service => id should be an string, but id is:',id); return;}
+export default function services({getState,apis = ()=>{return {}},token,loader,id,getResponses = ()=>{return {}},getError = ()=>{}}) {
+  if(typeof id !== 'string'){console.error('aio-storage => id should be an string, but id is:',id); return;}
   if(token){Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;}
   return Service(apis({Axios,getState,token}),loader,id,getResponses(),getError)
 }
@@ -71,7 +76,7 @@ function AIOServiceLoading(id){
   `)
 }
 
-function Service(services,loader,id,getResponses,getError) {
+function Service(services = ()=>{return {}},loader,id,getResponses,getError) {
   function validate(result,{validation,api,def,errorMessage,name,successMessage}){
     if(validation){
       let message = JSONValidator(result,validation);
@@ -90,14 +95,14 @@ function Service(services,loader,id,getResponses,getError) {
       if(successMessage){
         successMessage = typeof successMessage === 'function'?successMessage():successMessage
         if(successMessage === true){successMessage = ''}
-        helper.showAlert({type:'success',text:`${name} با موفقیت انجام شد`,subtext:successMessage});
+        helper.showAlert({type:'success',text:`${typeof name === 'function'?name():name} با موفقیت انجام شد`,subtext:successMessage});
       }
     }
     return result;
   }
   
   async function fetchData(obj){
-    let {api,parameter,cache,loading,loadingParent,cacheName,def,getResult} = obj;
+    let {api,parameter,cache,loading = true,loadingParent = 'body',cacheName,def,getResult} = obj;
     let result;
     if (cache) {
       if(isNaN(cache)){console.error('aio-storage => cache should be a number, but cache is:',cache); return;}
@@ -109,12 +114,11 @@ function Service(services,loader,id,getResponses,getError) {
     try{
       let response;
       if(getResponses[api]){
-        response = await getResponses[api](parameter);
         try{
-          response = getError(response,api) || response;
+          response = await getResponses[api](parameter);
         }
         catch(err){
-          response = err.message
+          response = getError(err,api) || response;
         }
       }
       if(typeof response === 'string'){result = response;}

@@ -92,7 +92,11 @@ export default function Apis({getState,token,showAlert,AIOServiceShowAlert,baseU
                     description:'',
                     phone:'02188050006'
                   }
-                ]
+                ],
+                kife_pool:{
+                    mojoodi:12343546567,
+                    tarikhche:[]
+                }
             }
         },
         async setProfile(profile){
@@ -118,16 +122,16 @@ export default function Apis({getState,token,showAlert,AIOServiceShowAlert,baseU
                 },
             ]
         },
-        async addAddress(model){
+        async addressForm({model,type}){
             //درصورت خطا ریترن متن خطا
-            return {
-                ...model,
-                id:'address' + Math.random()
+            if(type === 'add'){
+                return {
+                    ...model,
+                    id:'address' + Math.random()
+                }
             }
-        },
-        async editAddress(model){
-            //درصورت خطا ریترن متن خطا
-            return model
+            else {return model}
+            
         },
         async safheye_sefaresh(){
 
@@ -363,7 +367,10 @@ return resdata;
 
             ]
         },
-        async tarikhche_ye_kife_pool(){
+        async mojoodiye_kife_pool(){
+            return 123245666
+        },
+        async tarikhcheye_kife_pool(){
             let data = [
                 {date:new Date().getTime(),amount:'123456789',type:'in'},
                 {date:new Date().getTime(),amount:'123456789',type:'out'},

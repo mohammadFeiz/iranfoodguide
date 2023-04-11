@@ -8,6 +8,8 @@ import Map from './../npm/map/map';
 import Timer from "../components/timer";
 import AppContext from "../app-context";
 import Card from "../card/card";
+import PopupHeader from "../components/popup-header";
+import Kife_pool from "../components/kife-pool/kife-pool";
 export default class Profile extends Component {
     static contextType = AppContext;
     constructor(props) {
@@ -24,6 +26,29 @@ export default class Profile extends Component {
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'تنظیمات' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'قوانین' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'خروج' }
+            ]
+        }
+    }
+    kife_pool_layout(){
+        let { mojoodiye_kife_pool,rsa_actions } = this.context;
+        return {
+            onClick:()=>{
+                rsa_actions.addPopup({ header: false, body: () => <Kife_pool /> })
+            },
+            column: [
+                { flex: 1 },
+                {
+                    align: 'v', gap: 3,
+                    style: { border: '1px solid' },
+                    className: 'h-24 br-12 p-h-6',
+                    row: [
+                        { html: 'کیف پول', className: 'fs-10' },
+                        { html: splitNumber(mojoodiye_kife_pool), className: 'fs-12 bold' },
+                        { html: 'تومان', className: 'fs-10' },
+                        { html: <Icon path={mdiPlusCircle} size={0.7} /> }
+                    ]
+                },
+                { flex: 1 }
             ]
         }
     }
@@ -61,23 +86,7 @@ export default class Profile extends Component {
                         { flex: 1 }
                     ]
                 },
-                {
-                    column: [
-                        { flex: 1 },
-                        {
-                            align: 'v', gap: 3,
-                            style: { border: '1px solid' },
-                            className: 'h-24 br-12 p-h-6',
-                            row: [
-                                { html: 'کیف پول', className: 'fs-10' },
-                                { html: splitNumber(profile.wallet), className: 'fs-12 bold' },
-                                { html: 'تومان', className: 'fs-10' },
-                                { html: <Icon path={mdiPlusCircle} size={0.7} /> }
-                            ]
-                        },
-                        { flex: 1 }
-                    ]
-                }
+                this.kife_pool_layout()
             ]
         }
     }
@@ -176,7 +185,7 @@ class Ettelaate_shakhsi extends Component {
                 layout={{
                     className: 'app-popup',
                     column: [
-                        { html: <ProfileHeader title='اطلاعات شخصی' /> },
+                        { html: <PopupHeader title='اطلاعات شخصی' /> },
                         this.form_layout(),
                         this.footer_layout()
                     ]
@@ -201,9 +210,9 @@ class Address_ha extends Component {
         let {SetState,profile,rsa_actions,apis} = this.context;
         let {addresses} = this.state;
         await apis({
-            api:type + 'Address',
+            api:'addressForm',
             parameter:model,
-            callback(){
+            callback:()=>{
                 if(type === 'add'){addresses.push(model);}
                 else{addresses = addresses.map((o)=>model.id === o.id?model:o)}
                 profile.addresses = addresses
@@ -211,7 +220,7 @@ class Address_ha extends Component {
                 this.setState({addresses})
                 rsa_actions.removePopup()
             },
-            name:()=>`${type === 'add'?'افزودن':'ویرایش'} آدرس با خطا روبرو شد`,
+            name:()=>`${type === 'add'?'افزودن':'ویرایش'} آدرس `,
             successMessage:true
         })
     }
@@ -269,7 +278,7 @@ class Address_ha extends Component {
                 layout={{
                     className: 'app-popup',
                     column: [
-                        { html: <ProfileHeader title='آدرس ها' /> },
+                        { html: <PopupHeader title='آدرس ها' /> },
                         this.add_layout(),
                         this.cards_layout(),
 
@@ -361,7 +370,7 @@ class Address_form extends Component {
                 layout={{
                     className:'app-popup',
                     column: [
-                        { html: <ProfileHeader title={type === 'add' ? 'افزودن آدرس جدید' : 'ویرایش آدرس'} /> },
+                        { html: <PopupHeader title={type === 'add' ? 'افزودن آدرس جدید' : 'ویرایش آدرس'} /> },
                         this.form_layout()
                     ]
                 }}
@@ -397,7 +406,7 @@ class Add_address_map extends Component {
                 layout={{
                     className:'app-popup',
                     column: [
-                        { html: <ProfileHeader title='افزودن آدرس از روی نقشه' /> },
+                        { html: <PopupHeader title='افزودن آدرس از روی نقشه' /> },
                         this.body_layout(),
 
                     ]
@@ -471,7 +480,7 @@ class Takhfif_ha extends Component{
                 layout={{
                     className: 'app-popup fs-12',
                     column: [
-                        { html: <ProfileHeader title='تخفیف ها' /> },
+                        { html: <PopupHeader title='تخفیف ها' /> },
                         this.cards_layout(),
 
                     ]
@@ -498,7 +507,7 @@ class Restoran_haye_mahboob extends Component{
                 layout={{
                     style:{background:'#fff',height:'100%'},
                     column:[
-                        {html:<ProfileHeader title='رستوران های محبوب'/>},
+                        {html:<PopupHeader title='رستوران های محبوب'/>},
                         {
                             flex:1,gap:24,className:'ofy-auto',
                             column:items.map((o)=>{
@@ -508,29 +517,6 @@ class Restoran_haye_mahboob extends Component{
                     ]
                 }}
             />          
-        )
-    }
-}
-
-class ProfileHeader extends Component {
-    static contextType = AppContext;
-    onClose() {
-        let { rsa_actions } = this.context;
-        rsa_actions.removePopup();
-    }
-    render() {
-        let { title } = this.props;
-        return (
-            <RVD
-                layout={{
-                    style: { height: 48, background: '#fff' },
-                    row: [
-                        { size: 48, html: <Icon path={mdiChevronRight} size={1} />, align: 'vh', onClick: () => this.onClose() },
-                        { flex: 1, html: title, className: 'fs-18 bold', align: 'vh' },
-                        { size: 48 }
-                    ]
-                }}
-            />
         )
     }
 }

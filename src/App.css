@@ -63,3 +63,9 @@ button,input{
   border:none;
   border-radius:4px;
 }
+
+.theme-link{
+  color:midnightblue;
+  font-size:14px;
+  font-weight: bold;
+}

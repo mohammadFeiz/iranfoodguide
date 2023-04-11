@@ -18,7 +18,8 @@ export default class App extends Component{
       comming_soon:false,
       profile:{},
       discounts:[],
-      SetState:(obj)=>this.setState(obj)
+      SetState:(obj)=>this.setState(obj),
+      mojoodiye_kife_pool:0
     }
     this.state.apis = AIOService({getState:()=>this.state,apis,id:'iranfoodguid'})
   }
@@ -28,6 +29,14 @@ export default class App extends Component{
       api:'getProfile',
       callback:(res)=>this.setState({profile:res}),
       name:'دریافت اطلاعات پروفایل'
+    });
+  }
+  async getKife_pool(){
+    let {apis} = this.state;
+    await apis({
+      api:'mojoodiye_kife_pool',
+      callback:(res)=>this.setState({mojoodiye_kife_pool:res}),
+      name:'دریافت موجودی کیف پول'
     });
   }
   async get_takhfif_ha(){
@@ -40,6 +49,7 @@ export default class App extends Component{
   }
   componentDidMount(){
     this.getProfile();
+    this.getKife_pool();
     this.get_takhfif_ha();
   }
   render(){
