@@ -430,7 +430,7 @@ class Takhfif_ha extends Component{
         return {
             flex: 1, className: 'ofy-auto',
             column: takhfif_ha.map((o) => {
-                let { amounts,description,code,endDate,order } = o;
+                let { amounts,description,code,expirationDate,order } = o;
                 return {
                     className: 'm-12 m-t-0 br-12 p-h-12',
                     style: { border: '1px solid #aaa' },
@@ -466,7 +466,7 @@ class Takhfif_ha extends Component{
                             row:[
                                 {html:code,className:'bold'},
                                 {flex:1},
-                                {html:<Timer endDate={endDate}/>}
+                                {html:<Timer endDate={expirationDate}/>}
                             ]
                         }
                     ]
