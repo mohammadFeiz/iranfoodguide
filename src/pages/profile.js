@@ -171,7 +171,7 @@ class Ettelaate_shakhsi extends Component {
                     let {model} = this.state;
                     apis({
                         api:'setProfile',
-                        parameter:model,
+                        parameter:{profile:model,registered:true},
                         callback:()=>rsa_actions.removePopup(),
                         name:'ثبت اطلاعات پروفایل'
                     })
