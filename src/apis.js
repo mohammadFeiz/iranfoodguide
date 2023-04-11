@@ -70,7 +70,7 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
 
 
         },
-        async getProfile() {
+        async getProfile(PersonId = 10011) {
             //درصورت خطا ریترن متن خطا
             return {
                 firstname: 'احمد',//نام
@@ -101,8 +101,6 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
 
             debugger
 
-            registered = false;
-
             if (registered === false) {
 
                 let url = 'https://localhost:7203/api/People/CreateProfile';
@@ -123,7 +121,6 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
                         ]
                     });
 
-
                 if (res.data.IsSuccess) { return true }
                 return res.data.Message
 
@@ -131,7 +128,29 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
             }
             else {
 
-                return null;
+                            profile.id=10011;
+
+                let url = 'https://localhost:7203/api/People/UpdateProfile';
+                // let url='https://localhost:7203/api/People/AddMobileNumber';
+
+
+                let res = await Axios.post(url,
+                    {
+                        "Id":profile.id,
+                        "firstName": profile.firstname,//نام
+                        "lastName": profile.lastname,
+                        "email": profile.email,
+                        "sheba": profile.sheba,
+                        "mobileNumbers": [
+                            {
+                                "mobileNumber": profile.mobile,
+                                "isDefault": true
+                            }
+                        ]
+                    });
+
+                if (res.data.IsSuccess) { return true }
+                return res.data.Message
             }
 
 
@@ -174,13 +193,31 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
                 },
             ]
         },
-        async addressForm({ model, type }) {
+        async addressForm({ model, type,PersonId = 10011}) {
             //درصورت خطا ریترن متن خطا
+
+            debugger
             if (type === 'add') {
-                return {
-                    ...model,
-                    id: 'address' + Math.random()
-                }
+                let url = 'https://localhost:7203/api/People/CreatePeopleAddress';
+                // let url='https://localhost:7203/api/People/AddMobileNumber';
+                
+
+                let res = await Axios.post(url,
+                    {
+                            "personId": PersonId,
+                            "address": {
+                              "fullAddress": model.address,
+                              "latitude": model.latitude,
+                              "longitude": model.longitude,
+                              "phoneNumber": model.phone
+                            },
+                            "title": model.title
+                    });
+
+                    debugger
+
+                if (res.data.IsSuccess) { return true }
+                return res.data.Message
             }
             else { return model }
 
