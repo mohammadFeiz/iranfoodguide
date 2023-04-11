@@ -99,10 +99,67 @@ export default function Apis({getState,token,showAlert,AIOServiceShowAlert,baseU
                 }
             }
         },
-        async setProfile(profile){
+        async setProfile({profile,registered}){
             
+            debugger
+
+            registered=false;
+
+            if(registered===false)
+            {
+
+                let url='https://localhost:7203/api/People/CreateProfile';
+                // let url='https://localhost:7203/api/People/AddMobileNumber';
+     
+
+                     let res = await Axios.post(url,
+                     {
+                            "firstName": profile.firstname,//نام
+                            "lastName": profile.lastname,
+                            "email": profile.email,
+                            "sheba": profile.sheba,
+                            "mobileNumbers": [
+                              {
+                                "mobileNumber": profile.mobile,
+                                "isDefault": true
+                              }
+                            ]
+                     });
+    
+    
+                     let resdata=res.data.data;
+    
+                     debugger
+                return resdata;
+
+            }
+            else
+            {
+
+                return null;
+            }
+        
+
         },
-        async takhfif_ha(){
+        async takhfif_ha(PersonId=10010){
+
+            
+            let url='https://localhost:7203/api/PersonDiscount/Search';
+            // let url='https://localhost:7203/api/People/AddMobileNumber';
+ 
+                 let res = await Axios.post(url,
+                 {
+                    "PersonId":PersonId
+
+                 });
+
+
+                 let resdata=res.data.data.items;
+
+return resdata;
+
+
+            
             return [
                 {
                     amounts:[{percent:10,amount:100000}],description:'تخفیف خرید شیرینی',
