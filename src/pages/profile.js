@@ -211,7 +211,7 @@ class Address_ha extends Component {
         let {addresses} = this.state;
         await apis({
             api:'addressForm',
-            parameter:model,
+            parameter:{model,type},
             callback:()=>{
                 if(type === 'add'){addresses.push(model);}
                 else{addresses = addresses.map((o)=>model.id === o.id?model:o)}
