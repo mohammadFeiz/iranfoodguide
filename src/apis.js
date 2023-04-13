@@ -193,7 +193,7 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
                 },
             ]
         },
-        async addressForm({ model, type,PersonId = 10011}) {
+        async addressForm({ model, type,PersonId = 10011,addressId=3}) {
             //درصورت خطا ریترن متن خطا
 
             debugger
@@ -219,7 +219,29 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
                 if (res.data.IsSuccess) { return true }
                 return res.data.Message
             }
-            else { return model }
+            else 
+            {
+                
+                let url = 'https://localhost:7203/api/People/UpdatePeopleAddress';
+                // let url='https://localhost:7203/api/People/AddMobileNumber';
+                
+                let res = await Axios.post(url,
+                    {
+                             "Id":addressId,
+                            "personId": PersonId,
+                            "address": {
+                              "fullAddress": model.address,
+                              "latitude": model.latitude,
+                              "longitude": model.longitude,
+                              "phoneNumber": model.phone
+                            },
+                            "title": model.title
+                    });
+
+                if (res.data.IsSuccess) { return model }
+                return res.data.Message
+            
+            }
 
         },
         async safheye_sefaresh() {
@@ -441,7 +463,22 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
                 }
             ]
         },
-        async restoran_haye_mahboob() {
+        async restoran_haye_mahboob(PersonId = 10011) {
+
+            let url = 'https://localhost:7203/api/RestaurantFavoruite/Search';
+            // let url='https://localhost:7203/api/People/AddMobileNumber';
+            
+
+            let res = await Axios.post(url,
+                {
+                        "personId": PersonId,
+                });
+
+                debugger
+
+            if (res.data.IsSuccess) { return res.data.data.items }
+            return res.data.Message;
+
             return [
                 {
                     name: 'رستوران شاندیز گالریا',
