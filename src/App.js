@@ -45,17 +45,29 @@ export default class App extends Component{
           return response.data.IsSuccess || 'error'
         }}
         onInterNumber={async (number)=>{//return boolean
-          let response = await Axios.get(`https://localhost:7203/api/Users/GenerateUserCode/MobileNumber=${number}`)
-          this.setState({registered:!!response.data.Data.Status})
-          return response.data.IsSuccess
+          let response = await Axios.post(`https://localhost:7203/Users/GenerateUserCode`,{mobileNumber:number})
+
+          let registered=response.data.data.isRegistered;
+          debugger
+          this.setState({ registered});
+
+          if(response.data.isSuccess)
+          return true;
+          else
+          return response.data.message;
+
+
         }}
         onInterCode={async ({number,code,model})=>{//return string or false
-          let {FirstName,LastName,Email} = model;
-          code = code.toString();
-          let body = { mobile: number,OtpCode:code,FirstName,LastName,Email }
-          let response = await Axios.post('http://10.10.10.22:8081/sso/api/v1/user/twofactorauthconfirm',body);
-          if(response.data.IsSuccess){return response.data.Data.access_token}
-          return false
+          let response = await Axios.post('https://localhost:7203/Users/TokenWithCode',{
+            mobileNumber:number,
+            code:code.toString()
+          });
+          debugger
+          if(response.data.isSuccess)
+          return response.data.access_token;
+          else
+          return false;
         }}
         // registerFields={[
         //   {label:'نام',field:'FirstName',type:'text',icon:<Icon path={mdiAccountBoxOutline} size={1}/>},
