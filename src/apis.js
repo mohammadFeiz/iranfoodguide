@@ -13,65 +13,85 @@ import shandiz_image from './images/shandiz_image.png';
 import pasta_alferedo from './images/pasta_alferedo.png';
 import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
-import { helper } from './npm/aio-service/aio-service';
-export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, baseUrl }) {
+export function getResponse(){
     return {
         async sabte_shomare_tamas(shomare_tamas) {
-
-            //نمونه درخواست get
-            //let res = await Axios.get(url);
-            //نمونه درخواست post
             let url = 'https://iranfoodguide.ir/api/People/AddMobileNumber';
-            // let url='https://localhost:7203/api/People/AddMobileNumber';
-
-            try {
-                let res = await Axios.post(url,
-                    {
-                        "PersonId": 1,
-                        "MobileNumber": shomare_tamas,
-                        "IsDefault": true
-                    });
-
-                if (res.data.isSuccess) {
-                    AIOServiceShowAlert({
-                        type: 'success',
-                        text: 'شماره شما با موفقیت ثبت شد',
-                        subtext: res.data.Message
-                    })
-                    return true
-                }
-                else {
-                    AIOServiceShowAlert({
-                        type: 'error',
-                        text: 'شماره ثبت نشد',
-                        subtext: res.data.Message
-                    })
-                    return false
-                }
+            let body = {
+                "PersonId": 1,
+                "MobileNumber": shomare_tamas,
+                "IsDefault": true
             }
-            catch (error) {
-
-                if (error.code == 'ERR_NETWORK') {
-                    AIOServiceShowAlert({
-                        type: 'error',
-                        text: 'شماره ثبت نشد',
-                        subtext: 'مشکل برقراری اینترنت'
-                    })
-                }
-                else {
-                    AIOServiceShowAlert({
-                        type: 'error',
-                        text: 'شماره ثبت نشد',
-                        subtext: error.response.data.Message
-                    })
-                }
-                return false
-            }
-
-
+            let response = await Axios.post(url,body);
+            return {response}
         },
-        async getProfile(PersonId = 10011) {
-            //درصورت خطا ریترن متن خطا
+        async setProfile({ profile, registered }) {
+            let url = `https://localhost:7203/api/People/${registered?'UpdateProfile':'CreateProfile'}`
+            let body = {
+                "Id":profile.id,
+                "firstName": profile.firstname,//نام
+                "lastName": profile.lastname,
+                "email": profile.email,
+                "sheba": profile.sheba,
+                "mobileNumbers": [
+                    {
+                        "mobileNumber": profile.mobile,
+                        "isDefault": true
+                    }
+                ]
+            }
+            let response = await Axios.post(url,body);
+            return {response}
+        },
+        async takhfif_ha(PersonId = 10010) {
+            let url = 'https://localhost:7203/api/PersonDiscount/Search';
+            let body = {"PersonId": PersonId}
+            let response = await Axios.post(url,body);
+            let result = response.data.data.items;
+            return {response,result};
+        },
+        async addressForm({ model, type,PersonId = 10011}) {
+            if (type === 'add') {
+                let url = 'https://localhost:7203/api/People/CreatePeopleAddress';
+                let body = {
+                    "personId": PersonId,
+                    "address": {
+                      "fullAddress": model.address,
+                      "latitude": model.latitude,
+                      "longitude": model.longitude,
+                      "phoneNumber": model.phone
+                    },
+                    "title": model.title
+                }
+                let response = await Axios.post(url,body);
+                return {response}
+            }
+            else { 
+
+            }
+        },
+        async safheye_sefaresh() {
+            let url = 'https://localhost:7203/api/PageLayout/GetListOfFoodDelivery';
+            let body = {};
+            let response = await Axios.post(url,body);
+            let result = response.data.data;
+            return {response,result};
+        },
+        async restoran_haye_mahboob() {
+            return {mock:true}   
+        },
+        async mojoodiye_kife_pool() {
+            return {mock:true}
+        },
+        async tarikhcheye_kife_pool() {
+           return {mock:true} 
+        }
+    }
+}
+
+export function getMock({helper}){
+    return {
+        async getProfile() {
             return {
                 firstname: 'احمد',//نام
                 lastname: 'بهرامی',//نام خانوادگی
@@ -97,83 +117,7 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
                 }
             }
         },
-        async setProfile({ profile, registered }) {
-
-            debugger
-
-            if (registered === false) {
-
-                let url = 'https://localhost:7203/api/People/CreateProfile';
-                // let url='https://localhost:7203/api/People/AddMobileNumber';
-
-
-                let res = await Axios.post(url,
-                    {
-                        "firstName": profile.firstname,//نام
-                        "lastName": profile.lastname,
-                        "email": profile.email,
-                        "sheba": profile.sheba,
-                        "mobileNumbers": [
-                            {
-                                "mobileNumber": profile.mobile,
-                                "isDefault": true
-                            }
-                        ]
-                    });
-
-                if (res.data.IsSuccess) { return true }
-                return res.data.Message
-
-
-            }
-            else {
-
-                            profile.id=10011;
-
-                let url = 'https://localhost:7203/api/People/UpdateProfile';
-                // let url='https://localhost:7203/api/People/AddMobileNumber';
-
-
-                let res = await Axios.post(url,
-                    {
-                        "Id":profile.id,
-                        "firstName": profile.firstname,//نام
-                        "lastName": profile.lastname,
-                        "email": profile.email,
-                        "sheba": profile.sheba,
-                        "mobileNumbers": [
-                            {
-                                "mobileNumber": profile.mobile,
-                                "isDefault": true
-                            }
-                        ]
-                    });
-
-                if (res.data.IsSuccess) { return true }
-                return res.data.Message
-            }
-
-
-        },
-        async takhfif_ha(PersonId = 10010) {
-
-
-            let url = 'https://localhost:7203/api/PersonDiscount/Search';
-            // let url='https://localhost:7203/api/People/AddMobileNumber';
-
-            let res = await Axios.post(url,
-                {
-                    "PersonId": PersonId
-
-                });
-
-
-            let resdata = res.data.data.items;
-
-            return resdata;
-
-
-
+        async takhfif_ha(res) {
             return [
                 {
                     amounts: [{ percent: 10, amount: 100000 }], description: 'تخفیف خرید شیرینی',
@@ -193,69 +137,11 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
                 },
             ]
         },
-        async addressForm({ model, type,PersonId = 10011}) {
-            //درصورت خطا ریترن متن خطا
-
-            debugger
-            if (type === 'add') {
-                let url = 'https://localhost:7203/api/People/CreatePeopleAddress';
-                // let url='https://localhost:7203/api/People/AddMobileNumber';
-                
-
-                let res = await Axios.post(url,
-                    {
-                            "personId": PersonId,
-                            "address": {
-                              "fullAddress": model.address,
-                              "latitude": model.latitude,
-                              "longitude": model.longitude,
-                              "phoneNumber": model.phone
-                            },
-                            "title": model.title
-                    });
-
-                    debugger
-
-                if (res.data.IsSuccess) { return true }
-                return res.data.Message
-            }
-            else { return model }
-
-        },
-        async safheye_sefaresh() {
-
-            let url = 'https://localhost:7203/api/PageLayout/GetListOfFoodDelivery';
-            // let url='https://localhost:7203/api/People/AddMobileNumber';
-
-            let res = await Axios.post(url,
-                {
-
-                });
-
-
-            let resdata = res.data.data;
-
-            debugger
-            return resdata;
-
-
+        async safheye_sefaresh(res) {
             return [
                 {
                     type: 'billboard',
-                    items: [
-                        {
-                            src: frame210
-                        },
-                        {
-                            src: frame210
-                        },
-                        {
-                            src: frame210
-                        },
-                        {
-                            src: frame210
-                        }
-                    ]
+                    items: [{src: frame210},{src: frame210},{src: frame210},{src: frame210}]
                 },
                 {
                     type: 'categories',
@@ -275,22 +161,12 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
                     name: 'رستوران های تخفیف دار',
                     items: [
                         {
-                            name: 'رستوران شاندیز گالریا',
-                            image: shandiz_image,
-                            logo: shandiz_logo,
-                            rate: 3.4,
-                            distance: 3,
-                            time: 35,
-                            tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
+                            name: 'رستوران شاندیز گالریا',image: shandiz_image,logo: shandiz_logo,
+                            rate: 3.4,distance: 3,time: 35,tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
                         },
                         {
-                            name: 'رستوران شاندیز گالریا',
-                            image: shandiz_image,
-                            logo: shandiz_logo,
-                            rate: 3.4,
-                            distance: 3,
-                            time: 35,
-                            tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
+                            name: 'رستوران شاندیز گالریا',image: shandiz_image,logo: shandiz_logo,
+                            rate: 3.4,distance: 3,time: 35,tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
                         },
                         {
                             name: 'رستوران شاندیز گالریا', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
@@ -317,13 +193,8 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
                     ]
                 },
                 {
-                    type: 'slider',
-                    name: 'غذا های تخفیف دار',
-                    cardSize: { width: 160 },
-                    header: {
-                        maxDiscount: 15,
-                        endDate: new Date().getTime() + (6 * 60 * 60 * 1000)
-                    },
+                    type: 'slider',name: 'غذا های تخفیف دار',cardSize: { width: 160 },
+                    header: {maxDiscount: 15,endDate: new Date().getTime() + (6 * 60 * 60 * 1000)},
                     items: [
                         {
                             name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
@@ -344,96 +215,50 @@ export default function Apis({ getState, token, showAlert, AIOServiceShowAlert, 
                     ]
                 },
                 {
-                    type: 'slider',
-                    name: 'جدید ترین رزروی ها',
+                    type: 'slider',name: 'جدید ترین رزروی ها',
                     items: [
                         {
                             name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
                             details: [
-                                {
-                                    title: 'نوع میز',
-                                    value: 'میز و آلاچیق'
-                                },
-                                {
-                                    title: 'مدت زمان تاخیر',
-                                    value: '15 دقیقه'
-                                },
-                                {
-                                    title: 'قابلیت مراسم',
-                                    value: 'تولد و VIP'
-                                }
+                                {title: 'نوع میز',value: 'میز و آلاچیق'},
+                                {title: 'مدت زمان تاخیر',value: '15 دقیقه'},
+                                {title: 'قابلیت مراسم',value: 'تولد و VIP'}
                             ],
                             tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
                         },
                         {
                             name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
                             details: [
-                                {
-                                    title: 'نوع میز',
-                                    value: 'میز و آلاچیق'
-                                },
-                                {
-                                    title: 'مدت زمان تاخیر',
-                                    value: '15 دقیقه'
-                                },
-                                {
-                                    title: 'قابلیت مراسم',
-                                    value: 'تولد و VIP'
-                                }
+                                {title: 'نوع میز',value: 'میز و آلاچیق'},
+                                {title: 'مدت زمان تاخیر',value: '15 دقیقه'},
+                                {title: 'قابلیت مراسم',value: 'تولد و VIP'}
                             ],
                             tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
                         },
                         {
                             name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
                             details: [
-                                {
-                                    title: 'نوع میز',
-                                    value: 'میز و آلاچیق'
-                                },
-                                {
-                                    title: 'مدت زمان تاخیر',
-                                    value: '15 دقیقه'
-                                },
-                                {
-                                    title: 'قابلیت مراسم',
-                                    value: 'تولد و VIP'
-                                }
+                                {title: 'نوع میز',value: 'میز و آلاچیق'},
+                                {title: 'مدت زمان تاخیر',value: '15 دقیقه'},
+                                {title: 'قابلیت مراسم',value: 'تولد و VIP'}
                             ],
                             tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
                         },
                         {
                             name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
                             details: [
-                                {
-                                    title: 'نوع میز',
-                                    value: 'میز و آلاچیق'
-                                },
-                                {
-                                    title: 'مدت زمان تاخیر',
-                                    value: '15 دقیقه'
-                                },
-                                {
-                                    title: 'قابلیت مراسم',
-                                    value: 'تولد و VIP'
-                                }
+                                {title: 'نوع میز',value: 'میز و آلاچیق'},
+                                {title: 'مدت زمان تاخیر',value: '15 دقیقه'},
+                                {title: 'قابلیت مراسم',value: 'تولد و VIP'}
                             ],
                             tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
                         },
                         {
                             name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
                             details: [
-                                {
-                                    title: 'نوع میز',
-                                    value: 'میز و آلاچیق'
-                                },
-                                {
-                                    title: 'مدت زمان تاخیر',
-                                    value: '15 دقیقه'
-                                },
-                                {
-                                    title: 'قابلیت مراسم',
-                                    value: 'تولد و VIP'
-                                }
+                                {title: 'نوع میز',value: 'میز و آلاچیق'},
+                                {title: 'مدت زمان تاخیر',value: '15 دقیقه'},
+                                {title: 'قابلیت مراسم',value: 'تولد و VIP'}
                             ],
                             tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
                         }

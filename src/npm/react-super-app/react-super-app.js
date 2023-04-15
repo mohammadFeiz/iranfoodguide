@@ -1,6 +1,8 @@
 import React, { Component, createRef } from 'react';
 import AIOButton from './../../npm/aio-button/aio-button';
 import AIOStorage from './../../npm/aio-storage/aio-storage';
+import AIOService from './../../npm/aio-service/aio-service';
+import { OTPLogin } from './../../npm/aio-login/aio-login';
 import { Icon } from '@mdi/react';
 import { mdiMenu, mdiClose, mdiChevronRight, mdiChevronLeft, mdiCheckCircleOutline, mdiAlertOutline, mdiInformationOutline, mdiChevronDown } from '@mdi/js';
 import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
@@ -493,5 +495,102 @@ export class Confirm extends Component {
         <RVD layout={{ className: 'rsa-popup rsa-confirm' + (' ' + this.dui), style: { flex: 'none', direction: rtl ? 'rtl' : 'ltr', ...style }, column: [this.header_layout(), this.body_layout(), this.footer_layout()] }} />
       </div>
     )
+  }
+}
+//props
+//id:string *
+//checktoken:function *
+//onInterNumber:function *
+//onInterCode:function *
+//onInterPassword:function
+//codeLength:number *
+//registered:boolean *
+//COMPONENT:react react compopnent *
+//registerFields:array og objects
+//layout:function
+export class OTP extends Component{
+  constructor(props){
+    super(props);
+    let {id,checkToken,onInterNumber,onInterCode,onInterPassword,mock} = props;
+    if(!id){console.error(`OTP error=> missing id props`)}
+    this.tokenStorage = AIOStorage(`${id}-token`);
+    this.state = {
+      isAutenticated:!!mock,
+      apis:AIOService({
+        id:`${id}login`,
+        getResponse:()=>{
+          return {
+            checkToken:async ()=>{
+              if(mock){return {result:true}}
+              let token = this.tokenStorage.load({name:'token',def:false});
+              let result = await checkToken(token);
+              if(result !== true && typeof result !== 'string'){result = 'error'}
+              return {result}
+            },
+            async onInterNumber(number){
+              let result = await onInterNumber(number);
+              if(typeof result !== 'boolean' || result === false){result = 'error'}
+              return {result}
+            },
+            async onInterCode(obj){
+              let result = await onInterCode(obj)
+              if(typeof result === 'string'){result = {token:result}}
+              else {result = 'error'}
+              return {result}
+            },
+            async onInterPassword(number,password){
+              let result = await onInterPassword(number,password);
+              if(typeof result === 'string'){result = {token:result}}
+              else {result = 'error'}
+              return {result}
+            }
+          }
+        },
+        onCatch:(res)=>{this.setState({isAutenticated:false}); return 'error'}
+      })
+    }
+  }
+  async componentDidMount(){
+    this.mounted = true;
+    this.state.apis({
+      api:'checkToken',name:'بررسی توکن',errorMessage:false,
+      callback:(res)=>this.setState({isAutenticated:true}),
+      onError:()=>this.setState({isAutenticated:false})
+    })
+  }
+  setToken(token,number){
+    this.tokenStorage.save({value:token,name:'token'});
+    this.tokenStorage.save({value:number,name:'mobile'});
+    this.setState({token,isAutenticated:true})
+  }
+  logout(){this.tokenStorage.remove({name:'token'}); window.location.reload()}
+  render(){
+    if(!this.mounted){return null}
+    let {registerFields,layout,onInterNumber,onInterCode,onInterPassword,codeLength,COMPONENT,registered = true,id} = this.props;
+    if(!id){console.error('OTP error => missing id props'); return null}
+    if(!onInterNumber){console.error('OTP error => onInterNumber props is not a function. onInterNumber is callback to call by phone number'); return null}
+    if(!onInterCode){console.error('OTP error => onInterCode props is not a function. onInterCode is callback to call by OTP code'); return null}
+    if(!codeLength){console.error('OTP error => missing codeLength props. codeLength is length of OTP code'); return null}
+    if(!COMPONENT){console.error('OTP error => missing COMPONENT props. COMPONENT props is main component to call after otp login'); return null}
+    let {isAutenticated,token} = this.state;
+    if(isAutenticated){
+      return <COMPONENT token={token} mobile={this.tokenStorage.load({name:'mobile'})} logout={this.logout.bind(this)}/>
+    }
+    let fields = [];
+    if(!registered && registerFields){
+      fields = registerFields.map(({icon,label,field,type})=>{
+        return {label,field,type,validations:[['required']],prefix:icon}
+      })
+    }
+    let html = (
+      <OTPLogin
+        time={30} fields={fields} codeLength={codeLength}
+        onInterNumber={async (number) => await this.state.apis({api:'onInterNumber',name:'ارسال شماره همراه',parameter:number,loading:false}) === true}
+        onInterCode={({number,code,model}) => this.state.apis({api:'onInterCode',parameter:{number,code,model},callback:({token})=>this.setToken(token,number),loading:false})}
+        onInterPassword={onInterPassword?({number,password}) => this.state.apis({api:'onInterPassword',parameter:{number,password},callback:({token})=>this.setToken(token,number),loading:false}):undefined}
+      />
+    )
+    if(layout){return layout(html)}
+    return html
   }
 }

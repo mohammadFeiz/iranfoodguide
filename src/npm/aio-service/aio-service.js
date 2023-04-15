@@ -52,10 +52,20 @@ export let helper = {
     catch{return value}
   }
 }
-export default function services({getState,apis = ()=>{return {}},token,loader,id,getResponses = ()=>{return {}},getError = ()=>{}}) {
+export default function services(obj) {
+  let {
+    getState,token,loader,id,
+    getResponse,
+    getMock = ()=>{return {}},
+    onCatch = ()=>{},
+    getError = ()=>{}
+  } = obj;
   if(typeof id !== 'string'){console.error('aio-storage => id should be an string, but id is:',id); return;}
-  if(token){Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;}
-  return Service(apis({Axios,getState,token}),loader,id,getResponses(),getError)
+  return Service({
+    getState,token,loader,id,onCatch,getError,
+    getResponse:getResponse({getState,token,helper}),
+    getMock:getMock({getState,token,helper}) 
+  })
 }
 
 
@@ -76,76 +86,105 @@ function AIOServiceLoading(id){
   `)
 }
 
-function Service(services = ()=>{return {}},loader,id,getResponses,getError) {
-  function validate(result,{validation,api,def,errorMessage,name,successMessage}){
-    if(validation){
-      let message = JSONValidator(result,validation);
-      if(typeof message === 'string'){
-        helper.showAlert({type:'error',text:`apis().${api}`,subtext:message});
-        return def === undefined?result:def;
-      }
-    }
+function Service(config) {
+  function validate(result,{validation,api,def,name,errorMessage,successMessage}){
     if(typeof result === 'string'){
-      if(name){
-        helper.showAlert({type:'error',text:`${typeof name === 'function'?name():name} با خطا روبرو شد`,subtext:result});
+      if(errorMessage !== false){
+        if(errorMessage === undefined){errorMessage = `${name} با خطا روبرو شد`}
+        helper.showAlert({type:'error',text:errorMessage,subtext:result});
       }
       return def === undefined?result:def;
     }
     else{
+      if(validation){
+        let message = JSONValidator(result,validation);
+        if(typeof message === 'string'){
+          helper.showAlert({type:'error',text:`apis().${api} validation error`,subtext:message});
+          return def === undefined?result:def;
+        }
+      }
       if(successMessage){
         successMessage = typeof successMessage === 'function'?successMessage():successMessage
         if(successMessage === true){successMessage = ''}
-        helper.showAlert({type:'success',text:`${typeof name === 'function'?name():name} با موفقیت انجام شد`,subtext:successMessage});
+        helper.showAlert({type:'success',text:`${name} با موفقیت انجام شد`,subtext:successMessage});
       }
     }
     return result;
   }
-  
-  async function fetchData(obj){
-    let {api,parameter,cache,loading = true,loadingParent = 'body',cacheName,def,getResult} = obj;
-    let result;
+  function handleLoading({loading = true,loadingParent = 'body',api},state){
+    if(loading){
+      if(state){
+        $(loadingParent).append(typeof config.loader === 'function'?config.loader():AIOServiceLoading(api));
+      }
+      else{
+        let loadingDom = $('#' + api);
+        if(!loadingDom.length){loadingDom = $('.aio-service-loading')}
+        loadingDom.remove()
+      }
+    }
+  }
+  function getFromCache({cache,cacheName,api}){
     if (cache) {
       if(isNaN(cache)){console.error('aio-storage => cache should be a number, but cache is:',cache); return;}
-      let storage = AIOStorage(id);
-      let result = storage.load({name:cacheName ? 'storage-' + cacheName : 'storage-' + api,time:cache})
-      if(result !== undefined){return result}
+      let storage = AIOStorage(config.id);
+      return storage.load({name:cacheName ? 'storage-' + cacheName : 'storage-' + api,time:cache})
     }
-    if(loading){$(loadingParent).append(typeof loader === 'function'?loader():AIOServiceLoading(api));}  
+  }
+  async function getResultByResponse(obj,getMock){//return undefined(getResponse not set) or string(error) or response
+    let {
+      api,parameter,
+      getResponse = config.getResponse[api],
+      onCatch = config.onCatch,
+      getError = config.getError
+    } = obj
     try{
-      let response;
-      if(getResponses[api]){
-        try{
-          response = await getResponses[api](parameter);
-        }
-        catch(err){
-          response = getError(err,api) || response;
-        }
-      }
-      if(typeof response === 'string'){result = response;}
-      else{
-        if(getResult){result = await getResult(response)}
-        else if(services[api]){result = await services[api](parameter,response);}  
-      }
+        let {response,result,mock} = await getResponse(parameter);
+        if(mock && typeof getMock === 'function'){return getMock(parameter);}
+        let error = getError(response);
+        if(typeof error === 'string'){return error}
+        return result
     }
     catch(err){
-      helper.showAlert({type:'error',text:`apis().${api}`,subtext:err.message});
-      result = err.message;
+      let catcheResult = onCatch(err,api);
+      if(typeof catcheResult === 'string'){return catcheResult}
+      else{return err.message}  
     }
-    if(loading){
-      let loadingDom = $('#' + api);
-      if(!loading.length){loadingDom = $('.aio-service-loading')}
-      loadingDom.remove()
+  }
+  async function fetchData(obj){
+    let {
+      api,parameter,
+      getMock = config.getMock[api]
+    } = obj;
+    let cache = getFromCache(obj);
+    if(cache !== undefined){return cache}
+    handleLoading(obj,true);
+    if(obj.token){
+      let tokenResult = typeof obj.token === 'function'?obj.token():obj.token;
+      Axios.defaults.headers.common['Authorization'] = `Bearer ${tokenResult}`;
     }
-    return result;
+    else if(config.token){
+      let tokenResult = typeof config.token === 'function'?config.token():config.token;
+      Axios.defaults.headers.common['Authorization'] = `Bearer ${tokenResult}`;
+    }
+    let res;
+    try{
+      let result = await getResultByResponse(obj,getMock); 
+      if(result === undefined){if(getMock){res = getMock(parameter)}}
+      else{res = result;}
+    }
+    catch(err){
+      res = err.message;
+    }
+    handleLoading(obj,false);
+    return res;
   }
   return async (obj) => {
-    let { callback,cache,cacheName,api} = obj;
+    let { callback,cache,cacheName,api,onError} = obj;
     let result = await fetchData(obj);
     result = validate(result,obj);
-    if (cache) {AIOStorage(id).save({name:cacheName ? 'storage-' + cacheName : 'storage-' + api,value:result})}
-    if(callback){
-      if(typeof result !== 'string'){callback(result);}
-    }
+    if (cache) {AIOStorage(config.id).save({name:cacheName ? 'storage-' + cacheName : 'storage-' + api,value:result})}
+    if(callback && typeof result !== 'string'){callback(result);}
+    if(onError && typeof result === 'string'){onError(result);}
     return result;
   }
 }

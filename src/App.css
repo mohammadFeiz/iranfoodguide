@@ -69,3 +69,65 @@ button,input{
   font-size:14px;
   font-weight: bold;
 }
+
+.login-page{
+  background:url(./images//login-bg.png); 
+  background-size: cover;
+  color:#fff;
+}
+.login-page .otp-login-text1{
+  color:#fff;
+}
+.login-page .otp-login-text2{
+  color:#fff;
+}
+.login-page .aio-form-label{
+  color:#fff;
+}
+.login-page .otp-login-submit{
+  background: #FF8B00;
+  border-radius:8px;
+}
+.login-page .otp-login-submit:disabled{
+  background: #b3aea7;
+}
+.login-bg{
+  position: absolute;
+  width:100%;
+  height: 100%;
+  background:url(./images//login-bg.png); 
+  filter:blur(4px);
+  background-size: cover;
+  background-position: 0 -160px;
+
+}
+.login-bg-make-dark{
+  position:absolute;
+  left:0;
+  top:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.4);
+}
+.login-page-form{
+  
+}
+.login-page-header{
+  margin:24px;
+  margin-bottom:0;
+  border-radius: 12px 12px 0 0;
+  color:#445778;
+  font-size: 24px;
+  font-weight: bold;
+}
+.login-page .aio-form-input{
+  border-radius:8px;
+}
+
+.otp-login-form{
+  background:none !important;
+  
+}
+.login-page .aio-form-error{
+  color:orange;
+}

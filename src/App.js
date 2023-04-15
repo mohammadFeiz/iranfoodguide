@@ -1,17 +1,109 @@
 import React,{Component} from 'react';
-import RSA from './npm/react-super-app/react-super-app';
+import RSA,{OTP} from './npm/react-super-app/react-super-app';
 import CommingSoon from './components/comming-soon/commin-soon';
+import BackOffice from './components/back-office/back-office';
 import AIOService from './npm/aio-service/aio-service';
 import RVD from './npm/react-virtual-dom/react-virtual-dom';
-import apis from './apis';
+import {getResponse} from './apis';
 import AppContext from './app-context';
 import { dictionary } from './dictionary';
-import './App.css';
+import Axios from 'axios';
+import logo from './images/logo.png';
+import logo2 from './images/logo2.png';
 import { icons } from './icons';
 import Sefareshe_ghaza from './pages/sefareshe_ghaza';
 import Profile from './pages/profile';
+import './App.css';
+import AIOButton from './npm/aio-button/aio-button';
 
 export default class App extends Component{
+  constructor(props){
+    super(props);
+    this.state = {registered:true,backOffice:false}
+  }
+  render(){
+    let {registered,backOffice} = this.state;
+    return (
+      <OTP
+        mock={true}
+        id='iranfoodguide'
+        registered={registered}
+        COMPONENT={backOffice?BackOffice:IranFoodGuide}
+        varifiedCode={undefined}
+        codeLength={6}
+        checkToken={async (token)=>{ // if success return true else return string
+          let response;
+          Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          try{response = await Axios.get(`http://10.10.10.22:8081/sso/api/v1/user/Profile`);}
+          catch(err){
+            try{
+              if(err.response.data.StatusCode === 401){return false}
+              return err.response.data.Message
+            }
+            catch{return 'error'}
+          }
+          return response.data.IsSuccess || 'error'
+        }}
+        onInterNumber={async (number)=>{//return boolean
+          let response = await Axios.post('http://10.10.10.22:8081/sso/api/v1/user/twofactorauth', { Mobile: number })
+          this.setState({registered:!!response.data.Data.Status})
+          return response.data.IsSuccess
+        }}
+        onInterCode={async ({number,code,model})=>{//return string or false
+          let {FirstName,LastName,Email} = model;
+          code = code.toString();
+          let body = { mobile: number,OtpCode:code,FirstName,LastName,Email }
+          let response = await Axios.post('http://10.10.10.22:8081/sso/api/v1/user/twofactorauthconfirm',body);
+          if(response.data.IsSuccess){return response.data.Data.access_token}
+          return false
+        }}
+        // registerFields={[
+        //   {label:'نام',field:'FirstName',type:'text',icon:<Icon path={mdiAccountBoxOutline} size={1}/>},
+        //   {label:'نام خانوادگی',field:'LastName',type:'text',icon:<Icon path={mdiAccountBoxOutline} size={1}/>},
+        //   {label:'ایمیل',field:'Email',type:'text',icon:<Icon path={mdiEmailOutline} size={1}/>},
+        // ]}
+        layout={(html)=>{
+          return (
+            <RVD
+              layout={{
+                className:'fullscreen login-page',
+                column:[
+                  {
+                    size:160,
+                    column:[
+                      {flex:1},
+                      {html:<img src={logo2}/>,align:'vh'},
+                      {size:16}
+                    ]
+                  },
+                  {
+                    flex:4,
+                    className:'login-page-form',
+                    column:[
+                      {html:'',className:'login-bg'},
+                      {html:'',className:'login-bg-make-dark'},
+                      {
+                        className:'login-page-header',
+                        column:[
+                          {flex:1},
+                          {html:<img src={logo} />,align:'vh'},
+                          {flex:1}
+                        ]
+                      },
+                      {style:{paddingTop:0},html},
+                    ]
+                  }
+                ]
+              }}
+            />
+          )
+        }}
+      />
+    )
+  }
+}
+
+class IranFoodGuide extends Component{
   constructor(props){
     super(props);
     this.state = {
@@ -21,7 +113,14 @@ export default class App extends Component{
       SetState:(obj)=>this.setState(obj),
       mojoodiye_kife_pool:0
     }
-    this.state.apis = AIOService({getState:()=>this.state,apis,id:'iranfoodguid'})
+    this.state.apis = AIOService({
+      getState:()=>this.state,
+      getResponse,
+      id:'iranfoodguid',
+      getError:(res)=>{
+        if (!res.data.IsSuccess) { return res.data.Message }
+      }
+    })
   }
   async getProfile(){
     let {apis} = this.state;
