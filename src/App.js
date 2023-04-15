@@ -31,21 +31,21 @@ export default class App extends Component{
         varifiedCode={undefined}
         codeLength={6}
         checkToken={async (token)=>{ // if success return true else return string
-          debugger;
           let response;
           Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          try{response = await Axios.get(`http://10.10.10.22:8081/sso/api/v1/user/Profile`);}
+          try{response = await Axios.get(`https://localhost:7203/Users/WhoAmI`);}
           catch(err){
             try{
-              if(err.response.data.StatusCode === 401){return false}
-              return err.response.data.Message
+              debugger
+              if(err.response.status === 401){return false}
+              return err.response.statusText
             }
             catch{return 'error'}
           }
           return response.data.IsSuccess || 'error'
         }}
         onInterNumber={async (number)=>{//return boolean
-          let response = await Axios.post('http://10.10.10.22:8081/sso/api/v1/user/twofactorauth', { Mobile: number })
+          let response = await Axios.post('https://localhost:7203/api/Users/GenerateUserCode', { Mobile: number })
           this.setState({registered:!!response.data.Data.Status})
           return response.data.IsSuccess
         }}

@@ -16,7 +16,7 @@ import ghaem_logo from './images/ghaem_logo.png';
 export function getResponse(){
     return {
         async sabte_shomare_tamas(shomare_tamas) {
-            let url = 'https://iranfoodguide.ir/api/People/AddMobileNumber';
+            let url = 'https://localhost:7203/api/People/AddMobileNumber';
             let body = {
                 "PersonId": 1,
                 "MobileNumber": shomare_tamas,
