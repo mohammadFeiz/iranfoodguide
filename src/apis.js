@@ -14,9 +14,10 @@ import pasta_alferedo from './images/pasta_alferedo.png';
 import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
 export function getResponse(){
+    let baseUrl = 'https://localhost:7203/api'
     return {
         async sabte_shomare_tamas(shomare_tamas) {
-            let url = 'https://localhost:7203/api/People/AddMobileNumber';
+            let url = `${baseUrl}/People/AddMobileNumber`;
             let body = {
                 "PersonId": 1,
                 "MobileNumber": shomare_tamas,
@@ -26,7 +27,7 @@ export function getResponse(){
             return {response}
         },
         async setProfile({ profile, registered }) {
-            let url = `https://localhost:7203/api/People/${registered?'UpdateProfile':'CreateProfile'}`
+            let url = `${baseUrl}/People/${registered?'UpdateProfile':'CreateProfile'}`
             let body = {
                 "Id":profile.id,
                 "firstName": profile.firstname,//نام
@@ -44,7 +45,7 @@ export function getResponse(){
             return {response}
         },
         async takhfif_ha(PersonId = 10010) {
-            let url = 'https://localhost:7203/api/PersonDiscount/Search';
+            let url = `${baseUrl}/PersonDiscount/Search`;
             let body = {"PersonId": PersonId}
             let response = await Axios.post(url,body);
             let result = response.data.data.items;
@@ -52,7 +53,7 @@ export function getResponse(){
         },
         async addressForm({ model, type,PersonId = 10011}) {
             if (type === 'add') {
-                let url = 'https://localhost:7203/api/People/CreatePeopleAddress';
+                let url = `${baseUrl}/People/CreatePeopleAddress`;
                 let body = {
                     "personId": PersonId,
                     "address": {
@@ -71,7 +72,7 @@ export function getResponse(){
             }
         },
         async safheye_sefaresh() {
-            let url = 'https://localhost:7203/api/PageLayout/GetListOfFoodDelivery';
+            let url = `${baseUrl}/PageLayout/GetListOfFoodDelivery`;
             let body = {};
             let response = await Axios.post(url,body);
             let result = response.data.data;
