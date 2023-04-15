@@ -25,13 +25,13 @@ export default class App extends Component{
     let {registered,backOffice} = this.state;
     return (
       <OTP
-        mock={true}
         id='iranfoodguide'
         registered={registered}
         COMPONENT={backOffice?BackOffice:IranFoodGuide}
         varifiedCode={undefined}
         codeLength={6}
         checkToken={async (token)=>{ // if success return true else return string
+          debugger;
           let response;
           Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           try{response = await Axios.get(`http://10.10.10.22:8081/sso/api/v1/user/Profile`);}
