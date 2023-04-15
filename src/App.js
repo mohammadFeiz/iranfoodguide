@@ -45,7 +45,7 @@ export default class App extends Component{
           return response.data.IsSuccess || 'error'
         }}
         onInterNumber={async (number)=>{//return boolean
-          let response = await Axios.post('https://localhost:7203/api/Users/GenerateUserCode', { Mobile: number })
+          let response = await Axios.get(`https://localhost:7203/api/Users/GenerateUserCode/MobileNumber=${number}`)
           this.setState({registered:!!response.data.Data.Status})
           return response.data.IsSuccess
         }}
