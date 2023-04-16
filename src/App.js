@@ -23,6 +23,7 @@ export default class App extends Component{
   }
   render(){
     let {registered,backOffice} = this.state;
+    let baseUrl = 'https://localhost:7203'
     return (
       <OTP
         id='iranfoodguide'
@@ -33,7 +34,7 @@ export default class App extends Component{
         checkToken={async (token)=>{ // if success return true else return string
           let response;
           Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          try{response = await Axios.get(`https://localhost:7203/Users/WhoAmI`);}
+          try{response = await Axios.get(`${baseUrl}/Users/WhoAmI`);}
           catch(err){
             try{
               debugger
@@ -45,7 +46,7 @@ export default class App extends Component{
           return response.data.IsSuccess || 'error'
         }}
         onInterNumber={async (number)=>{//return boolean
-          let response = await Axios.post(`https://localhost:7203/Users/GenerateUserCode`,{mobileNumber:number})
+          let response = await Axios.post(`${baseUrl}/Users/GenerateUserCode`,{mobileNumber:number})
 
           let registered=response.data.data.isRegistered;
           debugger
@@ -59,7 +60,7 @@ export default class App extends Component{
 
         }}
         onInterCode={async ({number,code,model})=>{//return string or false
-          let response = await Axios.post('https://localhost:7203/Users/TokenWithCode',{
+          let response = await Axios.post(`${baseUrl}/Users/TokenWithCode`,{
             mobileNumber:number,
             code:code.toString()
           });
