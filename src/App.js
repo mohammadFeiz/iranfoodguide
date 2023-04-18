@@ -23,7 +23,8 @@ export default class App extends Component{
   }
   render(){
     let {registered,backOffice} = this.state;
-    let baseUrl = 'https://localhost:7203'
+    //let baseUrl = 'https://localhost:7203'
+    let baseUrl = 'https://iranfoodguide.ir'
     return (
       <OTP
         id='iranfoodguide'
