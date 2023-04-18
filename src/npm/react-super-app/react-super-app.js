@@ -521,10 +521,9 @@ export class OTP extends Component{
         getResponse:()=>{
           return {
             checkToken:async ()=>{
-              if(mock){return {result:true}}
+              debugger;
               let token = this.tokenStorage.load({name:'token',def:false});
               let result = await checkToken(token);
-              if(result !== true && typeof result !== 'string'){result = 'error'}
               return {result}
             },
             async onInterNumber(number){
@@ -553,9 +552,8 @@ export class OTP extends Component{
   async componentDidMount(){
     this.mounted = true;
     this.state.apis({
-      api:'checkToken',name:'بررسی توکن',errorMessage:false,
-      callback:(res)=>this.setState({isAutenticated:true}),
-      onError:()=>this.setState({isAutenticated:false})
+      api:'checkToken',name:'بررسی توکن',
+      callback:(res)=>this.setState({isAutenticated:res}),
     })
   }
   setToken(token,number){

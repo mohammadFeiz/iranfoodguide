@@ -37,9 +37,12 @@ export default class App extends Component{
           try{response = await Axios.get(`${baseUrl}/Users/WhoAmI`);}
           catch(err){
             try{
-              debugger
-              if(err.response.status === 401){return false}
-              return err.response.statusText
+              debugger;
+              if(err.response){
+                if(err.response.status === 401){return false}
+                return err.response.statusText
+              }
+              else {return err.message}
             }
             catch{return 'error'}
           }
@@ -47,7 +50,7 @@ export default class App extends Component{
         }}
         onInterNumber={async (number)=>{//return boolean
           let response = await Axios.post(`${baseUrl}/Users/GenerateUserCode`,{mobileNumber:number})
-
+          debugger;
           let registered=response.data.data.isRegistered;
           debugger
           this.setState({ registered});

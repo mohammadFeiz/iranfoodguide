@@ -26,7 +26,7 @@ export class OTPLogin extends Component{
       return new Date().getTime() - lastTime;
     }
     async onInterPhone(number) {
-      let {time,onInterNumber} = this.props;
+      let {time,onInterNumber,fields = [],registered,registerType} = this.props;
       let delta = this.getDelta(number);
       if(delta >= time * 1000){
         console.log('send phone number to server',number);
@@ -40,8 +40,23 @@ export class OTPLogin extends Component{
         }
         else if(res !== true){return}
       }
-      this.setState({ mode: 'inter-code'})
+      if(fields.length && !registered && registerType !== 'with-code'){
+        this.setState({ mode: 'register'}) 
+      }
+      else {
+        this.setState({ mode: 'inter-code'})
+      }
       this.changeNumber(number)
+    }
+    async onRegister(model){
+      let {onRegister} = this.props;
+      let res = await onRegister(model);
+      if(typeof res === 'string') {
+          this.setState({ error: res,mode:'error' })
+      }
+      else{
+        this.setState({ mode:'inter-code' })
+      }
     }
     async onInterCode(model) {
       let {onInterCode} = this.props;
@@ -59,7 +74,7 @@ export class OTPLogin extends Component{
     }
     render(){
       let {mode,number,error,exactNumber} = this.state;
-      let {time,codeLength = 4,fields = [],verifiedCode,onInterPassword} = this.props;
+      let {time,codeLength = 4,fields = [],verifiedCode,onInterPassword,registerType} = this.props;
       return (
         <RVD
           layout={{
@@ -78,10 +93,20 @@ export class OTPLogin extends Component{
                 )
               },
               { 
+                show:mode === 'register',align:'h',
+                html:()=>(
+                  <RegisterForm
+                    onSubmit={(model)=>this.onRegister(model)}
+                    fields={fields}
+                  />
+                )
+              },
+              { 
                 show:mode === 'inter-code',align:'h',
                 html:()=>(
                   <CodeForm 
                     verifiedCode={verifiedCode}
+                    registerType={registerType}
                     fields={fields}
                     codeLength={codeLength}
                     number={number}
@@ -261,6 +286,72 @@ export class OTPLogin extends Component{
       )
     }
   }
+  class RegisterForm extends Component{
+    constructor(props){
+      super(props);
+      this.state = {model:{}}
+    }
+    title_layout(){
+      return {
+        column:[
+          {html: `ثبت نام`,className: 'otp-login-text1'}    
+        ]
+      }
+    }
+    input_layout(){
+      let {model} = this.state;
+      let {fields} = this.props;
+      fields = [...fields.map((o)=>{return {...o,field:'model.' + o.field}})]
+      return {
+        flex:1,
+        style:{padding:'0 12px'},
+        column:[
+          {
+            html:()=>(
+              <Form
+                rtl={true}
+                lang='fa'
+                model={model}
+                onChange={(model)=>this.setState({model})}
+                inputs={fields}
+              />
+            )
+          }
+        ]
+      }
+    }
+    onSubmit(){
+      if(this.isDisabled()){return}
+      let {onSubmit,number} = this.props;
+      let {model} = this.state;
+      onSubmit({model,number,code:model.code})
+    }
+    isDisabled(){
+      return false
+    }
+    submit_layout(){
+      let disabled = this.isDisabled()
+      return {
+        style:{padding:'0 12px',marginBottom:12},
+        html: (<SubmitButton disabled={disabled} onClick={() => this.onSubmit()}/>)
+      }
+    }
+    render(){
+      return (
+        <RVD
+          layout={{
+            className:'otp-login-form',
+            attrs:{onKeyDown:(e)=>{if(e.keyCode === 13){this.onSubmit()}}},
+            column: [
+              this.title_layout(),
+              this.input_layout(),
+              this.submit_layout()
+            ]
+          }}
+        />
+      )
+    }
+  }
   //getDelta number onSubmit onClose onResend
   class CodeForm extends Component{
     constructor(props){
@@ -279,7 +370,10 @@ export class OTPLogin extends Component{
     }
     input_layout(){
       let {model} = this.state;
-      let {codeLength,fields} = this.props;
+      let {codeLength,fields,registerType} = this.props;
+      if(registerType !== 'with-code'){
+        fields = [];
+      }
       fields = [...fields.map((o)=>{return {...o,field:'model.' + o.field}})]
       fields.push({
         type:'number',field:'model.code',label:'کد پیامک شده',placeholder:Array(codeLength).fill('-').join(''),theme:{inputStyle:{fontSize:32,letterSpacing:24}},
