@@ -84,10 +84,11 @@ debugger
           }
         }}
         onInterNumber={async (number)=>{//return boolean
-          debugger
           let response = await Axios.post(`${baseUrl}/Users/GenerateUserCode`,{mobileNumber:number})
+          if(!response.data.isSuccess){return response.data.message}
           let registered=response.data.data.isRegistered;
-         this.state.registered=registered;
+          
+          this.state.registered=registered;
           this.setState({ registered});
           if(response.data.isSuccess){return true;}
           else{return response.data.message;}

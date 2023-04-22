@@ -583,6 +583,7 @@ export class OTP extends Component{
     let html = (
       <OTPLogin
         time={30} fields={fields} codeLength={codeLength} onRegister={onRegister}
+        registered={registered}
         onInterNumber={async (number) => await this.state.apis({api:'onInterNumber',name:'ارسال شماره همراه',parameter:number,loading:false}) === true}
         onInterCode={({number,code,model}) => this.state.apis({api:'onInterCode',parameter:{number,code,model},callback:({token})=>this.setToken(token,number),loading:false})}
         onInterPassword={onInterPassword?({number,password}) => this.state.apis({api:'onInterPassword',parameter:{number,password},callback:({token})=>this.setToken(token,number),loading:false}):undefined}
