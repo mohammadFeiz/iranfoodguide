@@ -176,7 +176,10 @@ class IranFoodGuide extends Component{
     let {apis} = this.state;
     await apis({
       api:'getProfile',
-      callback:(res)=>this.setState({profile:res}),
+      callback:(res)=>{
+        debugger;
+        this.setState({profile:res})
+      },
       name:'دریافت اطلاعات پروفایل'
     });
   }
