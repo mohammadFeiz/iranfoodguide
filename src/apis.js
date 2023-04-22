@@ -45,6 +45,9 @@ export function getResponse(){
             let response = await Axios.post(url,body);
             return {response}
         },
+        async getProfile() {
+            
+        },
         async takhfif_ha(PersonId = 10010) {
             let url = `${baseUrl}/PersonDiscount/Search`;
             let body = {"PersonId": PersonId}
