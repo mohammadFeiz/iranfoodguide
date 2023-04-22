@@ -140,8 +140,10 @@ function Service(config) {
     try{
         let {response,result,mock} = await getResponse(parameter);
         if(mock && typeof getMock === 'function'){return getMock(parameter);}
-        let error = getError(response);
-        if(typeof error === 'string'){return error}
+        if(response){
+          let error = getError(response,obj);
+          if(typeof error === 'string'){return error}
+        }
         return result
     }
     catch(err){

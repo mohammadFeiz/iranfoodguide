@@ -25,7 +25,7 @@ export default class Profile extends Component {
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'دعوت از دوستان' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'تنظیمات' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'قوانین' },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'خروج' }
+                { icon: <Icon path={mdiAccount} size={1} />, text: 'خروج',id:'exit' }
             ]
         }
     }
@@ -53,8 +53,11 @@ export default class Profile extends Component {
         }
     }
     openPopup(key) {
-        let { rsa_actions } = this.context;
+        let { rsa_actions,logout } = this.context;
         let { addPopup } = rsa_actions;
+        if(key === 'exit'){
+            logout();
+        }
         if (key === 'ettelaate_shakhsi') {
             addPopup({ header: false, body: () => <Ettelaate_shakhsi /> })
         }
@@ -202,17 +205,22 @@ class Address_ha extends Component {
         this.state = { addresses: [] }
     }
     componentDidMount() {
-        let { profile } = this.context;
+        let { profile,apis } = this.context;
         let { addresses = [] } = profile;
+        apis({
+            api:'getAddresses',
+            name:'دریافت آدرس های کاربر',
+
+        })
         this.setState({ addresses })
     }
     async onSubmit(model,type){
         debugger
-        let {SetState,profile,rsa_actions,apis,personId} = this.context;
+        let {SetState,profile,rsa_actions,apis} = this.context;
         let {addresses} = this.state;
         await apis({
             api:'addressForm',
-            parameter:{model,type,personId},
+            parameter:{model,type},
             callback:()=>{
                 if(type === 'add'){addresses.push(model);}
                 else{addresses = addresses.map((o)=>model.id === o.id?model:o)}

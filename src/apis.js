@@ -13,9 +13,10 @@ import shandiz_image from './images/shandiz_image.png';
 import pasta_alferedo from './images/pasta_alferedo.png';
 import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
-export function getResponse(){
+export function getResponse({getState}){
      //let baseUrl = 'https://localhost:7203/api'
     let baseUrl = 'https://iranfoodguide.ir/api'
+    let {personId} = getState();
     return {
         async sabte_shomare_tamas(shomare_tamas) {
             let url = `${baseUrl}/People/AddMobileNumber`;
@@ -45,26 +46,28 @@ export function getResponse(){
             let response = await Axios.post(url,body);
             return {response}
         },
-        async getProfile(personId) {
-            
-            debugger
-
+        async getProfile() {
             let url = `${baseUrl}/People/search`
-            let body = {
-                "Id":personId
-            }
+            let body = {"Id":personId}
             let response = await Axios.post(url,body);
-
-
+            debugger;
+            
         },
-        async takhfif_ha(PersonId = 10010) {
+        async getAddresses(){
+            let response;
+            let result;
+
+
+            return {response,result,mock:true}
+        },
+        async takhfif_ha() {
             let url = `${baseUrl}/PersonDiscount/Search`;
-            let body = {"PersonId": PersonId}
+            let body = {"PersonId": personId}
             let response = await Axios.post(url,body);
             let result = response.data.data.items;
             return {response,result};
         },
-        async addressForm({ model, type,personId = 10011}) {
+        async addressForm({ model, type}) {
             if (type === 'add') {
                 let url = `${baseUrl}/People/CreatePeopleAddress`;
                 let body = {
@@ -105,6 +108,20 @@ export function getResponse(){
 
 export function getMock({helper}){
     return {
+        getAddresses(){
+            return [//لیست آدرس ها
+                {
+                    title: 'خانه',
+                    address: 'آدرس  یبلیلیبل یبل یبل یبل یبل یبل یبل یبل یبل یبل یبل یبل یبلی غاقف غاقفغ بفعغ قفغ قفغ قفغ 1',
+                    number: 30,
+                    unit: 4,
+                    floor: 2,
+                    id: '0',
+                    description: '',
+                    phone: '02188050006'
+                }
+            ]
+        },
         async getProfile() {
             return {
                 firstname: 'احمد',//نام
@@ -113,18 +130,6 @@ export function getMock({helper}){
                 email: 'feiz.ms@gmail.com',//آدرس ایمیل
                 sheba: '1234567',//شماره شبا
                 addressId: '0',//آی دی آدرس منتخب
-                addresses: [//لیست آدرس ها
-                    {
-                        title: 'خانه',
-                        address: 'آدرس  یبلیلیبل یبل یبل یبل یبل یبل یبل یبل یبل یبل یبل یبل یبلی غاقف غاقفغ بفعغ قفغ قفغ قفغ 1',
-                        number: 30,
-                        unit: 4,
-                        floor: 2,
-                        id: '0',
-                        description: '',
-                        phone: '02188050006'
-                    }
-                ],
                 kife_pool: {
                     mojoodi: 12343546567,
                     tarikhche: []

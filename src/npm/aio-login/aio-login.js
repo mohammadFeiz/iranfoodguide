@@ -12,7 +12,8 @@ export class OTPLogin extends Component{
       this.storage = AIOStorage('otp-login');
       let {number} = props;
       this.state = {
-        mode:'inter-phone',error:'',number,exactNumber:number
+        mode:'inter-phone',error:'',number,exactNumber:number,
+        registered:true
       }
     }
     changeNumber(number){
@@ -25,8 +26,8 @@ export class OTPLogin extends Component{
       let lastTime = this.storage.load({name:'lastTime',def:new Date().getTime() - (time * 1000)});
       return new Date().getTime() - lastTime;
     }
-    async onInterPhone(number) {
-      let {time,onInterNumber,fields = [],registered,registerType,onRegister} = this.props;
+    async onInterNumber(number) {
+      let {time,onInterNumber,fields = [],registerType,onRegister} = this.props;
       let delta = this.getDelta(number);
       if(delta >= time * 1000){
         console.log('send phone number to server',number);
@@ -38,19 +39,18 @@ export class OTPLogin extends Component{
           this.changeNumber('')
           return
         }
-        else if(res !== true){return}
-      }
-      if(fields.length && !registered && registerType !== 'with-code'){
-        if(!onRegister){
-          console.error('OTP error => missing onREgister props');
-          return;
+        else if(res === false){
+          if(fields.length && registerType !== 'with-code'){
+            if(!onRegister){console.error('OTP error => missing onRegister props'); return;}
+            this.setState({ mode: 'register',registered:false}) 
+          }  
         }
-        this.setState({ mode: 'register'}) 
+        else if(res === true){
+          this.setState({ mode: 'inter-code',registered:true})
+        }
+        this.changeNumber(number)
       }
-      else {
-        this.setState({ mode: 'inter-code'})
-      }
-      this.changeNumber(number)
+      
     }
     async onRegister(model){
       let {onRegister} = this.props;
@@ -90,7 +90,7 @@ export class OTPLogin extends Component{
                   <NumberForm
                     time={time}
                     exactNumber={exactNumber}
-                    onSubmit={(number)=>this.onInterPhone(number)}
+                    onSubmit={(number)=>this.onInterNumber(number)}
                     onInterPassword={!!onInterPassword?(number,password)=>this.onInterPassword(number,password):undefined}
                     getDelta={this.getDelta.bind(this)}
                   />
@@ -119,7 +119,7 @@ export class OTPLogin extends Component{
                     getDelta={this.getDelta.bind(this)}
                     onSubmit={async (obj)=>await this.onInterCode(obj)} 
                     onClose={()=>this.setState({ mode: 'inter-phone'})}
-                    onResend={async (number)=>await this.onInterPhone(number)}
+                    onResend={async (number)=>await this.onInterNumber(number)}
                   />
                 )
               },
@@ -418,15 +418,17 @@ export class OTPLogin extends Component{
     }
     isDisabled(){
       let {model} = this.state;
-      let {codeLength,fields,verifiedCode} = this.props;
+      let {codeLength,fields,verifiedCode,registerType} = this.props;
       let {code} = model;
-      // for(let i = 0; i < fields.length; i++){
-      //   let field = fields[i];
-      //   if(!this.state.model[field.field]){return true}
-      // }
-      // if(verifiedCode !== undefined){
-      //   if(verifiedCode.toString() === code.toString()){return false}
-      // }
+      if(registerType === 'width-code'){
+        for(let i = 0; i < fields.length; i++){
+          let field = fields[i];
+          if(!this.state.model[field.field]){return true}
+        } 
+      }
+      if(verifiedCode !== undefined){
+        if(verifiedCode.toString() === code.toString()){return false}
+      }
       if(isNaN(+code)){return true}
       return code.toString().length !== codeLength
     }
