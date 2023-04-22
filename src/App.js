@@ -164,6 +164,7 @@ class IranFoodGuide extends Component{
     }
     this.state.apis = AIOService({
       getState:()=>this.state,
+      token:props.token,
       getResponse,
       id:'iranfoodguid',
       getError:(res)=>{
