@@ -208,11 +208,11 @@ class Address_ha extends Component {
     }
     async onSubmit(model,type){
         debugger
-        let {SetState,profile,rsa_actions,apis} = this.context;
+        let {SetState,profile,rsa_actions,apis,personId} = this.context;
         let {addresses} = this.state;
         await apis({
             api:'addressForm',
-            parameter:{model,type},
+            parameter:{model,type,personId},
             callback:()=>{
                 if(type === 'add'){addresses.push(model);}
                 else{addresses = addresses.map((o)=>model.id === o.id?model:o)}

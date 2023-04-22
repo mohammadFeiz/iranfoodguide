@@ -52,11 +52,11 @@ export function getResponse(){
             let result = response.data.data.items;
             return {response,result};
         },
-        async addressForm({ model, type,PersonId = 10011}) {
+        async addressForm({ model, type,personId = 10011}) {
             if (type === 'add') {
                 let url = `${baseUrl}/People/CreatePeopleAddress`;
                 let body = {
-                    "personId": PersonId,
+                    "personId": personId,
                     "address": {
                       "fullAddress": model.address,
                       "latitude": model.latitude,

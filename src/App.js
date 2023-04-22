@@ -33,6 +33,7 @@ export default class App extends Component{
           return (
             <IranFoodGuide
               token={token}
+              personId={this.personId}
               logout={logout}
               mobile={mobile}
               roles={[]}
@@ -97,8 +98,10 @@ export default class App extends Component{
             mobileNumber:number,
             code:code.toString()
           });
-          if(response.data.isSuccess)
-          return response.data.data.access_token;
+          if(response.data.isSuccess){
+            this.personId = response.data.data.personId
+            return response.data.data.access_token;
+          }
           else
           return false;
         }}
@@ -153,6 +156,7 @@ class IranFoodGuide extends Component{
     super(props);
     this.state = {
       comming_soon:false,
+      personId:props.personId,
       profile:{},
       discounts:[],
       SetState:(obj)=>this.setState(obj),
@@ -185,8 +189,10 @@ class IranFoodGuide extends Component{
   }
   async get_takhfif_ha(){
     let {apis} = this.state;
+    let {personId} = this.props;
     await apis({
       api:'takhfif_ha',
+      parameter:personId,
       callback:(res)=>this.setState({takhfif_ha:res}),
       name:'دریافت اطلاعات تخفیف ها'
     });
