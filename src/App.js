@@ -56,6 +56,7 @@ export default class App extends Component{
           try{response = await Axios.get(`${baseUrl}/Users/WhoAmI`);}
           catch(err){
             try{
+
               if(err.response){
                 if(err.response.status === 401){return false}
                 return err.response.statusText
@@ -67,21 +68,26 @@ export default class App extends Component{
           return response.data.IsSuccess || 'error'
         }}
         onRegister={async ({model,number})=>{
-          debugger
+          
           let apis = getResponse()
           let {response} = await apis.setProfile({profile:{
             ...model,
             mobile:number
           },registered:false})
-          if(response.IsSuccess){
+
+debugger
+
+          if(response.data.isSuccess){
             this.setState({resigtered:true})
             this.onInterNumber(number)
             return true
           }
         }}
         onInterNumber={async (number)=>{//return boolean
+          debugger
           let response = await Axios.post(`${baseUrl}/Users/GenerateUserCode`,{mobileNumber:number})
           let registered=response.data.data.isRegistered;
+         this.state.registered=registered;
           this.setState({ registered});
           if(response.data.isSuccess){return true;}
           else{return response.data.message;}
