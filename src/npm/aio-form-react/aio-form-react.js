@@ -412,8 +412,8 @@ export default class AIOForm extends Component {
   }
   getError(o,value,options){
     let {lang = 'en',getErrors = ()=>{}} = this.props;
-    let {validations = []} = o
-    if(!validations.length){return ''}
+    let {validations = [],type} = o
+    if(!validations.length || type === 'html'){return ''}
     
     let a = { 
       value,title:o.label,lang,

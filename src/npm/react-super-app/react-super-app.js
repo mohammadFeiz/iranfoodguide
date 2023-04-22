@@ -521,7 +521,6 @@ export class OTP extends Component{
         getResponse:()=>{
           return {
             checkToken:async ()=>{
-              debugger;
               let token = this.tokenStorage.load({name:'token',def:false});
               let result = await checkToken(token);
               return {result}
@@ -564,7 +563,7 @@ export class OTP extends Component{
   logout(){this.tokenStorage.remove({name:'token'}); window.location.reload()}
   render(){
     if(!this.mounted){return null}
-    let {registerFields,layout,onInterNumber,onInterCode,onInterPassword,codeLength,COMPONENT,registered = true,id} = this.props;
+    let {registerFields,layout,onInterNumber,onInterCode,onInterPassword,codeLength,COMPONENT,registered = true,id,fields,onRegister} = this.props;
     if(!id){console.error('OTP error => missing id props'); return null}
     if(!onInterNumber){console.error('OTP error => onInterNumber props is not a function. onInterNumber is callback to call by phone number'); return null}
     if(!onInterCode){console.error('OTP error => onInterCode props is not a function. onInterCode is callback to call by OTP code'); return null}
@@ -572,9 +571,10 @@ export class OTP extends Component{
     if(!COMPONENT){console.error('OTP error => missing COMPONENT props. COMPONENT props is main component to call after otp login'); return null}
     let {isAutenticated,token} = this.state;
     if(isAutenticated){
-      return <COMPONENT token={token} mobile={this.tokenStorage.load({name:'mobile'})} logout={this.logout.bind(this)}/>
+      let props = {token,mobile:this.tokenStorage.load({name:'mobile'}),logout:this.logout.bind(this)}
+      if(typeof COMPONENT === 'function'){return COMPONENT(props)}
+      return <COMPONENT {...props}/>
     }
-    let fields = [];
     if(!registered && registerFields){
       fields = registerFields.map(({icon,label,field,type})=>{
         return {label,field,type,validations:[['required']],prefix:icon}
@@ -582,7 +582,7 @@ export class OTP extends Component{
     }
     let html = (
       <OTPLogin
-        time={30} fields={fields} codeLength={codeLength}
+        time={30} fields={fields} codeLength={codeLength} onRegister={onRegister}
         onInterNumber={async (number) => await this.state.apis({api:'onInterNumber',name:'ارسال شماره همراه',parameter:number,loading:false}) === true}
         onInterCode={({number,code,model}) => this.state.apis({api:'onInterCode',parameter:{number,code,model},callback:({token})=>this.setToken(token,number),loading:false})}
         onInterPassword={onInterPassword?({number,password}) => this.state.apis({api:'onInterPassword',parameter:{number,password},callback:({token})=>this.setToken(token,number),loading:false}):undefined}

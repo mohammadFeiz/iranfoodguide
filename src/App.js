@@ -29,16 +29,33 @@ export default class App extends Component{
       <OTP
         id='iranfoodguide'
         registered={registered}
-        COMPONENT={backOffice?BackOffice:IranFoodGuide}
+        COMPONENT={({token,logout,mobile})=>{
+          return (
+            <IranFoodGuide
+              token={token}
+              logout={logout}
+              mobile={mobile}
+              roles={[]}
+            />
+          )
+        }}
         varifiedCode={undefined}
         codeLength={6}
+        fields={[
+          {type:'text',label:'نام',field:'firstname',rowKey:'1'},
+          {type:'html',html:()=>'',rowWidth:12,rowKey:'1'},
+          {type:'text',label:'نام خانوادگی',field:'lastname',rowKey:'1'},
+          {type:'select',label:'جنسیت',field:'gender',options:[{text:'مرد',value:'male'},{text:'زن',value:'female'}],rowKey:'2'},
+          {type:'html',html:()=>'',rowWidth:12,rowKey:'2'},
+          {type:'text',label:'ایمیل',field:'email',rowKey:'2'},
+          {type:'text',label:'شبا',field:'sheba'},
+        ]}
         checkToken={async (token)=>{ // if success return true else return string
           let response;
           Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           try{response = await Axios.get(`${baseUrl}/Users/WhoAmI`);}
           catch(err){
             try{
-              debugger;
               if(err.response){
                 if(err.response.status === 401){return false}
                 return err.response.statusText
@@ -49,19 +66,25 @@ export default class App extends Component{
           }
           return response.data.IsSuccess || 'error'
         }}
+        onRegister={async ({model,number})=>{
+          debugger
+          let apis = getResponse()
+          let {response} = await apis.setProfile({profile:{
+            ...model,
+            mobile:number
+          },registered:false})
+          if(response.IsSuccess){
+            this.setState({resigtered:true})
+            this.onInterNumber(number)
+            return true
+          }
+        }}
         onInterNumber={async (number)=>{//return boolean
           let response = await Axios.post(`${baseUrl}/Users/GenerateUserCode`,{mobileNumber:number})
-          debugger;
           let registered=response.data.data.isRegistered;
-          debugger
           this.setState({ registered});
-
-          if(response.data.isSuccess)
-          return true;
-          else
-          return response.data.message;
-
-
+          if(response.data.isSuccess){return true;}
+          else{return response.data.message;}
         }}
         onInterCode={async ({number,code,model})=>{//return string or false
           let response = await Axios.post(`${baseUrl}/Users/TokenWithCode`,{
@@ -94,7 +117,7 @@ export default class App extends Component{
                     ]
                   },
                   {
-                    flex:4,
+                    flex:1,
                     className:'login-page-form',
                     column:[
                       {html:'',className:'login-bg'},
@@ -107,7 +130,7 @@ export default class App extends Component{
                           {flex:1}
                         ]
                       },
-                      {style:{paddingTop:0},html},
+                      {className:'p-t-0 ofy-auto',html,flex:1},
                     ]
                   }
                 ]
