@@ -75,7 +75,6 @@ export default class App extends Component{
             mobile:number
           },registered:false})
 
-debugger
 
           if(response.data.isSuccess){
             this.setState({resigtered:true})
@@ -98,9 +97,8 @@ debugger
             mobileNumber:number,
             code:code.toString()
           });
-          debugger
           if(response.data.isSuccess)
-          return response.data.access_token;
+          return response.data.data.access_token;
           else
           return false;
         }}

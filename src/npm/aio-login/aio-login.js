@@ -420,13 +420,13 @@ export class OTPLogin extends Component{
       let {model} = this.state;
       let {codeLength,fields,verifiedCode} = this.props;
       let {code} = model;
-      for(let i = 0; i < fields.length; i++){
-        let field = fields[i];
-        if(!this.state.model[field.field]){return true}
-      }
-      if(verifiedCode !== undefined){
-        if(verifiedCode.toString() === code.toString()){return false}
-      }
+      // for(let i = 0; i < fields.length; i++){
+      //   let field = fields[i];
+      //   if(!this.state.model[field.field]){return true}
+      // }
+      // if(verifiedCode !== undefined){
+      //   if(verifiedCode.toString() === code.toString()){return false}
+      // }
       if(isNaN(+code)){return true}
       return code.toString().length !== codeLength
     }
