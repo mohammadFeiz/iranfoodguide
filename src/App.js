@@ -23,7 +23,7 @@ export default class App extends Component{
   }
   render(){
     let {registered,backOffice} = this.state;
-    //let baseUrl = 'https://localhost:7203'
+   // let baseUrl = 'https://localhost:7203'
     let baseUrl = 'https://iranfoodguide.ir'
     return (
       <OTP
@@ -54,7 +54,15 @@ export default class App extends Component{
         checkToken={async (token)=>{ // if success return true else return string
           let response;
           Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          try{response = await Axios.get(`${baseUrl}/Users/WhoAmI`);}
+          try{
+            
+            response = await Axios.get(`${baseUrl}/Users/WhoAmI`);
+
+            this.personId=response.data.data.id;
+
+            debugger
+
+          }
           catch(err){
             try{
 
@@ -168,14 +176,19 @@ class IranFoodGuide extends Component{
       getResponse,
       id:'iranfoodguid',
       getError:(res)=>{
-        if (!res.data.IsSuccess) { return res.data.Message }
+
+debugger
+
+        if (!res.data.isSuccess) { return res.data.message }
       }
     })
   }
   async getProfile(){
     let {apis} = this.state;
+    let {personId} = this.props;
     await apis({
       api:'getProfile',
+      parameter:personId,
       callback:(res)=>{
         debugger;
         this.setState({profile:res})

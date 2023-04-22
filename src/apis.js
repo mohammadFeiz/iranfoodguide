@@ -14,8 +14,8 @@ import pasta_alferedo from './images/pasta_alferedo.png';
 import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
 export function getResponse(){
-     let baseUrl = 'https://localhost:7203/api'
-    //let baseUrl = 'https://iranfoodguide.ir/api'
+     //let baseUrl = 'https://localhost:7203/api'
+    let baseUrl = 'https://iranfoodguide.ir/api'
     return {
         async sabte_shomare_tamas(shomare_tamas) {
             let url = `${baseUrl}/People/AddMobileNumber`;
@@ -45,8 +45,17 @@ export function getResponse(){
             let response = await Axios.post(url,body);
             return {response}
         },
-        async getProfile() {
+        async getProfile(personId) {
             
+            debugger
+
+            let url = `${baseUrl}/People/search`
+            let body = {
+                "Id":personId
+            }
+            let response = await Axios.post(url,body);
+
+
         },
         async takhfif_ha(PersonId = 10010) {
             let url = `${baseUrl}/PersonDiscount/Search`;
