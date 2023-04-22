@@ -66,7 +66,7 @@ export default class App extends Component{
             }
             catch{return 'error'}
           }
-          return response.data.IsSuccess || 'error'
+          return response.data.isSuccess || 'error'
         }}
         onRegister={async ({model,number})=>{
           
