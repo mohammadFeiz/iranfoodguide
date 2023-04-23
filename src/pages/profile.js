@@ -72,7 +72,7 @@ export default class Profile extends Component {
         }
     }
     header_layout() {
-        let { profile } = this.context;
+        let { profile,mobileNumber } = this.context;
         return {
             className: 'p-6',
             row: [
@@ -84,8 +84,8 @@ export default class Profile extends Component {
                     flex: 1,
                     column: [
                         { flex: 1 },
-                        { html: `${profile.firstname} ${profile.lastname}`, className: 'fs-14 bold' },
-                        { html: profile.mobile, className: 'fs-12' },
+                        { html: `${profile.firstName} ${profile.lastName}`, className: 'fs-14 bold' },
+                        { html: mobileNumber, className: 'fs-12' },
                         { flex: 1 }
                     ]
                 },
@@ -131,7 +131,8 @@ class Ettelaate_shakhsi extends Component {
     }
     componentDidMount() {
         let { profile } = this.context;
-        this.setState({ model: { ...profile } })
+        let {firstName,lastName,sheba,email} = profile;
+        this.setState({ model: {firstName,lastName,sheba,email} })
     }
     form_layout() {
         let { model } = this.state;
@@ -142,8 +143,8 @@ class Ettelaate_shakhsi extends Component {
                 {
                     column: [
                         { html: <Icon path={mdiAccountCircleOutline} size={2.8} />, style: { color: '#888' }, align: 'vh' },
-                        { html: `${profile.firstname} ${profile.lastname}`, align: 'vh', className: 'fs-14 bold' },
-                        { html: profile.mobile, align: 'vh', className: 'fs-12' }
+                        { html: `${profile.firstName} ${profile.lastName}`, align: 'vh', className: 'fs-14 bold' },
+                        { html: profile.mobileNumber, align: 'vh', className: 'fs-12' }
                     ]
                 },
                 {
@@ -152,9 +153,9 @@ class Ettelaate_shakhsi extends Component {
                             model={model}
                             onChange={(model) => this.setState({ model })}
                             inputs={[
-                                { type: 'text', label: 'نام', field: 'model.firstname' },
-                                { type: 'text', label: 'نام خانوادگی', field: 'model.lastname' },
-                                { type: 'text', label: 'موبایل', field: 'model.mobile' },
+                                { type: 'text', label: 'نام', field: 'model.firstName' },
+                                { type: 'text', label: 'نام خانوادگی', field: 'model.lastName' },
+                                //{ type: 'text', label: 'موبایل', field: 'model.mobileNumber' },
                                 { type: 'text', label: 'ایمیل', field: 'model.email' },
                                 { type: 'text', label: 'شماره شبا', field: 'model.sheba' },
                             ]}
@@ -165,18 +166,27 @@ class Ettelaate_shakhsi extends Component {
         }
     }
     footer_layout() {
-        let {apis,rsa_actions} = this.context;
+        let {apis,rsa_actions,mobileNumber,profile,ChangeState} = this.context;
         return {
             align: 'vh',
             className: 'p-24',
             html: (
                 <button className= 'button-1 w-100 h-36' onClick={()=>{
                     let {model} = this.state;
+                    let {firstName,lastName,sheba,email} = model;
                     apis({
                         api:'setProfile',
-                        parameter:{profile:model,registered:true},
-                        callback:()=>rsa_actions.removePopup(),
-                        name:'ثبت اطلاعات پروفایل'
+                        parameter:{
+                            profile:{firstName,lastName,sheba,email,id:profile.id},
+                            mobileNumber,
+                            registered:true
+                        },
+                        callback:()=>{
+                            ChangeState({profile:{...profile,...model}})
+                            rsa_actions.removePopup()
+                        },
+                        name:'ثبت اطلاعات پروفایل',
+                        successMessage:true
                     })
                 }}>ثبت تغییرات</button>
             )
@@ -200,33 +210,15 @@ class Ettelaate_shakhsi extends Component {
 
 class Address_ha extends Component {
     static contextType = AppContext;
-    constructor(props) {
-        super(props);
-        this.state = { addresses: [] }
-    }
-    componentDidMount() {
-        let { profile,apis } = this.context;
-        let { addresses = [] } = profile;
-        apis({
-            api:'getAddresses',
-            name:'دریافت آدرس های کاربر',
-
-        })
-        this.setState({ addresses })
-    }
-    async onSubmit(model,type){
-        debugger
-        let {SetState,profile,rsa_actions,apis} = this.context;
-        let {addresses} = this.state;
+    async onSubmit(address,type){
+        let {ChangeState,rsa_actions,apis,addresses} = this.context;
         await apis({
             api:'addressForm',
-            parameter:{model,type},
+            parameter:{address,type},
             callback:()=>{
-                if(type === 'add'){addresses.push(model);}
-                else{addresses = addresses.map((o)=>model.id === o.id?model:o)}
-                profile.addresses = addresses
-                SetState({profile});
-                this.setState({addresses})
+                if(type === 'add'){addresses.push(address);}
+                else{addresses = addresses.map((o)=>address.id === o.id?address:o)}
+                ChangeState({addresses},`Address_ha Component => onSubmit type:${type}`);
                 rsa_actions.removePopup()
             },
             name:()=>`${type === 'add'?'افزودن':'ویرایش'} آدرس `,
@@ -240,7 +232,7 @@ class Address_ha extends Component {
                 let { rsa_actions } = this.context;
                 rsa_actions.addPopup({
                     header: false,
-                    body: () => <Address_form onSubmit={(model) => this.onSubmit(model,'add')} />
+                    body: () => <Address_form onSubmit={(address) => this.onSubmit(address,'add')} />
                 })
             },
             row: [
@@ -250,7 +242,7 @@ class Address_ha extends Component {
         }
     }
     cards_layout() {
-        let { addresses } = this.state;
+        let { addresses } = this.context;
         return {
             flex: 1, className: 'ofy-auto',
             column: addresses.map((o) => {

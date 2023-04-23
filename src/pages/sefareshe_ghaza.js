@@ -11,14 +11,12 @@ export default class Sefareshe_ghaza extends Component {
     static contextType = AppContext;
     state = { 
         data: data(),
-        addressId:false,
         addresses:[],
         content:[]
     }
     
     async componentDidMount(){
-        let { profile,apis } = this.context;
-        let {addresses,addressId} = profile;
+        let { apis } = this.context;
         let content = await apis({
             api:'safheye_sefaresh',
             name:'دریافت اطلاعات صفحه سفارش غذا',
@@ -53,11 +51,11 @@ export default class Sefareshe_ghaza extends Component {
                 }
             ]
         })
-        this.setState({addresses,addressId,content})
+        this.setState({content})
     }
     address_layout() {
-        let {addresses,addressId} = this.state;
-        let address = addresses.find(({id})=>id === addressId) || {address:''}
+        let {addresses,activeAddressId,ChangeState} = this.context;
+        let address = addresses.find(({id})=>id === activeAddressId) || {address:''}
         return {
             size:48,className:'p-h-12',
             row: [
@@ -68,14 +66,14 @@ export default class Sefareshe_ghaza extends Component {
                     html: (
                         <AIOButton
                             type='select'
-                            value={addressId}
+                            value={activeAddressId}
                             options={addresses}
                             text={address.address.slice(0,54)}
                             style={{background:'none',width:'100%'}}
                             optionText='option.address.slice(0,54)'
                             optionValue='option.id'
                             caretAttrs={{ style: { color: '#FF5900' } }}
-                            onChange={(value)=>this.setState({addressId:value})}
+                            onChange={(value)=>ChangeState({activeAddressId:value})}
                         />
                     )
                 }

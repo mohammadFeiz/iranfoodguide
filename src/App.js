@@ -34,7 +34,7 @@ export default class App extends Component {
               token={token}
               personId={this.personId}
               logout={logout}
-              mobile={mobile}
+              mobileNumber={mobile}
               roles={[]}
             />
           )
@@ -71,11 +71,10 @@ export default class App extends Component {
         }}
         onRegister={async ({ model, number }) => {
           let apis = getResponse()
+          let {firstName,lastName,email,sheba} = model;
           let { response } = await apis.setProfile({
-            profile: {
-              ...model,
-              mobile: number
-            }, 
+            profile: {firstName,lastName,email,sheba}, 
+            mobileNumber:number,
             registered: false
           })
           if (response.data.isSuccess) {
@@ -154,11 +153,12 @@ class IranFoodGuide extends Component {
     super(props);
     this.state = {
       comming_soon: false,
+      mobileNumber:props.mobileNumber,
       personId: props.personId,
       logout: props.logout,
       profile: {},
       discounts: [],
-      SetState: (obj) => this.setState(obj),
+      ChangeState: this.ChangeState.bind(this),
       mojoodiye_kife_pool: 0
     }
     this.state.apis = AIOService({
@@ -166,18 +166,29 @@ class IranFoodGuide extends Component {
       token: props.token,
       getResponse,
       id: 'iranfoodguid',
+      validation:{
+        firstName:'string',
+        lastName:'string',
+        sheba:'string,undefined',
+        email:'string'
+      },
       getError: (res, obj) => {
-        debugger;
-        if (!res.data.isSuccess) { return res.data.message }
+        if (!res.data.isSuccess) { return res.data.message || 'خطای تعریف نشده' }
       }
     })
+  }
+  ChangeState(obj){
+    this.setState(obj);
   }
   async getProfile() {
     let { apis } = this.state;
     await apis({
       api: 'getProfile',
-      callback: (res) => {
-        this.setState({ profile: res })
+      callback: ({firstName,lastName,sheba,email,id}) => {
+        this.ChangeState(
+          {profile: {firstName,lastName,sheba,email,id}},
+          'IranFoodGuide Component => getProfile'
+        )
       },
       name: 'دریافت اطلاعات پروفایل'
     });

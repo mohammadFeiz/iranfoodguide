@@ -28,17 +28,18 @@ export function getResponse({getState}){
             let response = await Axios.post(url,body);
             return {response}
         },
-        async setProfile({ profile, registered }) {
+        async setProfile({ profile,mobileNumber, registered }) {
+            debugger;
             let url = `${baseUrl}/People/${registered?'UpdateProfile':'CreateProfile'}`
             let body = {
                 "Id":profile.id,
-                "firstName": profile.firstname,//نام
-                "lastName": profile.lastname,
+                "firstName": profile.firstName,//نام
+                "lastName": profile.lastName,
                 "email": profile.email,
                 "sheba": profile.sheba,
                 "mobileNumbers": [
                     {
-                        "mobileNumber": profile.mobile,
+                        "mobileNumber": mobileNumber,
                         "isDefault": true
                     }
                 ]
@@ -50,8 +51,9 @@ export function getResponse({getState}){
             let url = `${baseUrl}/People/search`
             let body = {"Id":personId}
             let response = await Axios.post(url,body);
+            let result = response.data.data.items[0]
             debugger;
-            
+            return {response,result}
         },
         async getAddresses(){
             let response;
@@ -67,18 +69,18 @@ export function getResponse({getState}){
             let result = response.data.data.items;
             return {response,result};
         },
-        async addressForm({ model, type}) {
+        async addressForm({ address, type}) {
             if (type === 'add') {
                 let url = `${baseUrl}/People/CreatePeopleAddress`;
                 let body = {
                     "personId": personId,
                     "address": {
-                      "fullAddress": model.address,
-                      "latitude": model.latitude,
-                      "longitude": model.longitude,
-                      "phoneNumber": model.phone
+                      "fullAddress": address.address,
+                      "latitude": address.latitude,
+                      "longitude": address.longitude,
+                      "phoneNumber": address.phone
                     },
-                    "title": model.title
+                    "title": address.title
                 }
                 let response = await Axios.post(url,body);
                 return {response}
@@ -124,16 +126,11 @@ export function getMock({helper}){
         },
         async getProfile() {
             return {
-                firstname: 'احمد',//نام
-                lastname: 'بهرامی',//نام خانوادگی
-                mobile: '09123534314',//شماره همراه
+                firstName: 'احمد',//نام
+                lastName: 'بهرامی',//نام خانوادگی
+                mobileNumber: '09123534314',//شماره همراه
                 email: 'feiz.ms@gmail.com',//آدرس ایمیل
                 sheba: '1234567',//شماره شبا
-                addressId: '0',//آی دی آدرس منتخب
-                kife_pool: {
-                    mojoodi: 12343546567,
-                    tarikhche: []
-                }
             }
         },
         async takhfif_ha(res) {
