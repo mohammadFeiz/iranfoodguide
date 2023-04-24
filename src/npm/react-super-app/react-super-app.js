@@ -245,7 +245,7 @@ class Navigation extends Component {
       row: [
         { size: level * 16 },
         { show: navs !== undefined, size: 24, html: navs ? <Icon path={open ? mdiChevronDown : (rtl ? mdiChevronLeft : mdiChevronRight)} size={1} /> : '', align: 'vh' },
-        { show: !!icon, size: 48, html: () => icon(active), align: 'vh' },
+        { show: !!icon, size: 48, html: () => typeof icon === 'function'?icon(active):icon, align: 'vh' },
         { html: text, align: 'v' }
       ]
     }
@@ -257,7 +257,7 @@ class Navigation extends Component {
       flex: 1, className: 'rsa-bottom-menu-item of-visible' + (active ? ' active' : ''), attrs: { onClick: () => onChange(id) },
       column: [
         { flex: 2 },
-        { show: !!icon, html: () => icon(active), align: 'vh', className: 'of-visible' },
+        { show: !!icon, html: () => typeof icon === 'function'?icon(active):icon, align: 'vh', className: 'of-visible' },
         { flex: 1 },
         { html: text, align: 'vh', className: 'rsa-bottom-menu-item-text' },
         { flex: 1 }
@@ -511,11 +511,11 @@ export class Confirm extends Component {
 export class OTP extends Component{
   constructor(props){
     super(props);
-    let {id,checkToken,onInterNumber,onInterCode,onInterPassword,mock} = props;
+    let {id,checkToken,onInterNumber,onInterCode,onInterPassword} = props;
     if(!id){console.error(`OTP error=> missing id props`)}
     this.tokenStorage = AIOStorage(`${id}-token`);
     this.state = {
-      isAutenticated:!!mock,
+      isAutenticated:false,
       apis:AIOService({
         id:`${id}login`,
         getResponse:()=>{

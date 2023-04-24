@@ -29,7 +29,6 @@ export function getResponse({getState}){
             return {response}
         },
         async setProfile({ profile,mobileNumber, registered }) {
-            debugger;
             let url = `${baseUrl}/People/${registered?'UpdateProfile':'CreateProfile'}`
             let body = {
                 "Id":profile.id,
@@ -52,7 +51,6 @@ export function getResponse({getState}){
             let body = {"Id":personId}
             let response = await Axios.post(url,body);
             let result = response.data.data.items[0]
-            debugger;
             return {response,result}
         },
         async getAddresses(){

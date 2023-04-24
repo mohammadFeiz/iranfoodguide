@@ -4,7 +4,7 @@ import CommingSoon from './components/comming-soon/commin-soon';
 import BackOffice from './components/back-office/back-office';
 import AIOService from './npm/aio-service/aio-service';
 import RVD from './npm/react-virtual-dom/react-virtual-dom';
-import { getResponse } from './apis';
+import { getResponse,getMock } from './apis';
 import AppContext from './app-context';
 import { dictionary } from './dictionary';
 import Axios from 'axios';
@@ -158,13 +158,14 @@ class IranFoodGuide extends Component {
       logout: props.logout,
       profile: {},
       discounts: [],
+      addresses:[],
       ChangeState: this.ChangeState.bind(this),
       mojoodiye_kife_pool: 0
     }
     this.state.apis = AIOService({
       getState: () => this.state,
       token: props.token,
-      getResponse,
+      getResponse,getMock,
       id: 'iranfoodguid',
       validation:{
         firstName:'string',
@@ -180,9 +181,9 @@ class IranFoodGuide extends Component {
   ChangeState(obj){
     this.setState(obj);
   }
-  async getProfile() {
+  componentDidMount() {
     let { apis } = this.state;
-    await apis({
+    apis({
       api: 'getProfile',
       callback: ({firstName,lastName,sheba,email,id}) => {
         this.ChangeState(
@@ -192,27 +193,21 @@ class IranFoodGuide extends Component {
       },
       name: 'دریافت اطلاعات پروفایل'
     });
-  }
-  async getKife_pool() {
-    let { apis } = this.state;
-    await apis({
+    apis({
       api: 'mojoodiye_kife_pool',
       callback: (res) => this.setState({ mojoodiye_kife_pool: res }),
       name: 'دریافت موجودی کیف پول'
     });
-  }
-  async get_takhfif_ha() {
-    let { apis } = this.state;
-    await apis({
+    apis({
       api: 'takhfif_ha',
       callback: (res) => this.setState({ takhfif_ha: res }),
       name: 'دریافت اطلاعات تخفیف ها'
     });
-  }
-  componentDidMount() {
-    this.getProfile();
-    this.getKife_pool();
-    this.get_takhfif_ha();
+    apis({
+      api: 'getAddresses',
+      callback: (res) => {debugger; this.setState({ addresses: res })},
+      name: 'دریافت آدرس ها'
+    });
   }
   render() {
     let { comming_soon } = this.state;
