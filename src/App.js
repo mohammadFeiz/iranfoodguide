@@ -42,9 +42,9 @@ export default class App extends Component {
         varifiedCode={undefined}
         codeLength={6}
         fields={[
-          { type: 'text', label: 'نام', field: 'firstname', rowKey: '1' },
+          { type: 'text', label: 'نام', field: 'firstName', rowKey: '1' },
           { type: 'html', html: () => '', rowWidth: 12, rowKey: '1' },
-          { type: 'text', label: 'نام خانوادگی', field: 'lastname', rowKey: '1' },
+          { type: 'text', label: 'نام خانوادگی', field: 'lastName', rowKey: '1' },
           { type: 'select', label: 'جنسیت', field: 'gender', options: [{ text: 'مرد', value: 'male' }, { text: 'زن', value: 'female' }], rowKey: '2' },
           { type: 'html', html: () => '', rowWidth: 12, rowKey: '2' },
           { type: 'text', label: 'ایمیل', field: 'email', rowKey: '2' },
@@ -70,7 +70,7 @@ export default class App extends Component {
           return response.data.isSuccess || 'error'
         }}
         onRegister={async ({ model, number }) => {
-          let apis = getResponse()
+          let apis = getResponse({})
           let {firstName,lastName,email,sheba} = model;
           let { response } = await apis.setProfile({
             profile: {firstName,lastName,email,sheba}, 
@@ -86,7 +86,6 @@ export default class App extends Component {
         }}
         onInterNumber={async (number) => {//return boolean
           let response = await Axios.post(`${baseUrl}/Users/GenerateUserCode`, { mobileNumber: number })
-          debugger;
           if (!response.data.isSuccess) { return response.data.message }
           return response.data.data.isRegistered;
         }}

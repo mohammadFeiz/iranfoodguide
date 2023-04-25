@@ -52,7 +52,7 @@ export let helper = {
     catch{return value}
   }
 }
-export default function services(obj) {
+export default function services(obj = {}) {
   let {
     getState,token,loader,id,
     getResponse,

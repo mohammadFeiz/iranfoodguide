@@ -16,7 +16,6 @@ import ghaem_logo from './images/ghaem_logo.png';
 export function getResponse({getState}){
      //let baseUrl = 'https://localhost:7203/api'
     let baseUrl = 'https://iranfoodguide.ir/api'
-    let {personId} = getState();
     return {
         async sabte_shomare_tamas(shomare_tamas) {
             let url = `${baseUrl}/People/AddMobileNumber`;
@@ -47,6 +46,7 @@ export function getResponse({getState}){
             return {response}
         },
         async getProfile() {
+            let {personId} = getState();
             let url = `${baseUrl}/People/search`
             let body = {"Id":personId}
             let response = await Axios.post(url,body);
@@ -61,6 +61,7 @@ export function getResponse({getState}){
             return {response,result,mock:true}
         },
         async takhfif_ha() {
+            let {personId} = getState();
             let url = `${baseUrl}/PersonDiscount/Search`;
             let body = {"PersonId": personId}
             let response = await Axios.post(url,body);
@@ -68,6 +69,7 @@ export function getResponse({getState}){
             return {response,result};
         },
         async addressForm({ address, type}) {
+            let {personId} = getState();
             if (type === 'add') {
                 let url = `${baseUrl}/People/CreatePeopleAddress`;
                 let body = {
