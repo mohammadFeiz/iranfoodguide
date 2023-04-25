@@ -19,10 +19,13 @@ import AIOButton from './npm/aio-button/aio-button';
 export default class App extends Component {
   constructor(props) {
     super(props);
+    //this.baseUrl = 'https://localhost:7203'
+    this.baseUrl = 'https://iranfoodguide.ir'
+    
     this.state = { backOffice: false }
   }
   async onInterNumber(number){//return boolean
-    let response = await Axios.post(`${baseUrl}/Users/GenerateUserCode`, { mobileNumber: number })
+    let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: number })
     if (!response.data.isSuccess) { return response.data.message }
     return response.data.data.isRegistered;
   }
@@ -42,7 +45,7 @@ export default class App extends Component {
     else {return response.data.message}
   }
   async onInterCode({ number, code, model }){//return string or false
-    let response = await Axios.post(`${baseUrl}/Users/TokenWithCode`, {
+    let response = await Axios.post(`${this.baseUrl}/Users/TokenWithCode`, {
       mobileNumber: number,
       code: code.toString()
     });
@@ -56,8 +59,6 @@ export default class App extends Component {
   }
   render() {
     let { backOffice } = this.state;
-    // let baseUrl = 'https://localhost:7203'
-    let baseUrl = 'https://iranfoodguide.ir'
     return (
       <OTP
         id='iranfoodguide'
@@ -87,7 +88,7 @@ export default class App extends Component {
           let response;
           Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           try {
-            response = await Axios.get(`${baseUrl}/Users/WhoAmI`);
+            response = await Axios.get(`${this.baseUrl}/Users/WhoAmI`);
             this.personId = response.data.data.id;
           }
           catch (err) {
