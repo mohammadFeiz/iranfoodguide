@@ -14,8 +14,8 @@ import pasta_alferedo from './images/pasta_alferedo.png';
 import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
 export function getResponse({getState}){
-     //let baseUrl = 'https://localhost:7203/api'
-    let baseUrl = 'https://iranfoodguide.ir/api'
+   // let baseUrl = 'https://localhost:7203/api'
+   let baseUrl = 'https://iranfoodguide.ir/api'
     return {
         async sabte_shomare_tamas(shomare_tamas) {
             let url = `${baseUrl}/People/AddMobileNumber`;
@@ -54,20 +54,40 @@ export function getResponse({getState}){
             return {response,result}
         },
         async getAddresses(){//لیست آدرس ها
-            let response;
-            let result = [                
-                {
-                    title: 'خانه',
-                    address: 'تهران شیخ بهایی شمالی نوربخش',
-                    number: 30,
-                    unit: 4,
-                    floor: 2,
-                    id: '0',
-                    description: '',
-                    phone: '02188050006'
-                }
-            ];
-            return {response,result,mock:true}
+            let {personId} = getState();
+            let url = `${baseUrl}/People/GetPeopleAddress`
+            let body = {
+                "PersonId":personId
+            }
+            let response = await Axios.post(url,body);
+
+            let result=response.data.data.map((o)=>
+            {
+                    return {
+                        title: o.title,
+                        address: o.address,
+                        number: 30,
+                        unit: 4,
+                        floor: 2,
+                        id: o.id,
+                        description: o.description,
+                        phone: o.phoneNumber
+                    }
+            });
+            debugger
+            // let result = [                
+            //     {
+            //         title: 'خانه',
+            //         address: 'تهران شیخ بهایی شمالی نوربخش',
+            //         number: 30,
+            //         unit: 4,
+            //         floor: 2,
+            //         id: '0',
+            //         description: '',
+            //         phone: '02188050006'
+            //     }
+            // ];
+            return {response,result}
         },
         async takhfif_ha() {
             let {personId} = getState();
