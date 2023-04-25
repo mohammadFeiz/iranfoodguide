@@ -21,6 +21,39 @@ export default class App extends Component {
     super(props);
     this.state = { backOffice: false }
   }
+  async onInterNumber(number){//return boolean
+    let response = await Axios.post(`${baseUrl}/Users/GenerateUserCode`, { mobileNumber: number })
+    if (!response.data.isSuccess) { return response.data.message }
+    return response.data.data.isRegistered;
+  }
+  async onRegister ({ model, number }){
+    let apis = getResponse({})
+    let {firstName,lastName,email,sheba} = model;
+    let { response } = await apis.setProfile({
+      profile: {firstName,lastName,email,sheba}, 
+      mobileNumber:number,
+      registered: false
+    })
+    if (response.data.isSuccess) {
+      this.setState({ resigtered: true })
+      this.onInterNumber(number)
+      return true
+    }
+    else {return response.data.message}
+  }
+  async onInterCode({ number, code, model }){//return string or false
+    let response = await Axios.post(`${baseUrl}/Users/TokenWithCode`, {
+      mobileNumber: number,
+      code: code.toString()
+    });
+    if (response.data.isSuccess) {
+      this.personId = response.data.data.personId
+      return response.data.data.access_token;
+    }
+    else{
+      return false;
+    }
+  }
   render() {
     let { backOffice } = this.state;
     // let baseUrl = 'https://localhost:7203'
@@ -69,38 +102,9 @@ export default class App extends Component {
           }
           return response.data.isSuccess || 'error'
         }}
-        onRegister={async ({ model, number }) => {
-          let apis = getResponse({})
-          let {firstName,lastName,email,sheba} = model;
-          let { response } = await apis.setProfile({
-            profile: {firstName,lastName,email,sheba}, 
-            mobileNumber:number,
-            registered: false
-          })
-          if (response.data.isSuccess) {
-            this.setState({ resigtered: true })
-            this.onInterNumber(number)
-            return true
-          }
-          else {return response.data.message}
-        }}
-        onInterNumber={async (number) => {//return boolean
-          let response = await Axios.post(`${baseUrl}/Users/GenerateUserCode`, { mobileNumber: number })
-          if (!response.data.isSuccess) { return response.data.message }
-          return response.data.data.isRegistered;
-        }}
-        onInterCode={async ({ number, code, model }) => {//return string or false
-          let response = await Axios.post(`${baseUrl}/Users/TokenWithCode`, {
-            mobileNumber: number,
-            code: code.toString()
-          });
-          if (response.data.isSuccess) {
-            this.personId = response.data.data.personId
-            return response.data.data.access_token;
-          }
-          else
-            return false;
-        }}
+        onRegister={async ({ model, number }) => await this.onRegister({ model, number })}
+        onInterNumber={async (number) => await this.onInterNumber(number)}
+        onInterCode={async ({ number, code, model }) => await this.onInterCode({ number, code, model })}
         // registerFields={[
         //   {label:'نام',field:'FirstName',type:'text',icon:<Icon path={mdiAccountBoxOutline} size={1}/>},
         //   {label:'نام خانوادگی',field:'LastName',type:'text',icon:<Icon path={mdiAccountBoxOutline} size={1}/>},
