@@ -552,6 +552,7 @@ export class OTP extends Component{
     this.mounted = true;
     this.state.apis({
       api:'checkToken',name:'بررسی توکن',
+      errorMessage:'اتصال خود را بررسی کنید',
       callback:(res)=>this.setState({isAutenticated:res}),
     })
   }
