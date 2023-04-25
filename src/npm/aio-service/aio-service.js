@@ -88,6 +88,7 @@ function AIOServiceLoading(id){
 
 function Service(config) {
   function validate(result,{validation,api,def,name,errorMessage,successMessage}){
+    name = typeof name === 'function'?name():name
     if(typeof result === 'string'){
       if(errorMessage !== false){
         if(errorMessage === undefined){errorMessage = `${name} با خطا روبرو شد`}

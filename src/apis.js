@@ -53,11 +53,20 @@ export function getResponse({getState}){
             let result = response.data.data.items[0]
             return {response,result}
         },
-        async getAddresses(){
+        async getAddresses(){//لیست آدرس ها
             let response;
-            let result;
-
-
+            let result = [                
+                {
+                    title: 'خانه',
+                    address: 'تهران شیخ بهایی شمالی نوربخش',
+                    number: 30,
+                    unit: 4,
+                    floor: 2,
+                    id: '0',
+                    description: '',
+                    phone: '02188050006'
+                }
+            ];
             return {response,result,mock:true}
         },
         async takhfif_ha() {
@@ -114,7 +123,7 @@ export function getMock({helper}){
             return [//لیست آدرس ها
                 {
                     title: 'خانه',
-                    address: 'آدرس  یبلیلیبل یبل یبل یبل یبل یبل یبل یبل یبل یبل یبل یبل یبلی غاقف غاقفغ بفعغ قفغ قفغ قفغ 1',
+                    address: 'تهران شیخ بهایی شمالی نوربخش',
                     number: 30,
                     unit: 4,
                     floor: 2,

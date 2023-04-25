@@ -20,11 +20,11 @@ export default class Profile extends Component {
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'آدرس ها', id: 'address_ha' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'تخفیف ها',id:'takhfif_ha' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'رستوران های محبوب',id:'restoran_haye_mahboob' },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'نظرات من' },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'شبکه اجتماعی غذا' },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'دعوت از دوستان' },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'تنظیمات' },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'قوانین' },
+                //{ icon: <Icon path={mdiAccount} size={1} />, text: 'نظرات من' },
+                //{ icon: <Icon path={mdiAccount} size={1} />, text: 'شبکه اجتماعی غذا' },
+                //{ icon: <Icon path={mdiAccount} size={1} />, text: 'دعوت از دوستان' },
+                //{ icon: <Icon path={mdiAccount} size={1} />, text: 'تنظیمات' },
+                //{ icon: <Icon path={mdiAccount} size={1} />, text: 'قوانین' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'خروج',id:'exit' }
             ]
         }

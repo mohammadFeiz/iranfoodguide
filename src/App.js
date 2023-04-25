@@ -199,12 +199,12 @@ class IranFoodGuide extends Component {
     });
     apis({
       api: 'takhfif_ha',
-      callback: (res) => this.setState({ takhfif_ha: res }),
+      callback: (res) =>{debugger; this.setState({ takhfif_ha: res })},
       name: 'دریافت اطلاعات تخفیف ها'
     });
     apis({
       api: 'getAddresses',
-      callback: (res) => {debugger; this.setState({ addresses: res })},
+      callback: (res) => this.setState({ addresses: res }),
       name: 'دریافت آدرس ها'
     });
   }
