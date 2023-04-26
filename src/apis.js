@@ -14,7 +14,7 @@ import pasta_alferedo from './images/pasta_alferedo.png';
 import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
 export function getResponse({getState}){
-   // let baseUrl = 'https://localhost:7203/api'
+    //let baseUrl = 'https://localhost:7203/api/v1'
    let baseUrl = 'https://iranfoodguide.ir/api'
     return {
         async sabte_shomare_tamas(shomare_tamas) {
@@ -126,7 +126,12 @@ export function getResponse({getState}){
             return {response,result};
         },
         async restoran_haye_mahboob() {
-            return {mock:true}   
+            let {personId} = getState();
+            let url = `${baseUrl}/RestaurantFavoruite/search`
+            let body = {"PersonId":personId}
+            let response = await Axios.post(url,body);
+            let result = response.data.data.items;
+            return {response,result}
         },
         async mojoodiye_kife_pool() {
             return {mock:true}
