@@ -1,0 +1,34 @@
+.search-box{
+    width:100%;
+    color:#666;
+}
+.search-box-popup{
+    max-height:300px;
+    overflow-y:auto;
+    transform:translateY(-36px)
+}
+.search-box-icon{
+    width:36px;
+}
+.search-box-input{
+    background:#f4f4f4;
+    height:36px;
+    border-radius:6px;
+}
+.search-box-input input{
+    width:100%;
+    outline:none;
+    border:none;
+    background:none;
+}
+
+.search-box-history-item{
+    border-bottom:1px solid #eee;
+    font-size:12px;
+}
+.search-box-label{
+    font-size:12px;
+    font-weight:bold;
+    padding:0 12px;
+    height:36px;
+}

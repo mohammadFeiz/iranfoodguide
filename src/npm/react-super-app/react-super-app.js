@@ -1,12 +1,9 @@
-import React, { Component, createRef } from 'react';
-import AIOButton from './../../npm/aio-button/aio-button';
+import React, { Component } from 'react';
 import AIOStorage from './../../npm/aio-storage/aio-storage';
-import AIOService from './../../npm/aio-service/aio-service';
-import { OTPLogin } from './../../npm/aio-login/aio-login';
 import { Icon } from '@mdi/react';
-import { mdiMenu, mdiClose, mdiChevronRight, mdiChevronLeft, mdiCheckCircleOutline, mdiAlertOutline, mdiInformationOutline, mdiChevronDown } from '@mdi/js';
+import { mdiMenu, mdiChevronRight, mdiChevronLeft, mdiChevronDown } from '@mdi/js';
 import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
-import $ from 'jquery';
+import AIOPopup from '../aio-popup/aio-popup';
 import './index.css';
 
 export default class ReactSuperApp extends Component {
@@ -21,30 +18,17 @@ export default class ReactSuperApp extends Component {
     };
     this.state = {
       navId: this.getNavId(),
+      popupActions:{},
+      isThereOpenedPopup:false,
       splash,
       showSplash: true,
       confirm: false,
       touch,
-      popups: [],
       sideOpen: false,
-      addPopup: (o) => {
-        let { popups } = this.state;
-        if (o.id) {//agar popup ba in id baz hast oon ro beband ke tekrari popup add nashe
-          popups = popups.filter(({ id }) => id !== o.id);
-          this.state.popups = popups;
-        }
-        this.setState({ popups: popups.concat(o) })
-      },
-      removePopup: (id) => {
-        let { popups } = this.state;
-        if (id === undefined) { popups.pop(); }
-        else if (id === 'all') {
-          this.state.popups = [];
-          popups = [];
-        }
-        else { popups = popups.filter((o) => o.id !== id); }
-        this.setState({ popups })
-      },
+      addPopup: (o)=>this.state.popupActions.addPopup(o),
+      removePopup: (id)=>this.state.popupActions.removePopup(id),
+      setConfirm: (obj)=>this.state.popupActions.setConfirm(obj),
+      
       changeTheme: (index) => {
         let { themes } = props;
         this.theme = this.theme || 0;
@@ -69,42 +53,11 @@ export default class ReactSuperApp extends Component {
         }
 
       },
-      setConfirm: this.setConfirm.bind(this),
       setNavId: (navId) => this.setState({ navId })
     }
     if (props.themes) { this.state.changeTheme('init') }
     if (splash) { setTimeout(() => this.setState({ splash: false }), splashTime) }
     if (props.getActions) { props.getActions({ ...this.state }) }
-  }
-
-  setConfirm(obj) {
-    let confirm;
-    let { type } = obj;
-    if (type) {
-      let { text, subtext } = obj;
-      let path, color;
-      if (type === 'success') { path = mdiCheckCircleOutline; color = 'green'; }
-      else if (type === 'error') { path = mdiClose; color = 'red'; }
-      else if (type === 'warning') { path = mdiAlertOutline; color = 'orange'; }
-      else if (type === 'info') { path = mdiInformationOutline; color = 'dodgerblue'; }
-      let body = (
-        <RVD
-          layout={{
-            column: [
-              { size: 12 },
-              { html: <Icon path={path} size={2} />, style: { color }, align: 'vh' },
-              { size: 12 },
-              { html: text, style: { color }, align: 'vh' },
-              { size: 12 },
-              { html: subtext, align: 'vh', className: 'fs-10' }
-            ]
-          }}
-        />
-      )
-      confirm = { text: body, style: { height: 'fit-content', width: 360 }, buttons: [{ text: 'بستن' }], backClose: true }
-    }
-    else { confirm = obj; }
-    this.setState({ confirm })
   }
   getNavId() {
     let { navs, navId } = this.props;
@@ -147,12 +100,12 @@ export default class ReactSuperApp extends Component {
     }
   }
   getMainClassName() {
-    let { confirm, popups, sideOpen } = this.state;
+    let { sideOpen,isThereOpenedPopup } = this.state;
     let { rtl, className: cls } = this.props;
     let className = 'rsa-main';
     className += cls ? ' ' + cls : '';
     className += rtl ? ' rtl' : ' ltr';
-    if (confirm || popups.length || sideOpen) { className += ' rsa-blur' }
+    if (isThereOpenedPopup || sideOpen) { className += ' rsa-blur' }
     return className;
   }
   navigation_layout(type) {
@@ -182,23 +135,14 @@ export default class ReactSuperApp extends Component {
     layout.row = [this.navigation_layout('side'), this.page_layout(nav)]
     return (<RVD layout={layout} />)
   }
-  renderPopups() {
-    let { popups, removePopup, confirm } = this.state;
-    let { rtl, popupConfig = {} } = this.props;
-    if (!popups.length) { return null }
-    return popups.map((o, i) => {
-      return <Popup key={i} blur={confirm || i === popups.length - 2} {...popupConfig} {...o} index={i} removePopup={() => removePopup()} rtl={rtl} />
-    })
-  }
   render() {
-    let { confirm, sideOpen, splash } = this.state;
+    let { sideOpen, splash } = this.state;
     let { sides = [], sideId, rtl, sideHeader, sideFooter, sideClassName } = this.props;
     return (
       <div className='rsa-container'>
         <div className='rsa'>
           {this.renderMain()},
-          {this.renderPopups()}
-          {confirm && <Confirm {...confirm} rtl={rtl} onClose={() => this.setState({ confirm: false })} />}
+          <AIOPopup getActions={(o)=>this.setState({popupActions:{...o}})} onChange={({popups,confirm})=>this.setState({isThereOpenedPopup:!!confirm || !!popups.length})}/>
           {sides.length && <SideMenu className={sideClassName} sideHeader={sideHeader} sideFooter={sideFooter} sides={sides} sideId={sideId} sideOpen={sideOpen} rtl={rtl} onClose={() => this.setState({ sideOpen: false })} />}
           {splash && splash()}
         </div>
@@ -337,268 +281,4 @@ export function splitNumber(price, count = 3, splitter = ',') {
     else { index++ }
   }
   return res
-}
-//tabs,body,onClose,title
-class Popup extends Component {
-  constructor(props) {
-    super(props);
-    this.dom = createRef();
-    this.state = { activeTabIndex: 0 };
-    this.dui = 'a' + Math.random()
-
-  }
-  async onClose() {
-    let { removePopup, onClose } = this.props;
-    $(this.dom.current).animate({ left: '50%', top: '100%', height: '0%', width: '0%', opacity: 0 }, 300, async () => {
-      if (onClose) {
-        let res = await onClose();
-        if (res === false) { return }
-        removePopup()
-      }
-      else { removePopup() }
-    });
-
-  }
-  header_layout() {
-    let { onClose = () => this.onClose(), title, header, rtl, closeType = 'close button' } = this.props;
-    if (header === false) { return false }
-    return {
-      size: 48, className: 'rsa-popup-header',
-      row: [
-        { show: closeType === 'back button' && onClose !== false, html: <Icon path={rtl ? mdiChevronRight : mdiChevronLeft} size={1} />, align: 'vh', attrs: { onClick: () => onClose() } },
-        { show: closeType === 'back button' && onClose !== false, size: 6 },
-        { flex: 1, html: title, align: 'v', className: 'rsa-popup-title' },
-        { show: !!header, html: () => <div style={{ display: 'flex', alignItems: 'center' }}>{header()}</div> },
-        { show: closeType === 'close button' && onClose !== false, size: 36, html: <Icon path={mdiClose} size={0.8} />, align: 'vh', attrs: { onClick: () => onClose() } }
-      ]
-    }
-  }
-  body_layout() { return { flex: 1, column: [this.tabs_layout(), this.body_layout()] } }
-  tabs_layout() {
-    let { tabs } = this.props;
-    if (!tabs) { return false }
-    let { activeTabIndex } = this.state;
-    return { html: (<AIOButton type='tabs' options={tabs.map((o, i) => { return { text: o, value: i } })} value={activeTabIndex} onChange={(activeTabIndex) => this.setState({ activeTabIndex })} />) }
-  }
-  body_layout() {
-    let { tabs, body } = this.props;
-    let content;
-    if (tabs) {
-      let { activeTabIndex } = this.state;
-      content = body(activeTabIndex)
-    }
-    else { content = body() }
-    if (content === 'loading') { return { flex: 1, html: 'در حال بارگزاری', align: 'vh' } }
-    if (content === 'empty') { return { flex: 1, html: 'موردی موجود نیست', align: 'vh' } }
-    return { flex: 1, html: <div className='rsa-popup-body'>{content}</div> }
-  }
-  getClassName() {
-    let { type, blur, className: cls } = this.props;
-    let className = 'rsa-popup-container';
-    if (cls) { className += className ? (' ' + cls) : '' }
-    if (blur) { className += ' rsa-blur' }
-    if (type === 'fullscreen') { className += ' fullscreen' }
-    if (type === 'bottom') { className += ' bottom-popup' }
-    return className
-  }
-  backClick(e) {
-    let target = $(e.target);
-    if (target.hasClass(this.dui)) { return }
-    let parents = target.parents('.rsa-popup');
-    if (parents.hasClass(this.dui)) { return }
-    let { removePopup, onClose = () => removePopup(), backClose } = this.props;
-    if (onClose === false) { return }
-    if (!backClose) { return }
-    onClose();
-  }
-  componentDidMount() {
-    $(this.dom.current).animate({ height: '100%', width: '100%', left: '0%', top: '0%', opacity: 1 }, 300);
-  }
-  render() {
-    let { rtl, style } = this.props;
-    return (
-      <div ref={this.dom} className={this.getClassName()} onClick={(e) => this.backClick(e)} style={{
-        left: '50%', top: '100%', height: '0%', width: '0%', opacity: 0
-      }}>
-        <RVD
-          layout={{
-            className: 'rsa-popup' + (rtl ? ' rtl' : ' ltr') + (' ' + this.dui),
-            style: { flex: 'none', ...style },
-            column: [this.header_layout(), this.body_layout()]
-          }}
-        />
-      </div>
-    )
-  }
-}
-
-
-export class Confirm extends Component {
-  constructor(props) {
-    super(props);
-    this.dui = 'a' + Math.random();
-  }
-  header_layout() {
-    let { onClose, title } = this.props;
-    if (!title) { return false }
-    return {
-      size: 48, className: 'rsa-popup-header',
-      row: [
-        { flex: 1, html: title, align: 'v', className: 'rsa-popup-title' },
-        { size: 48, html: <Icon path={mdiClose} size={0.8} />, align: 'vh', attrs: { onClick: () => onClose() } }
-      ]
-    }
-  }
-  body_layout() {
-    let { text } = this.props;
-    return { flex: 1, html: text, className: 'rsa-popup-body ofy-auto' }
-  }
-  onSubmit() {
-    let { onClose, onSubmit } = this.props;
-    onSubmit();
-    onClose();
-  }
-  footer_layout() {
-    let { buttons, onClose = () => { } } = this.props;
-    return {
-      gap: 12,
-      size: 48,
-      align: 'v',
-      style: { padding: '0 12px' },
-      className: 'rsa-confirm-footer',
-      row: buttons.map(({ text, onClick = () => { } }) => {
-        return {
-          html: (
-            <button
-              className='rsa-popup-footer-button'
-              onClick={() => { onClick(); onClose() }}
-            >{text}</button>
-          )
-        }
-      })
-    }
-  }
-  backClick(e) {
-    let { onClose, backClose } = this.props;
-    if (!backClose) { return }
-    let target = $(e.target);
-    if (target.hasClass(this.dui)) { return }
-    let parents = target.parents('.rsa-popup');
-    if (parents.hasClass(this.dui)) { return }
-
-    onClose();
-  }
-  render() {
-    let { style = { width: 400, height: 300 }, rtl } = this.props;
-    return (
-      <div className='rsa-popup-container' onClick={(e) => this.backClick(e)}>
-        <RVD layout={{ className: 'rsa-popup rsa-confirm' + (' ' + this.dui), style: { flex: 'none', direction: rtl ? 'rtl' : 'ltr', ...style }, column: [this.header_layout(), this.body_layout(), this.footer_layout()] }} />
-      </div>
-    )
-  }
-}
-//props
-//id:string *
-//checktoken:function *
-//onInterNumber:function *
-//onInterCode:function *
-//onInterPassword:function
-//codeLength:number *
-//registered:boolean *
-//COMPONENT:react react compopnent *
-//registerFields:array og objects
-//layout:function
-export class OTP extends Component{
-  constructor(props){
-    super(props);
-    let {id,checkToken,onInterNumber,onInterCode,onInterPassword} = props;
-    if(!id){console.error(`OTP error=> missing id props`)}
-    this.tokenStorage = AIOStorage(`${id}-token`);
-    this.state = {
-      isAutenticated:false,
-      apis:AIOService({
-        id:`${id}login`,
-        getResponse:()=>{
-          return {
-            checkToken:async ()=>{
-              let token = this.tokenStorage.load({name:'token',def:false});
-              let result = await checkToken(token);
-              return {result}
-            },
-            async onInterNumber(number){
-              let result = await onInterNumber(number);
-              if(typeof result !== 'string' && typeof result !== 'boolean'){result = 'error'}
-              return {result}
-            },
-            async onInterCode(obj){
-              let result = await onInterCode(obj)
-              if(typeof result === 'string'){result = {token:result}}
-              else {result = 'error'}
-              return {result}
-            },
-            async onInterPassword(number,password){
-              let result = await onInterPassword(number,password);
-              if(typeof result === 'string'){result = {token:result}}
-              else {result = 'error'}
-              return {result}
-            }
-          }
-        },
-        onCatch:(res)=>{this.setState({isAutenticated:false}); return 'error'}
-      })
-    }
-  }
-  async componentDidMount(){
-    this.mounted = true;
-    this.state.apis({
-      api:'checkToken',name:'بررسی توکن',
-      errorMessage:'اتصال خود را بررسی کنید',
-      callback:(res)=>this.setState({isAutenticated:res}),
-    })
-  }
-  setToken(token,number){
-    this.tokenStorage.save({value:token,name:'token'});
-    this.tokenStorage.save({value:number,name:'mobile'});
-    this.setState({token,isAutenticated:true})
-  }
-  logout(){this.tokenStorage.remove({name:'token'}); window.location.reload()}
-  render(){
-    if(!this.mounted){return null}
-    let {registerFields,layout,onInterNumber,onInterCode,onInterPassword,codeLength,COMPONENT,id,fields,onRegister} = this.props;
-    if(!id){console.error('OTP error => missing id props'); return null}
-    if(!onInterNumber){console.error('OTP error => onInterNumber props is not a function. onInterNumber is callback to call by phone number'); return null}
-    if(!onInterCode){console.error('OTP error => onInterCode props is not a function. onInterCode is callback to call by OTP code'); return null}
-    if(!codeLength){console.error('OTP error => missing codeLength props. codeLength is length of OTP code'); return null}
-    if(!COMPONENT){console.error('OTP error => missing COMPONENT props. COMPONENT props is main component to call after otp login'); return null}
-    let {isAutenticated,token} = this.state;
-    if(isAutenticated){
-      let props = {token,mobile:this.tokenStorage.load({name:'mobile'}),logout:this.logout.bind(this)}
-      if(typeof COMPONENT === 'function'){return COMPONENT(props)}
-      return <COMPONENT {...props}/>
-    }
-    if(registerFields){
-      fields = registerFields.map(({icon,label,field,type})=>{
-        return {label,field,type,validations:[['required']],prefix:icon}
-      })
-    }
-    let html = (
-      <OTPLogin
-        time={30} fields={fields} codeLength={codeLength} onRegister={onRegister}
-        onInterNumber={
-          async (number) => {
-            return await this.state.apis({
-              api:'onInterNumber',
-              name:'ارسال شماره همراه',
-              parameter:number,
-              loading:false
-            })
-          }
-        }
-        onInterCode={({number,code,model}) => this.state.apis({api:'onInterCode',parameter:{number,code,model},callback:({token})=>this.setToken(token,number),loading:false})}
-        onInterPassword={onInterPassword?({number,password}) => this.state.apis({api:'onInterPassword',parameter:{number,password},callback:({token})=>this.setToken(token,number),loading:false}):undefined}
-      />
-    )
-    if(layout){return layout(html)}
-    return html
-  }
 }

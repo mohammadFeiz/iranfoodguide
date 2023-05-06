@@ -61,13 +61,21 @@ export default class AIOButton extends Component {
       this.state = {open:this.props.open || false,touch:'ontouchstart' in document.documentElement}
     }
     getPropfromProps({option,index,field}){
-    let prop = this.props['option' + field[0].toUpperCase() + field.slice(1,field.length)];
-    let value;
-    if(typeof prop === 'string'){try{ eval('value = ' + prop)} catch{value = undefined}}
-    else if(typeof prop === 'function'){value = prop(option,index)}
-    else if(prop !== undefined){value = prop}
-    return value; 
-  }
+      
+      let props = this.props;
+      let prop = this.props['option' + field[0].toUpperCase() + field.slice(1,field.length)];
+      let value;
+      if(typeof prop === 'string'){
+        try{ 
+          let evalText = 'value = ' + prop;
+          eval(evalText);
+        } 
+        catch{value = undefined}
+      }
+      else if(typeof prop === 'function'){value = prop(option,index)}
+      else if(prop !== undefined){value = prop}
+      return value; 
+    }
   getProp({option,index,field,def,type,readFrom}){
     if(readFrom !== 'props'){
       let optionResult = option[field];

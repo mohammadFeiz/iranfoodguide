@@ -1,151 +1,140 @@
 import React, { Component } from 'react';
-import RSA, { OTP } from './npm/react-super-app/react-super-app';
+import RSA from './npm/react-super-app/react-super-app';
 import CommingSoon from './components/comming-soon/commin-soon';
 import BackOffice from './components/back-office/back-office';
 import AIOService from './npm/aio-service/aio-service';
 import RVD from './npm/react-virtual-dom/react-virtual-dom';
+import AIOLogin from './npm/aio-login/aio-login';
 import { getResponse,getMock } from './apis';
 import AppContext from './app-context';
 import { dictionary } from './dictionary';
 import Axios from 'axios';
+import {Icon} from '@mdi/react';
+import { mdiClock, mdiComment, mdiTable, mdiWallet } from '@mdi/js';
 import logo from './images/logo.png';
 import logo2 from './images/logo2.png';
 import { icons } from './icons';
 import Sefareshe_ghaza from './pages/sefareshe_ghaza';
 import Profile from './pages/profile';
+import Tab3 from './pages/tab3';
+import RestoranPage from './components/restoran-page';
+
 import './App.css';
-import AIOButton from './npm/aio-button/aio-button';
 
 export default class App extends Component {
   constructor(props) {
     super(props);
     //this.baseUrl = 'https://localhost:7203'
     this.baseUrl = 'https://iranfoodguide.ir'
-    
-    this.state = { backOffice: false }
+    this.state = { 
+      backOffice: false,isLogin:false,
+      registerFields:[
+        { type: 'text', label: 'نام', field: 'firstName',required:true, rowKey: '1' },
+        { type: 'html', html: () => '', rowWidth: 12, rowKey: '1' },
+        { type: 'text', label: 'نام خانوادگی', field: 'lastName',required:true, rowKey: '1' },
+        { type: 'text', label: 'ایمیل', field: 'email',required:true, rowKey: '2' },
+        { type: 'text', label: 'شبا', field: 'sheba' },
+      ]
+    }
   }
-  async onInterNumber(number){//return boolean
-    let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: number })
+  async checkToken(token){
+    Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    try {
+      let response = await Axios.get(`${this.baseUrl}/Users/WhoAmI`);
+      this.personId = response.data.data.id;
+      return !!response.data.isSuccess
+    }
+    catch (err) {
+      try {
+        if (err.response) {
+          if (err.response.status === 401) { return false }
+          return err.response.statusText
+        }
+        else { return err.message }
+      }
+      catch { return 'error' }
+    }
+  }
+  async onSubmitUserId({mode,userId,registered}){//return boolean or string
+    let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: userId })
     if (!response.data.isSuccess) { return response.data.message }
-    return response.data.data.isRegistered;
+    return !!response.data.data.isRegistered;
   }
-  async onRegister ({ model, number }){
+  async onRegister ({registerModel,mode,userId}){//return string or true
     let apis = getResponse({})
-    let {firstName,lastName,email,sheba} = model;
+    let {firstName,lastName,email,sheba} = registerModel;
     let { response } = await apis.setProfile({
       profile: {firstName,lastName,email,sheba}, 
-      mobileNumber:number,
+      mobileNumber:userId,
       registered: false
     })
-    if (response.data.isSuccess) {
-      this.setState({ resigtered: true })
-      this.onInterNumber(number)
-      return true
-    }
+    if (response.data.isSuccess) {return true}
     else {return response.data.message}
   }
-  async onInterCode({ number, code, model }){//return string or false
+  async onSubmitPassword({mode,userId,password}){//return string or true
     let response = await Axios.post(`${this.baseUrl}/Users/TokenWithCode`, {
-      mobileNumber: number,
-      code: code.toString()
+      mobileNumber: userId,
+      code: password.toString()
     });
     if (response.data.isSuccess) {
       this.personId = response.data.data.personId
-      return response.data.data.access_token;
+      return {token:response.data.data.access_token};
     }
     else{
-      return false;
+      return response.data.message || 'error';
     }
   }
-  render() {
-    let { backOffice } = this.state;
+  renderLogin(){
+    let {registerFields} = this.state;
     return (
-      <OTP
-        id='iranfoodguide'
-        COMPONENT={({ token, logout, mobile }) => {
-          return (
-            <IranFoodGuide
-              token={token}
-              personId={this.personId}
-              logout={logout}
-              mobileNumber={mobile}
-              roles={[]}
-            />
-          )
-        }}
-        varifiedCode={undefined}
-        codeLength={6}
-        fields={[
-          { type: 'text', label: 'نام', field: 'firstName', rowKey: '1' },
-          { type: 'html', html: () => '', rowWidth: 12, rowKey: '1' },
-          { type: 'text', label: 'نام خانوادگی', field: 'lastName', rowKey: '1' },
-          { type: 'select', label: 'جنسیت', field: 'gender', options: [{ text: 'مرد', value: 'male' }, { text: 'زن', value: 'female' }], rowKey: '2' },
-          { type: 'html', html: () => '', rowWidth: 12, rowKey: '2' },
-          { type: 'text', label: 'ایمیل', field: 'email', rowKey: '2' },
-          { type: 'text', label: 'شبا', field: 'sheba' },
-        ]}
-        checkToken={async (token) => { // if error occured return error messsage - else if token is valid return true - else if token is not valid return false 
-          let response;
-          Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          try {
-            response = await Axios.get(`${this.baseUrl}/Users/WhoAmI`);
-            this.personId = response.data.data.id;
-          }
-          catch (err) {
-            try {
-              if (err.response) {
-                if (err.response.status === 401) { return false }
-                return err.response.statusText
-              }
-              else { return err.message }
+      <AIOLogin
+        id='iranfoodguide' otpLength={6} methods={['OTPPhoneNumber']}
+        COMPONENT={({ token, logout, userId }) => this.setState({token,logout,userId,isLogin:true})}
+        registerFields={registerFields}
+        checkToken={async (token) => await this.checkToken(token)}
+        onRegister={async (obj) => await this.onRegister(obj)}
+        onSubmitUserId={async (obj) => await this.onSubmitUserId(obj)}
+        onSubmitPassword={async (obj) => await this.onSubmitPassword(obj)}
+      />
+    )
+  }
+  render() {
+    let { isLogin,token, logout, userId } = this.state;
+    if(isLogin){
+      return <IranFoodGuide token={token} personId={this.personId} logout={logout} mobileNumber={userId} roles={[]}/>
+    }
+    let renderLogin = this.renderLogin()
+    return (
+      <RVD
+        layout={{
+          className: 'fullscreen login-page',
+          column: [
+            {
+              size: 160,
+              column: [
+                { flex: 1 },
+                { html: <img src={logo2} />, align: 'vh' },
+                { size: 16 }
+              ]
+            },
+            {
+              flex: 1,
+              className: 'login-page-form',
+              column: [
+                { html: '', className: 'login-bg' },
+                { html: '', className: 'login-bg-make-dark' },
+                {
+                  className: 'login-page-header',
+                  column: [
+                    { flex: 1 },
+                    { html: <img src={logo} />, align: 'vh' },
+                    { flex: 1 }
+                  ]
+                },
+                { className: 'p-t-0 ofy-auto', html:renderLogin, flex: 1,align:'h' },
+              ]
             }
-            catch { return 'error' }
-          }
-          return response.data.isSuccess || 'error'
-        }}
-        onRegister={async ({ model, number }) => await this.onRegister({ model, number })}
-        onInterNumber={async (number) => await this.onInterNumber(number)}
-        onInterCode={async ({ number, code, model }) => await this.onInterCode({ number, code, model })}
-        // registerFields={[
-        //   {label:'نام',field:'FirstName',type:'text',icon:<Icon path={mdiAccountBoxOutline} size={1}/>},
-        //   {label:'نام خانوادگی',field:'LastName',type:'text',icon:<Icon path={mdiAccountBoxOutline} size={1}/>},
-        //   {label:'ایمیل',field:'Email',type:'text',icon:<Icon path={mdiEmailOutline} size={1}/>},
-        // ]}
-        layout={(html) => {
-          return (
-            <RVD
-              layout={{
-                className: 'fullscreen login-page',
-                column: [
-                  {
-                    size: 160,
-                    column: [
-                      { flex: 1 },
-                      { html: <img src={logo2} />, align: 'vh' },
-                      { size: 16 }
-                    ]
-                  },
-                  {
-                    flex: 1,
-                    className: 'login-page-form',
-                    column: [
-                      { html: '', className: 'login-bg' },
-                      { html: '', className: 'login-bg-make-dark' },
-                      {
-                        className: 'login-page-header',
-                        column: [
-                          { flex: 1 },
-                          { html: <img src={logo} />, align: 'vh' },
-                          { flex: 1 }
-                        ]
-                      },
-                      { className: 'p-t-0 ofy-auto', html, flex: 1 },
-                    ]
-                  }
-                ]
-              }}
-            />
-          )
+          ]
         }}
       />
     )
@@ -164,7 +153,9 @@ class IranFoodGuide extends Component {
       discounts: [],
       addresses:[],
       ChangeState: this.ChangeState.bind(this),
-      mojoodiye_kife_pool: 0
+      mojoodiye_kife_pool: 0,
+      restoran_category_options:[],
+      restoran_sort_options:[]
     }
     this.state.apis = AIOService({
       getState: () => this.state,
@@ -204,7 +195,7 @@ class IranFoodGuide extends Component {
     });
     apis({
       api: 'takhfif_ha',
-      callback: (res) =>{debugger; this.setState({ takhfif_ha: res })},
+      callback: (res) =>{this.setState({ takhfif_ha: res })},
       name: 'دریافت اطلاعات تخفیف ها'
     });
     apis({
@@ -212,12 +203,26 @@ class IranFoodGuide extends Component {
       callback: (res) => this.setState({ addresses: res }),
       name: 'دریافت آدرس ها'
     });
+    apis({
+      api:'restoran_category_options',
+      name:'دریافت دسته بندی های رستوران',
+      callback:(restoran_category_options)=>this.setState({restoran_category_options})
+    })
+    apis({
+        api:'restoran_sort_options',
+        name:'دریافت آپشن های مرتب سازی رستوران',
+        callback:(restoran_sort_options)=>this.setState({restoran_sort_options})
+    })
+  }
+  getContext(){
+    return {
+      ...this.state
+    }
   }
   render() {
     let { comming_soon } = this.state;
-
     return (
-      <AppContext.Provider value={this.state}>
+      <AppContext.Provider value={this.getContext()}>
         {comming_soon && <CommingSoon />}
         {
           !comming_soon &&
@@ -230,13 +235,19 @@ class IranFoodGuide extends Component {
               { id: 'ertebate_online', text: dictionary('ارتباط آنلاین'), icon: () => icons('ertebate_online') },
               { id: 'profile', text: dictionary('پروفایل'), icon: () => icons('profile') },
             ]}
-            navId='profile'
+            navId='sefaresh_ha'
             body={({ navId }) => {
               if (navId === 'sefareshe_ghaza') {
                 return <Sefareshe_ghaza />
               }
               if (navId === 'profile') {
                 return <Profile />
+              }
+              if (navId === 'sefaresh_ha') {
+                return <Tab3/>
+              }
+              if (navId === 'ertebate_online') {
+                return <RestoranPage/>
               }
             }}
             getActions={({ addPopup, removePopup }) => {
@@ -294,3 +305,4 @@ class IranFoodGuide extends Component {
     )
   }
 }
+

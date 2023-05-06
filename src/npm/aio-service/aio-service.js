@@ -1,50 +1,25 @@
 import Axios from "axios";
 import AIODate from "./../../npm/aio-date/aio-date";
 import AIOStorage from './../../npm/aio-storage/aio-storage';
+import AIOMessage from "../aio-message/aio-message";
 import './index.css';
 import $ from "jquery";
 export let helper = {
-  showAlert(obj = {}){
-    let {type = '',text = '',subtext = '',icon} = obj;
-    let svg = icon || {
-        error:(`<svg viewBox="0 0 24 24" role="presentation" style="width: 4.5rem; height: 4.5rem;"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" style="fill: red;"></path></svg>`),
-        warning:(`<svg viewBox="0 0 24 24" role="presentation" style="width: 4.5rem; height: 4.5rem;"><path d="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" style="fill: orange;"></path></svg>`),
-        info:(`<svg viewBox="0 0 24 24" role="presentation" style="width: 4.5rem; height: 4.5rem;"><path d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z" style="fill: dodgerblue;"></path></svg>`),
-        success:(`<svg viewBox="0 0 24 24" role="presentation" style="width: 4.5rem; height: 4.5rem;"><path d="M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z" style="fill: green;"></path></svg>`)
-    }[type] || ''
-    let dui = 'aa' + Math.round((Math.random() * 100000000))
-    let str = `
-      <div class='aio-service-alert-container ${dui}'>
-        <div class='aio-service-alert'>
-          <div class='aio-service-alert-header'>${svg}</div>
-          <div class='aio-service-alert-body'>
-            <div class='aio-service-alert-text'>${text}</div>
-            <div class='aio-service-alert-subtext'>${subtext}</div>
-          </div>
-          <div class='aio-service-alert-footer'>
-            <button class='aio-service-alert-close ${dui}'>بستن</button>    
-          </div>    
-        </div>    
-      </div>
-    `
-    $('body').append(str);
-    $('.' + dui).on({click:function(){
-        $('.' + dui).remove()
-    }})
-  },
+  showAlert(obj = {}){AIOMessage(obj)},
   getDateAndTime(value){
     try{
       let res = AIODate().toJalali({date:value});
+      let miliseconds = AIODate().getTime({date:value})
       let [year,month,day,hour,minute] = res;
       let date = `${year}/${month}/${day}`;
       let time = `${hour}:${minute}`;
       let delta = AIODate().getDelta({date:value});
       let remainingTime = delta.type === 'passed'?{day:0,hour:0,minute:0,second:0}:delta;
       let passedTime = delta.type === 'remaining'?{day:0,hour:0,minute:0,second:0}:delta;
-      return {date,time,dateAndTime:`${date} ${time}`,remainingTime,passedTime}
+      return {date,time,dateAndTime:`${date} ${time}`,remainingTime,passedTime,miliseconds}
     }
     catch{
-      return {date:'',time:'',dateAndTime:'',remainingTime:0,passedTime:0}
+      return {date:'',time:'',dateAndTime:'',remainingTime:0,passedTime:0,miliseconds:0}
     }
   },
   arabicToFarsi(value){
@@ -67,9 +42,6 @@ export default function services(obj = {}) {
     getMock:getMock({getState,token,helper}) 
   })
 }
-
-
-
 function AIOServiceLoading(id){
   return (`
     <div class="aio-service-loading" id="${id}">
@@ -85,10 +57,10 @@ function AIOServiceLoading(id){
     </div>
   `)
 }
-
 function Service(config) {
   function validate(result,{validation,api,def,name,errorMessage,successMessage}){
-    name = typeof name === 'function'?name():name
+    name = typeof name === 'function'?name():name;
+    name = name || api;
     if(typeof result === 'string'){
       if(errorMessage !== false){
         if(errorMessage === undefined){errorMessage = `${name} با خطا روبرو شد`}

@@ -85,8 +85,8 @@
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.7);
-    opacity:0;
-    animation-name:aioserviceloadingopacity;
+    opacity: 0;
+    animation-name: aioserviceloadingopacity;
     animation-duration: 2s;
     animation-fill-mode: forwards;
 }
@@ -105,24 +105,30 @@
     margin: 0px 1.5px;
     border-radius: 0px;
 }
+
 @keyframes aioserviceloading {
+
     0%,
     40%,
     100% {
-     transform: scaleY(0.4);
+        transform: scaleY(0.4);
     }
+
     20% {
-     transform: scaleY(1.0);
+        transform: scaleY(1.0);
     }
-   }
-   @keyframes aioserviceloadingopacity {
+}
+
+@keyframes aioserviceloadingopacity {
     0% {
         opacity: 0;
     }
+
     50% {
-        opacity:0;
+        opacity: 0;
     }
+
     100% {
-        opacity:1;
+        opacity: 1;
     }
-   }
+}

@@ -63,11 +63,31 @@ button,input{
   border:none;
   border-radius:4px;
 }
-
+.button-2{
+  background:#00AD79;
+  border-radius:6px;
+  color:#fff;
+  border:none;
+}
+.button-3{
+  background:none;
+  border:1px solid;
+  height:30px;
+  border-radius:6px;
+  color:#00AD79;
+}
 .theme-link{
   color:midnightblue;
   font-size:14px;
   font-weight: bold;
+}
+.input-1{
+  background:#F4F4F4;
+  height:30px;
+  border-radius:6px;
+  border:none;
+
+
 }
 
 .login-page{
@@ -75,20 +95,20 @@ button,input{
   background-size: cover;
   color:#fff;
 }
-.login-page .otp-login-text1{
+.login-page .aio-login-title{
   color:#fff;
 }
-.login-page .otp-login-text2{
+.login-page .aio-login-subtitle{
   color:#fff;
 }
 .login-page .aio-form-label{
   color:#fff;
 }
-.login-page .otp-login-submit{
+.login-page .aio-login-submit{
   background: #FF8B00;
   border-radius:8px;
 }
-.login-page .otp-login-submit:disabled{
+.login-page .aio-login-submit:disabled{
   background: #b3aea7;
 }
 .login-bg{
@@ -124,10 +144,35 @@ button,input{
   border-radius:8px;
 }
 
-.otp-login-form{
+.aio-login-form{
   background:none !important;
   
 }
 .login-page .aio-form-error{
   color:orange;
+}
+
+.card-2,.card-3{
+  box-shadow:-2px 2px 6px 0 rgba(0,0,0,0.2)
+}
+.card-3{
+  background:#fff;
+}
+.restoran-search-type{
+  height:24px;
+  transform: translateY(6px);
+}
+.restoran-search-type .aio-button-tabs-option{
+  color:#fff;
+  border-radius: 6px 6px 0 0;
+  padding:0 16px;
+  font-size:14px;
+  font-weight:bold;
+}
+.restoran-search-type .aio-button-tabs-option.active{
+  color:orange;
+  background:#fff;
+}
+.restoran-search-type .aio-button-tabs-option.active:after{
+  display:none;
 }

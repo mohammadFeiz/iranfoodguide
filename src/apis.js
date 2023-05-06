@@ -74,7 +74,6 @@ export function getResponse({getState}){
                         phone: o.phoneNumber
                     }
             });
-            debugger
             // let result = [                
             //     {
             //         title: 'خانه',
@@ -138,6 +137,24 @@ export function getResponse({getState}){
         },
         async tarikhcheye_kife_pool() {
            return {mock:true} 
+        },
+        async restoran_category_options(){
+            return {mock:true}
+        },
+        async restoran_sort_options(){
+            return {mock:true}
+        },
+        async jostojooye_restoran(){
+            return {mock:true}
+        },
+        async tarikhche_ye_jostojoo(){
+            return {mock:true} 
+        },
+        async hazfe_tarikhche_ye_jostojoo(){
+            return {mock:true} 
+        },
+        async ghaza_haye_restoran(){
+            return {mock:true}
         }
     }
 }
@@ -248,18 +265,18 @@ export function getMock({helper}){
                     items: [
                         {
                             name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
+                            price: 210000, discount: 15, image: pasta_alferedo, tags: [],id:'4232'
+                        },
+                        {
+                            name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,id:'423rwe',
                             price: 210000, discount: 15, image: pasta_alferedo, tags: []
                         },
                         {
-                            name: ' rtyrty rty rty rtyپاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
+                            name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,id:'423456452',
                             price: 210000, discount: 15, image: pasta_alferedo, tags: []
                         },
                         {
-                            name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
-                            price: 210000, discount: 15, image: pasta_alferedo, tags: []
-                        },
-                        {
-                            name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
+                            name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,id:'42354232',
                             price: 210000, discount: 15, image: pasta_alferedo, tags: []
                         }
                     ]
@@ -344,6 +361,129 @@ export function getMock({helper}){
                 let { date, time } = helper.getDateAndTime(o.date)
                 return { ...o, date, time }
             })
+        },
+        async restoran_category_options(){
+            return [
+                {text:'فست فود',value:'0'},
+                {text:'ایرانی',value:'1'},
+                {text:'کبابی',value:'2'},
+                {text:'سالادبار',value:'3'},
+                {text:'خارجی',value:'4'},
+                {text:'عربی',value:'5'}
+            ]
+        },
+        async restoran_sort_options(){
+            return [
+                {text:'رستوران اقتصادی',value:'0'},
+                {text:'بالاترین امتیاز ',value:'1'},
+                {text:'نزدیک ترین ',value:'2'},
+                {text:'جدیدترین',value:'3'},
+                {text:'تایید شده در ایران فود',value:'4'},
+                {text:'گرانترین',value:'5'}
+            ]
+        },
+        async jostojooye_restoran(){
+            return [
+                {
+                    id:'34',name: 'رستوران 1',image: shandiz_image,logo: shandiz_logo,
+                    rate: 3.4,distance: 3,time: 35,tags: ['ایرانی', 'کبابی', 'فست فود','خارجی','سالادبار','عربی','صبحانه']
+                },
+                {
+                    id:'6453',name: 'رستوران 2',image: shandiz_image,logo: shandiz_logo,
+                    rate: 3.4,distance: 3,time: 35,tags: ['خارجی', 'سنتی', 'کبابی', 'سالادبار']
+                },
+                {
+                    id:'7563',name: 'رستوران 3', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['عربی', 'سنتی', 'سالادبار', 'ملل']
+                },
+                {
+                    id:'27879',name: 'رستوران 4', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['صبحانه', 'سنتی', 'عربی', 'ملل']
+                },
+                {
+                    id:'2342356',name: 'رستوران 5', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['ایرانی ', 'خارجی', 'فست فود', 'کبابی']
+                },
+                {
+                    id:'2356345',name: 'رستوران 6', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['صبحانه', 'سنتی', 'عربی', 'ملل']
+                },
+                {
+                    id:'457744',name: 'رستوران 7', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['عربی', 'سنتی', 'سالادبار', 'ملل']
+                },
+                {
+                    id:'3467568',name: 'رستوران 8', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['صبحانه', 'سنتی', 'کبابی', 'ملل']
+                },
+                {
+                    id:'234577',name: 'رستوران 9', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['ایرانی ', 'سنتی', 'سالادبار', 'ملل']
+                },
+                {
+                    id:'95544',name: 'رستوران 10', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['خارجی', 'سنتی', 'فست فود', 'ملل']
+                },
+                {
+                    id:'5436473',name: 'رستوران 11', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['عربی', 'سنتی', 'کبابی', 'ملل']
+                },
+                {
+                    id:'534643',name: 'رستوران 12', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['سنتی', 'صبحانه', 'سالادبار']
+                },
+                {
+                    id:'6586743',name: 'رستوران 13', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['ایرانی ', 'سنتی', 'خارجی', 'ملل']
+                },
+                {
+                    id:'675363',name: 'رستوران 14', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['صبحانه', 'سنتی', 'خارجی', 'ملل']
+                },
+                {
+                    id:'89342367',name: 'رستوران 16', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['ایرانی ', 'سنتی', 'عربی', 'ملل']
+                },
+                {
+                    id:'768645',name: 'رستوران 16', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['سالادبار', 'سنتی', 'کبابی', 'عربی']
+                },
+                {
+                    id:'7453456',name: 'رستوران 17', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                    tags: ['خارجی', 'سنتی', 'کبابی', 'سالادبار']
+                },
+                
+            ]
+        },
+        async tarikhche_ye_jostojoo(){
+            return ['برگر','پیتزا','پاستا'] 
+        },
+        async hazfe_tarikhche_ye_jostojoo(){
+            return true 
+        },
+        async ghaza_haye_restoran(){
+            return [
+                {
+                    id:'644263',name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
+                    price: 210000, discount: 15, image: pasta_alferedo, tags: [],
+                    description:'250 گرم گوشت مخلوط گوساله و گوسفندی  همراه با 300 گرم برنج ایرانی در بسته بندی ماکرویوو'
+                },
+                {
+                    id:'6534534',name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
+                    price: 210000, discount: 15, image: pasta_alferedo, tags: [],
+                    description:'250 گرم گوشت مخلوط گوساله و گوسفندی  همراه با 300 گرم برنج ایرانی در بسته بندی ماکرویوو'
+                },
+                {
+                    id:'3456743',name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
+                    price: 210000, discount: 15, image: pasta_alferedo, tags: [],
+                    description:'250 گرم گوشت مخلوط گوساله و گوسفندی  همراه با 300 گرم برنج ایرانی در بسته بندی ماکرویوو'
+                },
+                {
+                    id:'756453',name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
+                    price: 210000, discount: 15, image: pasta_alferedo, tags: [],
+                    description:'250 گرم گوشت مخلوط گوساله و گوسفندی  همراه با 300 گرم برنج ایرانی در بسته بندی ماکرویوو'
+                }
+            ]
         }
     }
 }

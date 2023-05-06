@@ -1,0 +1,43 @@
+.product-count-button{
+    color: dodgerblue;
+    width: 38px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding:0;
+}
+.product-count-input[type=number]::-webkit-inner-spin-button, 
+.product-count-input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  margin: 0;
+}
+.product-count-input{
+    text-align: center;
+}
+.product-count-button.disabled{
+    background: #aaa;
+    opacity:0.4;
+}
+.product-delete-button{
+    color: #0094D4;
+    background:none; 
+    width:30px;
+    height:30px;
+}
+
+.count-popup-container{
+    position:fixed;
+    border-radius:12px;
+    box-sizing: border-box;
+    bottom:0;
+    width:100%;
+    height:100%;
+    left:0;
+    z-index:10;
+}
+.count-popup{
+    padding:12px;
+    background:#fff;
+}
