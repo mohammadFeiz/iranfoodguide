@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import RVD from '../npm/react-virtual-dom/react-virtual-dom';
 import { icons } from "../icons";
+import { CartButton } from "../npm/aio-shop/cart-button";
+import AppContext from "../app-context";
 export default class Card extends Component {
     render() {
         let { type } = this.props;
@@ -63,8 +65,11 @@ class Card2 extends Component {
     }
 }
 class Card3 extends Component {
+    static contextType = AppContext;
     render() {
-        let { width = '100%',imageSize = 72,image, name,price,discount = 0,description,onOrder = true} = this.props;
+        let {Shop} = this.context;
+        let { width = '100%',imageSize = 72,onOrder = true,product} = this.props;
+        let {image, name,price,discount = 0,description,id} = product;
         let finalPrice = price - price * discount / 100;
         return (
             <RVD
@@ -126,7 +131,16 @@ class Card3 extends Component {
                                                 },
                                                 {
                                                     show:!!onOrder,
-                                                    html:<button style={{color:'red'}}>سفارش</button>
+                                                    html:(
+                                                        Shop.renderCartButton({
+                                                            addText:'سفارش',
+                                                            productId:id,
+                                                            product,
+                                                            add:true, 
+                                                            change:true,
+                                                            className:'button-4'
+                                                        })
+                                                    )
                                                 },
                                                 {size:12}                 
                                             ]

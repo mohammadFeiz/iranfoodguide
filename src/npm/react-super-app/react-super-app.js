@@ -137,9 +137,9 @@ export default class ReactSuperApp extends Component {
   }
   render() {
     let { sideOpen, splash } = this.state;
-    let { sides = [], sideId, rtl, sideHeader, sideFooter, sideClassName } = this.props;
+    let { sides = [], sideId, rtl, sideHeader, sideFooter, sideClassName,style,className } = this.props;
     return (
-      <div className='rsa-container'>
+      <div className={`rsa-container` + (className?' ' + className:'')} style={style}>
         <div className='rsa'>
           {this.renderMain()},
           <AIOPopup getActions={(o)=>this.setState({popupActions:{...o}})} onChange={({popups,confirm})=>this.setState({isThereOpenedPopup:!!confirm || !!popups.length})}/>

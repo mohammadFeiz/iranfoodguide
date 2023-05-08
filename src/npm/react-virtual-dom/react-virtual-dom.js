@@ -24,7 +24,7 @@ export default class ReactVirtualDom extends Component {
     else if(props.align === 'h'){className += ' ' + (props.column?RVDCLS.align:RVDCLS.justify);}
     else if(props.align === 'vh'){className += ` ${RVDCLS.justify} ${RVDCLS.align}`;}
     if(props.row){className += ' ' + RVDCLS.row}
-    else if(props.column){className += ' ' + RVDCLS.column}
+    else if(props.column || props.grid){className += ' ' + RVDCLS.column}
     let hide_xs,hide_sm,hide_md,hide_lg;
     
     if(props.show_xs){hide_xs = false; hide_sm = true; hide_md = true; hide_lg = true;}
@@ -72,7 +72,7 @@ export default class ReactVirtualDom extends Component {
       if(size && onResize){gapStyle.cursor = 'col-resize';}
       axis = 'x';
     }
-    else if(parent.column){
+    else if(parent.column || parent.grid){
       if(size !== undefined){style.height = size; flex = undefined}
       gapStyle.height = parent.gap;
       if(size && onResize){gapStyle.cursor = 'row-resize';}
@@ -80,6 +80,21 @@ export default class ReactVirtualDom extends Component {
     }
     if(obj.row){childs = typeof obj.row === 'function'?obj.row():obj.row;}
     else if(obj.column){childs = typeof obj.column === 'function'?obj.column():obj.column}
+    else if(obj.grid){
+      let {gridCols = 2} = obj;
+      let grid = typeof obj.grid === 'function'?obj.grid():obj.grid;
+      for(let i = 0; i < grid.length; i+=gridCols){
+        let row = [];
+        let gridRow = typeof obj.gridRow === 'function'?obj.gridRow(i):obj.gridRow;
+        for(let j = i; j < i + gridCols; j++){
+          if(grid[j]){row.push(grid[j])}
+        } 
+        childs.push({
+          row:[...row],...gridRow
+        })
+      }
+      obj.column = [...childs]
+    }
     if(parent.gapAttrs && parent.gapAttrs.style){gapStyle = {...gapStyle,...parent.gapAttrs.style}}
     let {className,gapClassName} = this.getClassName(pointer,isRoot,parent,props);
     let gapAttrs = {className:gapClassName,style:gapStyle,draggable:false,onDragStart:(e)=>{e.preventDefault(); return false}};

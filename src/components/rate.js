@@ -10,11 +10,20 @@ export default class Rate extends Component{
                 layout={{
                     align: 'v', style: { direction: 'ltr' },
                     className:'align-vh',
-                    row: Array(5).fill(0).map((o, i) => {
-                        return {
-                            html: <Icon path={i < rate ? mdiStar : mdiStarOutline} size={0.6} />, style: { color: '#FF7A00' }
-                        }
-                    })
+                    row:[
+                        {
+                            html:rate,className:'fs-12'
+                        },
+                        {size:3},
+                        {
+                            row: Array(5).fill(0).map((o, i) => {
+                                return {
+                                    html: <Icon path={i < rate ? mdiStar : mdiStarOutline} size={0.6} />
+                                }
+                            })
+                        },
+                        
+                    ]
                 }}
             />
         )

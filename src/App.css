@@ -72,9 +72,32 @@ button,input{
 .button-3{
   background:none;
   border:1px solid;
-  height:30px;
-  border-radius:6px;
+  border-radius:4px;
   color:#00AD79;
+}
+.select-1{
+  background:#00AD79;
+  color:#fff;
+  border-radius:4px;
+  height:36px;
+}
+
+.select-2{
+  background:none;
+  border:1px solid;
+  color:#00AD79;
+  font-weight:bold;
+  font-size:12px;
+  border-radius:4px;
+  height:36px;
+}
+
+.button-4{
+  background:none;
+  border:1px solid;
+  height:24px;
+  border-radius:6px;
+  color:#FF5900;
 }
 .theme-link{
   color:midnightblue;
@@ -175,4 +198,12 @@ button,input{
 }
 .restoran-search-type .aio-button-tabs-option.active:after{
   display:none;
+}
+
+.cart-button-step{
+  color:orange !important;
+}
+
+.colorGreen{
+  color:#128980;
 }

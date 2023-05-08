@@ -1,6 +1,8 @@
-.product-count-button{
+.cart-button-step{
     color: dodgerblue;
-    width: 38px;
+    background:none;
+    width: 30px;
+    border:none;
     height: 24px;
     display: flex;
     align-items: center;
@@ -15,6 +17,12 @@
 }
 .product-count-input{
     text-align: center;
+    width:28px;
+    height:24px;
+    line-height: 24px;
+    font-size: 12px;
+    background:none;
+    font-weight: bold;
 }
 .product-count-button.disabled{
     background: #aaa;

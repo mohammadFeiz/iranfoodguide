@@ -18,6 +18,7 @@ import Sefareshe_ghaza from './pages/sefareshe_ghaza';
 import Profile from './pages/profile';
 import Tab3 from './pages/tab3';
 import RestoranPage from './components/restoran-page';
+import AIOShop from './npm/aio-shop/aio-shop';
 
 import './App.css';
 
@@ -100,6 +101,7 @@ export default class App extends Component {
   }
   render() {
     let { isLogin,token, logout, userId } = this.state;
+    isLogin = true;
     if(isLogin){
       return <IranFoodGuide token={token} personId={this.personId} logout={logout} mobileNumber={userId} roles={[]}/>
     }
@@ -145,6 +147,10 @@ class IranFoodGuide extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      Shop:AIOShop({
+        id:'iranfood',
+        setState:(Shop)=>this.setState({Shop})
+      }),
       comming_soon: false,
       mobileNumber:props.mobileNumber,
       personId: props.personId,
@@ -155,7 +161,7 @@ class IranFoodGuide extends Component {
       ChangeState: this.ChangeState.bind(this),
       mojoodiye_kife_pool: 0,
       restoran_category_options:[],
-      restoran_sort_options:[]
+      restoran_sort_options:[],
     }
     this.state.apis = AIOService({
       getState: () => this.state,
@@ -216,7 +222,7 @@ class IranFoodGuide extends Component {
   }
   getContext(){
     return {
-      ...this.state
+      ...this.state,
     }
   }
   render() {

@@ -155,6 +155,12 @@ export function getResponse({getState}){
         },
         async ghaza_haye_restoran(){
             return {mock:true}
+        },
+        async restoran_comments(){
+            return {mock:true}
+        },
+        async restoran_coupons(){
+            return {mock:true}
         }
     }
 }
@@ -175,7 +181,7 @@ export function getMock({helper}){
                 }
             ]
         },
-        async getProfile() {
+        getProfile() {
             return {
                 firstName: 'احمد',//نام
                 lastName: 'بهرامی',//نام خانوادگی
@@ -184,7 +190,7 @@ export function getMock({helper}){
                 sheba: '1234567',//شماره شبا
             }
         },
-        async takhfif_ha(res) {
+        takhfif_ha(res) {
             return [
                 {
                     amounts: [{ percent: 10, amount: 100000 }], description: 'تخفیف خرید شیرینی',
@@ -204,7 +210,7 @@ export function getMock({helper}){
                 },
             ]
         },
-        async safheye_sefaresh(res) {
+        safheye_sefaresh(res) {
             return [
                 {
                     type: 'billboard',
@@ -333,7 +339,7 @@ export function getMock({helper}){
                 }
             ]
         },
-        async restoran_haye_mahboob() {
+        restoran_haye_mahboob() {
             return [
                 {
                     name: 'رستوران شاندیز گالریا',
@@ -346,10 +352,10 @@ export function getMock({helper}){
                 }
             ]
         },
-        async mojoodiye_kife_pool() {
+        mojoodiye_kife_pool() {
             return 123245666
         },
-        async tarikhcheye_kife_pool() {
+        tarikhcheye_kife_pool() {
             let data = [
                 { date: new Date().getTime(), amount: '123456789', type: 'in' },
                 { date: new Date().getTime(), amount: '123456789', type: 'out' },
@@ -362,7 +368,7 @@ export function getMock({helper}){
                 return { ...o, date, time }
             })
         },
-        async restoran_category_options(){
+        restoran_category_options(){
             return [
                 {text:'فست فود',value:'0'},
                 {text:'ایرانی',value:'1'},
@@ -372,7 +378,7 @@ export function getMock({helper}){
                 {text:'عربی',value:'5'}
             ]
         },
-        async restoran_sort_options(){
+        restoran_sort_options(){
             return [
                 {text:'رستوران اقتصادی',value:'0'},
                 {text:'بالاترین امتیاز ',value:'1'},
@@ -382,7 +388,7 @@ export function getMock({helper}){
                 {text:'گرانترین',value:'5'}
             ]
         },
-        async jostojooye_restoran(){
+        jostojooye_restoran(){
             return [
                 {
                     id:'34',name: 'رستوران 1',image: shandiz_image,logo: shandiz_logo,
@@ -455,13 +461,13 @@ export function getMock({helper}){
                 
             ]
         },
-        async tarikhche_ye_jostojoo(){
+        tarikhche_ye_jostojoo(){
             return ['برگر','پیتزا','پاستا'] 
         },
-        async hazfe_tarikhche_ye_jostojoo(){
+        hazfe_tarikhche_ye_jostojoo(){
             return true 
         },
-        async ghaza_haye_restoran(){
+        ghaza_haye_restoran(){
             return [
                 {
                     id:'644263',name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
@@ -484,6 +490,27 @@ export function getMock({helper}){
                     description:'250 گرم گوشت مخلوط گوساله و گوسفندی  همراه با 300 گرم برنج ایرانی در بسته بندی ماکرویوو'
                 }
             ]
+        },
+        restoran_comments(){
+            return [
+                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
+                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
+                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
+                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
+                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
+                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
+                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
+            ]
+        },
+        restoran_coupons(){
+            return [
+                { percent: 10, amount: 100000 },
+                { percent: 10, amount: 100000 },
+                { percent: 10, amount: 100000 },
+                { percent: 10, amount: 100000 },
+                { percent: 10, amount: 100000 },
+                { percent: 10, amount: 100000 }
+              ]
         }
     }
 }
