@@ -1,7 +1,7 @@
 import $ from 'jquery';
 import './aio-message.css';
 export default function AIOMessage(obj = {}) {
-    let { icon, type = '', text = '', subtext = '', time = 5, className, closeText = 'بستن' } = obj;
+    let { icon, type = '', text = '', subtext = '', time = 10, className, closeText = 'بستن' } = obj;
     let $$ = {
         time: 0,
         getId() {
@@ -11,11 +11,11 @@ export default function AIOMessage(obj = {}) {
             return `<div class='aio-message-time-bar' style="width:${$$.time}%;"></div>`
         },
         updateBarRender() {
-            $(`.aio-message-alert-container.${$$.dui} .aio-message-time`).html($$.getBarRender())
+            $(`.aio-message-alert-container.${$$.id} .aio-message-time`).html($$.getBarRender())
         },
         getRender() {
             return (`
-        <div class='aio-message-alert-container ${$$.dui}${className ? 'aio-message' + className : ''}'>
+        <div class='aio-message-alert-container ${$$.id}${className ? 'aio-message' + className : ''}'>
           <div class='aio-message-alert'>
             <div class='aio-message-alert-header'>${$$.getIcon()}</div>
             <div class='aio-message-alert-body'>
@@ -23,7 +23,7 @@ export default function AIOMessage(obj = {}) {
               <div class='aio-message-alert-subtext'>${subtext}</div>
             </div>
             <div class='aio-message-alert-footer'>
-              <button class='aio-message-alert-close ${$$.dui}'>${closeText}</button>    
+              <button class='aio-message-alert-close ${$$.id}'>${closeText}</button>    
             </div>
             <div class='aio-message-time'></div>
           </div>    
@@ -31,7 +31,7 @@ export default function AIOMessage(obj = {}) {
       `)
         },
         close() {
-            $('.' + $$.dui).remove()
+            $('.' + $$.id).remove()
         },
         getIcon() {
             if (icon === false) { return '' }
@@ -56,8 +56,8 @@ export default function AIOMessage(obj = {}) {
         },
         render() {
             $('body').append($$.getRender());
-            $('button.' + $$.dui).off('click', $$.close);
-            $('button.' + $$.dui).on('click', $$.close)
+            $('button.' + $$.id).off('click', $$.close);
+            $('button.' + $$.id).on('click', $$.close)
         }
     }
     $$.id = $$.getId();

@@ -13,6 +13,7 @@
 }
 
 .aio-message-alert {
+    position: relative;
     background: #fff;
     width: 90%;
     max-width: 360px;
@@ -53,10 +54,11 @@
 }
 
 .aio-message-time {
-    position: relative;
+    position: absolute;
     height: 3px;
-    width: calc(100% - 12px);
-    left: 6px;
+    width: calc(100% - 24px);
+    left: 12px;
+    bottom:0;
 }
 
 .aio-message-time-bar {

@@ -106,11 +106,18 @@ function Service(config) {
   async function getResultByResponse(obj,getMock){//return undefined(getResponse not set) or string(error) or response
     let {
       api,parameter,
-      getResponse = config.getResponse[api],
       onCatch = config.onCatch,
       getError = config.getError
     } = obj
     try{
+        let {
+          getResponse = config.getResponse[api]
+        } = obj;
+        if(!getResponse){
+          let error = `aio-service error => missing getResponse function in ${api} api`
+          helper.showAlert({type:'error',text:error});
+          return error;
+        }
         let {response,result,mock} = await getResponse(parameter);
         if(mock && typeof getMock === 'function'){return getMock(parameter);}
         if(response){
@@ -155,6 +162,10 @@ function Service(config) {
   }
   return async (obj) => {
     let { callback,cache,cacheName,api,onError} = obj;
+    if(!api){
+      helper.showAlert({type:'error',text:`aio-service error => missing api property`});
+      return;
+    }
     let result = await fetchData(obj);
     result = validate(result,obj);
     if (cache) {AIOStorage(config.id).save({name:cacheName ? 'storage-' + cacheName : 'storage-' + api,value:result})}
