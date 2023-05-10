@@ -54,6 +54,7 @@ export function getResponse({getState}){
             return {response,result}
         },
         async getAddresses(){//لیست آدرس ها
+            return {mock:true}
             let {personId} = getState();
             let url = `${baseUrl}/People/GetPeopleAddress`
             let body = {
@@ -153,7 +154,7 @@ export function getResponse({getState}){
         async hazfe_tarikhche_ye_jostojoo(){
             return {mock:true} 
         },
-        async ghaza_haye_restoran(){
+        async restoran_foods(){
             return {mock:true}
         },
         async restoran_comments(){
@@ -467,26 +468,26 @@ export function getMock({helper}){
         hazfe_tarikhche_ye_jostojoo(){
             return true 
         },
-        ghaza_haye_restoran(){
+        restoran_foods(){
             return [
                 {
-                    id:'644263',name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
-                    price: 210000, discount: 15, image: pasta_alferedo, tags: [],
-                    description:'250 گرم گوشت مخلوط گوساله و گوسفندی  همراه با 300 گرم برنج ایرانی در بسته بندی ماکرویوو'
+                    id:'644263',name: 'پاستا آلفردو پاستا آلفردو پاستا آلفردو پاستا آلفردو پاستا آلفردو پاستا آلفردو پاستا آلفردو پاستا آلفردو پاستا آلفردو پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
+                    price: 200000, discountPercent: 10, image: pasta_alferedo, tags: [],
+                    description:'250 گرم گوشت مخلوط گوساله و گوسفندی  گرم گوشت مخلوط گوساله و گوسفندی  همراه با 300 گرم برنج ایرانی در بسته بندی ماکرویوو'
                 },
                 {
                     id:'6534534',name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
-                    price: 210000, discount: 15, image: pasta_alferedo, tags: [],
+                    price: 200000, discountPercent: 10, image: pasta_alferedo, tags: [],
                     description:'250 گرم گوشت مخلوط گوساله و گوسفندی  همراه با 300 گرم برنج ایرانی در بسته بندی ماکرویوو'
                 },
                 {
                     id:'3456743',name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
-                    price: 210000, discount: 15, image: pasta_alferedo, tags: [],
+                    price: 200000, discountPercent: 10, image: pasta_alferedo, tags: [],
                     description:'250 گرم گوشت مخلوط گوساله و گوسفندی  همراه با 300 گرم برنج ایرانی در بسته بندی ماکرویوو'
                 },
                 {
                     id:'756453',name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
-                    price: 210000, discount: 15, image: pasta_alferedo, tags: [],
+                    price: 200000, discountPercent: 10, image: pasta_alferedo, tags: [],
                     description:'250 گرم گوشت مخلوط گوساله و گوسفندی  همراه با 300 گرم برنج ایرانی در بسته بندی ماکرویوو'
                 }
             ]

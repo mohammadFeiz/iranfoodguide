@@ -1,10 +1,19 @@
 import React,{Component} from "react";
 import RVD from './../npm/react-virtual-dom/react-virtual-dom';
 import {Icon} from '@mdi/react';
-import {mdiStar,mdiStarOutline} from '@mdi/js';
+import {mdiStar,mdiStarOutline,mdiStarHalfFull} from '@mdi/js';
+import './rate.css';
 export default class Rate extends Component{
-    render(){
+    getIcon(index){
         let {rate} = this.props;
+        let full = Math.floor(rate);
+        let half = !!(rate - full);
+        if(index < full){return mdiStar}
+        else if(index === full && half){return mdiStarHalfFull}
+        else {return mdiStarOutline} 
+    }
+    render(){
+        let {rate,color} = this.props;
         return (
             <RVD
                 layout={{
@@ -12,13 +21,13 @@ export default class Rate extends Component{
                     className:'align-vh',
                     row:[
                         {
-                            html:rate,className:'fs-12'
+                            html:rate,className:'rate-text',
                         },
                         {size:3},
                         {
                             row: Array(5).fill(0).map((o, i) => {
                                 return {
-                                    html: <Icon path={i < rate ? mdiStar : mdiStarOutline} size={0.6} />
+                                    style:{color},className:'rate-icon',html: <Icon path={this.getIcon(i)} size={0.6} />
                                 }
                             })
                         },

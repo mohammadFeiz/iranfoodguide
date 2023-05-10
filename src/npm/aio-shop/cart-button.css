@@ -1,4 +1,4 @@
-.cart-button-step{
+.aio-shop-cart-button-step{
     color: dodgerblue;
     background:none;
     width: 30px;
@@ -9,13 +9,13 @@
     justify-content: center;
     padding:0;
 }
-.product-count-input[type=number]::-webkit-inner-spin-button, 
-.product-count-input[type=number]::-webkit-outer-spin-button {
+.aio-shop-cart-button-input[type=number]::-webkit-inner-spin-button, 
+.aio-shop-cart-button-input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   -moz-appearance: none;
   margin: 0;
 }
-.product-count-input{
+.aio-shop-cart-button-input{
     text-align: center;
     width:28px;
     height:24px;
@@ -48,4 +48,47 @@
 .count-popup{
     padding:12px;
     background:#fff;
+}
+.aio-shop-product-card{
+    border-radius:12px;
+    background:#fff;
+    box-shadow:-2px 2px 12px 0 rgba(0,0,0,0.1)
+}
+.aio-shop-product-card-discount{
+    background:orange;
+    font-size:12px;
+    padding:0 6px;
+    border-radius:4px;
+    color:#fff;
+    position:absolute;
+    left:6px;
+    top:6px;
+}
+.aio-shop-product-card-name{
+    max-height:36px;
+    font-size:12px;
+    font-weight:bold;
+    text-align:right;
+    margin-bottom:6px; 
+    padding:0 6px;
+    overflow:hidden;
+}
+.aio-shop-product-card-description{
+    max-height:30px;
+    font-size:10px;
+    padding:0 6px;
+}
+.aio-shop-product-card-final-price{
+    font-size:12px;
+    font-weight:bold;
+}
+.aio-shop-product-card-price{
+    font-size:10px;
+    margin-left:6px;
+}
+.aio-shop-product-card-unit{
+    font-size:10px;
+}
+.aio-shop-product-card-image{
+    width:72px;
 }

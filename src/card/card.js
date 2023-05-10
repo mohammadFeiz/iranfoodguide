@@ -1,14 +1,12 @@
 import React, { Component } from "react";
 import RVD from '../npm/react-virtual-dom/react-virtual-dom';
 import { icons } from "../icons";
-import { CartButton } from "../npm/aio-shop/cart-button";
 import AppContext from "../app-context";
 export default class Card extends Component {
     render() {
         let { type } = this.props;
         if (type === 'card1') { return <Card1 {...this.props} /> }
         if (type === 'card2') { return <Card2 {...this.props} /> }
-        if (type === 'card3') { return <Card3 {...this.props} /> }
     }
 }
 
@@ -64,99 +62,7 @@ class Card2 extends Component {
         )
     }
 }
-class Card3 extends Component {
-    static contextType = AppContext;
-    render() {
-        let {Shop} = this.context;
-        let { width = '100%',imageSize = 72,onOrder = true,product} = this.props;
-        let {image, name,price,discount = 0,description,id} = product;
-        let finalPrice = price - price * discount / 100;
-        return (
-            <RVD
-                layout={{
-                    className: 'br-12 card-3',
-                    style: { width,height:120},
-                    row:[
-                        { 
-                            size:imageSize,
-                            html: (
-                                <>
-                                    <img src={image} width='100%' />
-                                    {
-                                        !!discount &&
-                                        <div className={'orange-bg fs-12 p-h-6 br-4'} style={{
-                                            color:'#fff',
-                                            position:'absolute',
-                                            left:6,
-                                            top:6
-                                        }}>{`${discount} %`}</div>
-                                    }
-                                </>
-                            ) 
-                        },
-                        {size:12},
-                        {
-                            flex:1,
-                            column: [
-                                {
-                                    flex:1,
-                                    column: [
-                                        { size: 6 },
-                                        {
-                                            align:'v',
-                                            row:[
-                                                { flex:1,html:()=> name, className: 'fs-14 bold' },
-                                                { show:!!discount,html:discount + '%',className:'m-h-12 p-h-6 fs-14 br-6',style:{background:'#FF5900',color:'#fff',height:18},align:'vh'}
-                                            ]
-                                        },
-                                        { show:!!description,html:()=> description, className: 'fs-10' },
-                                        { flex: 1 },
-                                        {
-                                            row:[
-                                                {
-                                                    flex:1,className:'p-h-6',
-                                                    row:[
-                                                        {show:!!discount,html:()=><del>{`${price} تومان`}</del>,className:'fs-10',align:'v'},
-                                                        {show:!discount,html:()=>`${price} تومان`,className:'fs-10',align:'v'},
-                                                        {size:6},
-                                                        {
-                                                            show:!!discount,
-                                                            row:[
-                                                                {html:finalPrice,className:'fs-12 bold',align:'v'},
-                                                                {size:3},
-                                                                {html:'تومان',className:'fs-10',align:'v'}
-                                                            ]
-                                                        }
-                                                    ]
-                                                },
-                                                {
-                                                    show:!!onOrder,
-                                                    html:(
-                                                        Shop.renderCartButton({
-                                                            addText:'سفارش',
-                                                            productId:id,
-                                                            product,
-                                                            add:true, 
-                                                            change:true,
-                                                            className:'button-4'
-                                                        })
-                                                    )
-                                                },
-                                                {size:12}                 
-                                            ]
-                                        },
-                                        {size:6}
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                    
-                }}
-            />
-        )
-    }
-}
+
 function IMAGE({imageSize,image,discount}){
     return { 
         size:imageSize,

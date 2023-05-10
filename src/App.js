@@ -18,7 +18,6 @@ import Sefareshe_ghaza from './pages/sefareshe_ghaza';
 import Profile from './pages/profile';
 import Tab3 from './pages/tab3';
 import RestoranPage from './components/restoran-page';
-import AIOShop from './npm/aio-shop/aio-shop';
 
 import './App.css';
 
@@ -147,10 +146,6 @@ class IranFoodGuide extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      Shop:AIOShop({
-        id:'iranfood',
-        setState:(Shop)=>this.setState({Shop})
-      }),
       comming_soon: false,
       mobileNumber:props.mobileNumber,
       personId: props.personId,
