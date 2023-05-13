@@ -1,15 +1,16 @@
 import React,{Component} from "react";
-import RVD from './../npm/react-virtual-dom/react-virtual-dom';
+import RVD from '../npm/react-virtual-dom/react-virtual-dom';
 import SearchBox from "../components/search-box";
 import GroupButton from "../components/group-button";
-import AIOButton from './../npm/aio-button/aio-button';
+import AIOButton from '../npm/aio-button/aio-button';
 import Card from "../card/card";
 import ListHeader from "../components/list-header";
 import AppContext from "../app-context";
 import {Icon} from '@mdi/react';
 import { mdiSort } from "@mdi/js";
+import RestoranPage from "../components/restoran-page";
 
-export default class Tab3 extends Component{
+export default class Search extends Component{
     static contextType = AppContext;
     constructor(props){
         super(props);
@@ -29,18 +30,18 @@ export default class Tab3 extends Component{
     }
     async fetchData(){
         let {apis} = this.context;
-        let {pageSize,pageNumber,selectedCategories,selectedSort,searchValue,searchType} = this.state;
+        let {pageSize,pageNumber,selectedCategories,selectedSort,searchValue} = this.state;
         apis({
             api:'jostojooye_restoran',
             name:'دریافت لیست رستوران ها',
-            parameter:{pageSize,pageNumber,selectedCategories,selectedSort,searchValue,searchType},
+            parameter:{pageSize,pageNumber,selectedCategories,selectedSort,searchValue},
             callback:(restoran_ha)=>this.setState({restoran_ha})
         })
     }
     search(searchValue){
         this.setState({searchValue},()=>this.fetchData());
     }
-    header_layout(){
+    tabs_layout(){
         let {searchType} = this.state;
         return {
             className:'bgFF5900',size:36,align:'vh',html:(
@@ -56,41 +57,6 @@ export default class Tab3 extends Component{
                 />
             )
 
-        }
-    }
-    toolbar_layout(){
-        let {restoran_sort_options,apis} = this.context;
-        let {selectedSort} = this.state;
-        return {
-            className:'p-12',gap:12,
-            row:[
-                {
-                    flex:1,
-                    html:(
-                        <SearchBox 
-                            onChange={(value)=>this.search(value)}
-                            historyMode={true}
-                            getHistory={async ()=>await apis({api:'tarikhche_ye_jostojoo'})}
-                            removeHistory={async (text)=>await apis({api:'hazfe_tarikhche_ye_jostojoo',parameter:text}) }
-                        />
-                    )
-                },
-                {
-                    html:(
-                        <AIOButton
-                            type='select' caret={false}
-                            optionChecked='option.value === props.value'
-                            optionClose={true}
-                            optionCheckIcon={{color:'orange'}}
-                            className='button-2'
-                            options={restoran_sort_options}
-                            value={selectedSort}
-                            text={<Icon path={mdiSort} size={0.8}/>}
-                            onChange={(selectedSort)=>this.setState({selectedSort})}
-                        />
-                    )
-                }
-            ]
         }
     }
     daste_bandi_layout(){
@@ -109,10 +75,54 @@ export default class Tab3 extends Component{
             )
         }
     }
+    search_layout(){
+        let {apis} = this.context;
+        return {
+            flex:1,
+            html:(
+                <SearchBox 
+                    onChange={(value)=>this.search(value)}
+                    historyMode={true}
+                    getHistory={async ()=>await apis({api:'tarikhche_ye_jostojoo'})}
+                    removeHistory={async (text)=>await apis({api:'hazfe_tarikhche_ye_jostojoo',parameter:text}) }
+                />
+            )
+        }
+    }
+    sort_layout(){
+        let {restoran_sort_options} = this.context;
+        let {selectedSort} = this.state;
+        return {
+            html:(
+                <AIOButton
+                    type='select' caret={false}
+                    optionChecked='option.value === props.value'
+                    optionClose={true}
+                    optionCheckIcon={{color:'orange'}}
+                    className='button-2'
+                    options={restoran_sort_options}
+                    value={selectedSort}
+                    text={<Icon path={mdiSort} size={0.8}/>}
+                    onChange={(selectedSort)=>this.setState({selectedSort})}
+                />
+            )
+        }
+    }
+    openRestoranPage(restoran){
+        let {rsa_actions} = this.context;
+        rsa_actions.addPopup({
+            type:'fullscreen',
+            header:false,
+            body:()=>{
+                return <RestoranPage {...restoran} onClose={()=>rsa_actions.removePopup()}/>
+            }
+        })
+    }
     items_layout(){
         let {restoran_ha} = this.state;
         return {
             flex:1,
+            className:'ofy-auto',
             column:[
                 {html:<ListHeader title='لیست رستوران' length={restoran_ha.length}/>},
                 {size:12},
@@ -120,7 +130,7 @@ export default class Tab3 extends Component{
                     flex:1,className:'ofy-auto',gap:12,
                     column:restoran_ha.map((o)=>{
                         return {
-                            className:'p-h-12 of-visible',html:<Card type='card2' {...o}/>
+                            className:'p-h-12 of-visible',html:<Card type='card2' {...o} onClick={()=>this.openRestoranPage(o)}/>
                         }
                     })
                 }
@@ -131,11 +141,23 @@ export default class Tab3 extends Component{
         return (
             <RVD
                 layout={{
-                    style:{background:'#fff',width:'100%'},
+                    style:{background:'#fff',width:'100%',height:'100%'},
                     column:[
-                        this.header_layout(),
-                        this.toolbar_layout(),
-                        this.daste_bandi_layout(),
+                        this.tabs_layout(),
+                        {
+                            className:'p-12',
+                            column:[
+                                {
+                                    gap:12,
+                                    row:[
+                                        this.search_layout(),
+                                        this.sort_layout()
+                                    ]
+                                },
+                                {size:12},
+                                this.daste_bandi_layout()
+                            ]
+                        },
                         {size:12},
                         this.items_layout()
                     ]

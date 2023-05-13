@@ -14,17 +14,16 @@ export default class GroupButton extends Component{
         let {value,onChange} = this.props;
         onChange(this.dic[val]?value.filter((o)=>o !== val):value.concat(val),val)
     }
-    option_layout({text,value}){
+    option_layout({text,value,image}){
+        let {type} = this.props;
         let active = !!this.dic[value]
         return {
-            html:(
-                <button 
-                    className={'group-button-option' + (active?' active':'')}
-                    onClick={()=>this.click(value)}
-                >
-                    {text}
-                </button>
-            )
+            className:'group-button-option' + (active?' active':'') + (type === 'menu'?' group-button-menu':''),
+            onClick:()=>this.click(value),
+            column:[
+                {flex:1,show:!!image,html:<img src={image} width='100%'/>},
+                {flex:!image?1:undefined,html:text,align:'vh'}
+            ]
         }
     }
     render(){
@@ -34,8 +33,8 @@ export default class GroupButton extends Component{
             <RVD
                 layout={{
                     className:'group-button ofx-auto' + (className?' ' + className:''),gap:6,
-                    row:options.map(({text,value})=>{
-                        return this.option_layout({text,value})
+                    row:options.map(({text,value,image})=>{
+                        return this.option_layout({text,value,image})
                     })
                 }}
             />

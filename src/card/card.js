@@ -29,12 +29,11 @@ class Card1 extends Component {
 
 class Card2 extends Component {
     render() {
-        let { width = 290,imageSize = 96,image, logo, name, distance, tags, time,rate,details,price,discount,shopName} = this.props;
+        let { width = 290,imageSize = 96,image, logo, name, distance, tags, time,rate,details,price,discount,shopName,onClick} = this.props;
         return (
             <RVD
                 layout={{
-                    className: 'br-12 card-3',
-                    style: { width,height:220},
+                    className: 'br-12 card-3',style: { width,height:220},onClick,
                     column: [
                         IMAGE({image,imageSize,discount}),
                         {

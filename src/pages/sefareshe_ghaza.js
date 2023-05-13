@@ -1,12 +1,11 @@
 import React, { Component } from "react";
 import RVD from './../npm/react-virtual-dom/react-virtual-dom';
 import ACS from './../npm/aio-content-slider/aio-content-slider';
-import AIOButton from "../npm/aio-button/aio-button";
 import Card from './../card/card';
 import Timer from "../components/timer";
-
-import { icons } from "../icons";
+import Search from './../pages/Search';
 import AppContext from "../app-context";
+import SearchBox from "../components/search-box";
 export default class Sefareshe_ghaza extends Component {
     static contextType = AppContext;
     state = { 
@@ -20,65 +19,38 @@ export default class Sefareshe_ghaza extends Component {
         let content = await apis({
             api:'safheye_sefaresh',
             name:'دریافت اطلاعات صفحه سفارش غذا',
-            validation:[
-                (o)=>{
-                    if(o.type === 'Categories'){
-                        return {
-                            items:[
-                                {name:'string',src:'string',id:'string,number'}
-                            ]
-                        }
-                    }
-                    if(o.type === 'Billboard'){
-                        return {items:[{src:'string'}]}
-                    }
-                    if(o.type === 'Slider'){
-                        return {
-                            name:'string',
-                            items:[
-                                {
-                                    name:'string',
-                                    image:'string',
-                                    logo:'string,undefined',
-                                    rate:'number',
-                                    distance:'number,undefined',
-                                    time:'number,undefined',
-                                    tags:['string']
-                                }
-                            ]
-                        }
-                    }
-                }
-            ]
+            // validation:[
+            //     (o)=>{
+            //         if(o.type === 'Categories'){
+            //             return {
+            //                 items:[
+            //                     {name:'string',src:'string',id:'string,number'}
+            //                 ]
+            //             }
+            //         }
+            //         if(o.type === 'Billboard'){
+            //             return {items:[{src:'string'}]}
+            //         }
+            //         if(o.type === 'Slider'){
+            //             return {
+            //                 name:'string',
+            //                 items:[
+            //                     {
+            //                         name:'string',
+            //                         image:'string',
+            //                         logo:'string,undefined',
+            //                         rate:'number',
+            //                         distance:'number,undefined',
+            //                         time:'number,undefined',
+            //                         tags:['string']
+            //                     }
+            //                 ]
+            //             }
+            //         }
+            //     }
+            // ]
         })
         this.setState({content})
-    }
-    address_layout() {
-        let {addresses,activeAddressId,ChangeState} = this.context;
-        let address = addresses.find(({id})=>id === activeAddressId) || {address:''}
-        return {
-            size:48,className:'p-h-12',
-            row: [
-                { html: icons('location'),align:'vh' },
-                {
-                    align:'v',
-                    flex: 1,
-                    html: (
-                        <AIOButton
-                            type='select'
-                            value={activeAddressId}
-                            options={addresses}
-                            text={address.address.slice(0,54)}
-                            style={{background:'none',width:'100%'}}
-                            optionText='option.address.slice(0,54)'
-                            optionValue='option.id'
-                            caretAttrs={{ style: { color: '#FF5900' } }}
-                            onChange={(value)=>ChangeState({activeAddressId:value})}
-                        />
-                    )
-                }
-            ]
-        }
     }
     billboard_layout(items) {
         return (
@@ -136,9 +108,25 @@ export default class Sefareshe_ghaza extends Component {
             />
         )
     }
+    openPopup(){
+        let {rsa_actions} = this.context;
+        rsa_actions.addPopup({
+            type:'fullscreen',
+            title:'جستجو',
+            body:()=>{
+                return <Search/>
+            }
+        })
+    }
+    search_layout(){
+        return {
+            className:'p-12',html:<SearchBox onClick={()=>this.openPopup()}/>
+        }
+    }
     content_layout(){
         let {content} = this.state;
         return {
+            flex:1,className:'ofy-auto',
             column:content.map((o)=>{
                 if(o.type === 'Slider'){
                     return {html:this.slider_layout(o)}
@@ -157,11 +145,9 @@ export default class Sefareshe_ghaza extends Component {
             <RVD
                 layout={{
                     style:{background:'#fff'},
-                    className:'ofy-auto',
                     column: [
-                        this.address_layout(),
+                        this.search_layout(),
                         this.content_layout(),
-                        {size:24}
                     ]
                 }}
             />

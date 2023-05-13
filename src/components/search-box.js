@@ -24,6 +24,7 @@ export default class SearchBox extends Component{
     }
     change(searchValue){
         let {onChange} = this.props;
+        if(!onChange){return}
         this.setState({searchValue});
         clearTimeout(this.timeout);
         this.timeout = setTimeout(()=>onChange(searchValue),800)
@@ -126,9 +127,9 @@ export default class SearchBox extends Component{
         )
     }
     render(){
-        let {historyMode} = this.props;
+        let {historyMode,onClick} = this.props;
         return (
-            <div className='search-box'>
+            <div className='search-box' onClick={onClick}>
                 {historyMode && this.historyModeRender()}
                 {!historyMode && this.renderSearchBox()}
             </div>

@@ -21,6 +21,7 @@ import pardakhte_online_src from '../images/pardakhte-online.png';
 import pardakhte_kife_pool_src from '../images/pardakhte-kife-pool.png';
 import kart_be_kart_src from '../images/kart-be-kart.png';
 import pardakhte_hozoori_src from '../images/pardakhte-hozoori.png';
+import { splitNumber } from '../npm/react-super-app/react-super-app';
 
 export default class RestoranPage extends Component {
   static contextType = AppContext;
@@ -39,20 +40,23 @@ export default class RestoranPage extends Component {
           image:'image'
         }
       }),
-      category: props.tags[0],
-      foods: [],
-      showInfo:false,
-      showCart:true
+      category: false,
+      menu: [],
+      categories:[],
+      activeTabId:'info',
+      tabMode:true
     }
   }
   async componentDidMount() {
     let { apis } = this.context;
     let { id } = this.props;
     apis({
-      api: 'restoran_foods',
+      api: 'restoran_menu',
       parameter: id,
-      callback: (foods) => {
-        this.setState({ foods })
+      callback: (menu) => {
+        let categories = menu;
+        let category = categories[0].name; 
+        this.setState({ menu,categories,category })
       }
     })
   }
@@ -68,7 +72,7 @@ export default class RestoranPage extends Component {
             image={image}
             icons={[
               {icon:<Icon path={mdiClose} size={1}/>,onClick:()=>onClose()},
-              {icon:SVG_Cart(),onClick:()=>this.setState({showCart:true}),badge:cartLength},
+              {icon:SVG_Cart(),onClick:()=>this.openPopup('cart'),badge:cartLength},
             ]}
           />
         )
@@ -77,33 +81,54 @@ export default class RestoranPage extends Component {
   }
   title_layout() {
     let { logo, name, distance } = this.props;
+    let {tabMode} = this.state;
     return {
       className: 'p-h-12 m-b-12',
       row: [
         {flex:1,html:<RestoranTitle {...{logo, name, distance}}/>},
         {
+          show:!tabMode,
           align: 'v',
           html: (
             <AIOButton
               type='button'
               text={'مشاهده اطلاعات'}
               className='button-3'
-              onClick={()=>this.setState({showInfo:true})}
+              onClick={()=>this.openPopup('info')}
             />
           )
         }
       ]
     }
   }
-  categories_layout() {
-    let { tags } = this.props;
-    let { category } = this.state;
+  tabs_layout(){
+    let {activeTabId,tabMode} = this.state;
+    if(!tabMode){return false}
     return {
-      className: 'p-h-12',
+      className:'m-b-12',
+      html:(
+        <AIOButton
+          type='tabs'
+          options={[
+            {text:'منوی رستوران',value:'menu',style:{flex:1}},
+            {text:'اطلاعات رستوران',value:'info',style:{flex:1}},
+          ]}
+          value={activeTabId}
+          onChange={(activeTabId)=>this.setState({activeTabId})}
+        />
+      )
+    }
+  }
+  category_layout() {
+    let { category,categories } = this.state;
+    if(categories.length <= 1){return false}
+    return {
+      className: 'p-h-12 m-b-12',
       html: (
         <GroupButton
+          type='menu'
           value={[category]} className='outline'
-          options={tags.map((o) => { return { text: o, value: o } })}
+          options={categories.map(({name,image}) => { return { text: name, value: name,image } })}
           onChange={(values, value) => this.setState({ category: value })}
         />
       )
@@ -129,7 +154,10 @@ export default class RestoranPage extends Component {
     }
   }
   foods_layout() {
-    let { foods,Shop } = this.state;
+    let { menu,category,Shop } = this.state;
+    let activeMenu = menu.find(({name})=>name === category);
+    if(!activeMenu){return false}
+    let foods = activeMenu.items;
     return {
       gap: 12, flex: 1, className: 'ofy-auto',
       column: foods.map((o) => {
@@ -137,18 +165,63 @@ export default class RestoranPage extends Component {
       })
     }
   }
+  openPopup(key,parameter){
+    let {Shop} = this.state;
+    let {rsa_actions} = this.context;
+    let {addPopup} = rsa_actions;
+    if(key === 'info'){
+      addPopup({
+        type:'fullscreen',header:false,
+        body:()=>{
+          return <RestoranInfo {...this.props} onClose={()=>rsa_actions.removePopup()}/>
+        }
+      })
+    }
+    else if(key === 'cart'){
+      addPopup({
+        type:'fullscreen',header:false,
+        body:()=>{
+          return <RestoranCart {...this.props} Shop={Shop} onClose={()=>rsa_actions.removePopup()} onSubmit={()=>this.openPopup('shipping')}/>
+        }
+      })
+    }
+    else if(key === 'shipping'){
+      addPopup({
+        type:'fullscreen',header:false,
+        body:()=>{
+          return <Shipping {...this.props} Shop={Shop} onClose={()=>rsa_actions.removePopup()}/>
+        }
+      })
+    }
+  }
+  info_layout(){
+    let {tabMode,activeTabId} = this.state;
+    if(!tabMode || activeTabId !== 'info'){return false}
+    return {
+      flex:1,
+      html:<RestoranInfo {...this.props} header={false}/>
+    }
+  }
   render() {
-    let {showInfo,showCart,Shop} = this.state;
-    if(showInfo){return <RestoranInfo {...this.props} onClose={()=>this.setState({showInfo:false})}/>}
-    if(showCart){return <RestoranCart {...this.props} Shop={Shop} onClose={()=>this.setState({showCart:false})}/>}
+    let {tabMode,activeTabId} = this.state;
     return (
       <RVD
         layout={{
+          style:{height:'100%',background:'#fff'},
           column: [
             this.header_layout(),
             this.title_layout(),
-            this.filter_layout(),
-            this.foods_layout()
+            this.tabs_layout(),
+            //this.filter_layout(),
+            {
+              show:!tabMode || (tabMode && activeTabId === 'menu'),
+              flex:1,
+              column:[
+                this.category_layout(),
+                this.foods_layout()
+              ]
+            },
+            this.info_layout()
           ]
         }}
       />
@@ -175,8 +248,22 @@ class Header extends Component{
       )
     })
   }
+  renderTitle(title){
+    if(!title){return null}
+    return (
+      <div
+        style={{
+          position: 'absolute', background: '#ffffffdd', borderRadius: 6, display: 'flex',padding:'0 12px',
+          right: 8, top: 8, height: 36
+        }}
+        className='align-vh bold fs-20'
+      >
+        {title}
+      </div>
+    )
+  }
   render(){
-    let {icons = [],rate,image} = this.props;
+    let {icons = [],rate,image,title} = this.props;
     return (
         <RVD
           layout={{
@@ -196,9 +283,8 @@ class Header extends Component{
                     </div>
                   )
                 }
-                {
-                  this.renderIcons(icons)
-                }
+                {this.renderIcons(icons)}
+                {this.renderTitle(title)}
               </div>
             )
           }}  
@@ -217,12 +303,6 @@ RestoranPage.defaultProps = {
 class RestoranCart extends Component{
   constructor(props){
     super(props);
-    this.state = {
-      discounts:[
-        {title:'تخفیف گروه مشتری',discountPercent:25},
-        {title:'تخفیف نوروزی',discount:50000},
-      ]
-    }
   }
   header_layout(image){
     let {onClose} = this.props;
@@ -230,6 +310,7 @@ class RestoranCart extends Component{
       html:(
         <Header
           image={image}
+          title='سبد خرید'
           icons={[
             {icon:<Icon path={mdiClose} size={1}/>,onClick:()=>onClose()}
           ]}
@@ -237,15 +318,11 @@ class RestoranCart extends Component{
       )
     }
   }
-  title_layout(logo,name,distance,rate){
-    return {html:<RestoranTitle {...{logo,name,distance,rate}}/>}
-  }
   items_layout(cartItems,Shop){
     if(!cartItems.length){return {html:'سبد خرید شما خالی است',align:'vh'}}
     return {
       className:'m-b-24 of-visible',
       column:[
-        {html:'سبد خرید',align:'vh',size:48,className:'fs-18 bold'},
         {
           flex:1,className:'of-visible',gap:12,
           column:cartItems.map(({product})=>{
@@ -255,16 +332,16 @@ class RestoranCart extends Component{
       ]
     }
   }
-  shipping_layout(){
-    let {address} = this.props;
-    return {
-      html:<Shipping restoranAddress={address}/>
-    }
-  }
-  factor_layout(cartItems,Shop){
+  total_layout(cartItems,Shop){
     if(!cartItems.length){return false}
-    let {discounts} = this.state;
-    return {html:Shop.renderFactor(discounts),className:'p-12 br-6 m-h-12',style:{background:'#fff',border:'1px solid #ddd'}}
+    return {html:Shop.renderTotal(),className:'p-12 br-6 m-h-12',style:{background:'#fff',border:'1px solid #ddd'}}
+  }
+  submit_layout(cartItems){
+    if(!cartItems.length){return false}
+    let {onSubmit} = this.props;
+    return {
+      className:'p-12',html:<button onClick={()=>onSubmit()} className='button-5 w-100 h-36 bold'>تکمیل خرید</button>
+    }
   }
   render(){
     let {image,Shop} = this.props;
@@ -272,13 +349,23 @@ class RestoranCart extends Component{
     return (
       <RVD
         layout={{
-          className:'ofy-auto bgFFF',
+          className:'bgFFF h-100',
           column:[
             this.header_layout(image),
-            //this.title_layout(logo,name,distance,rate),
-            this.items_layout(cartItems,Shop),
-            this.shipping_layout(),
-            this.factor_layout(cartItems,Shop),
+            {
+              flex:1,className:'ofy-auto',
+              column:[
+                this.items_layout(cartItems,Shop),
+                
+              ]
+            },
+            {
+              column:[
+                this.total_layout(cartItems,Shop),
+                this.submit_layout(cartItems)
+              ]
+            }
+
           ]
         }}
       />
@@ -289,7 +376,23 @@ class Shipping extends Component{
   static contextType = AppContext;
   constructor(props){
     super(props);
-    this.state = {deliveryType:'ارسال با پیک',discountCode:'',paymentType:'پرداخت آنلاین'}
+    this.state = {
+      discountCode:'',
+    }
+  }
+  header_layout(image){
+    let {onClose} = this.props;
+    return {
+      html:(
+        <Header
+          image={image}
+          title='تکمیل خرید'
+          icons={[
+            {icon:<Icon path={mdiClose} size={1}/>,onClick:()=>onClose()}
+          ]}
+        />
+      )
+    }
   }
   getIcon(option){
     let icon = {
@@ -300,110 +403,49 @@ class Shipping extends Component{
       'کارت به کارت':()=><img src={kart_be_kart_src} />,
       'پرداخت حضوری':()=><img src={pardakhte_hozoori_src} />,
     }[option];
-    if(!icon){debugger;}
-    icon = icon();
-    return (
-      <div style={{width:60}} className='align-vh'>
-        {icon}
-      </div>
-    )
+    return (<div style={{width:60}} className='align-vh'>{icon()}</div>)
   }
-  deliveryType_layout(){
-    let {deliveryType} = this.state;
-    return {
-      className:'p-h-12 m-b-24',
-      column:[
-        {html:'روش تحویل سفارش',className:'bold fs-16'},
-        {
-          html:(
-            <AIOButton
-              type='radio'
-              options={[
-                {text:'ارسال با پیک',value:'ارسال با پیک',before:this.getIcon('ارسال با پیک')},
-                {text:'دریافت حضوری',value:'دریافت حضوری',before:this.getIcon('دریافت حضوری')},
-              ]}
-              optionStyle='{width:"100%",borderBottom:"1px solid #bbb"}'
-              optionClassName='"bold fs-14"'
-              value={deliveryType}
-              onChange={(deliveryType)=>this.setState({deliveryType})}
-            />
-          )
-        }
-      ]
-    }
-  }
-  deliveryAddress_layout(){
-    let {deliveryType} = this.state;
-    let {restoranAddress} = this.props;
+  shipping_layout(Shop){
+    let {address} = this.props;
     let {addresses} = this.context;
     return {
-      className:'p-h-12 m-b-24',
-      column:[
-        {
-          row:[
-            {html:`آدرس تحویل سفارش`,className:'bold fs-16',align:'v'},
-            {size:6},
-            {html:`( ${deliveryType === 'ارسال با پیک'?'انتخاب از آدرس های من':'آدرس رستوران'} )`,className:'fs-12',align:'v'}
-          ]
-        },
-        {size:12},
-        {
-          show:deliveryType === 'ارسال با پیک',
-          html:()=>(
-            <AIOButton
-              type='select'
-              className='select-3'
-              options={addresses}
-              optionText='option.address'
-              popupWidth='fit'
-              optionValue='option.id'
-              value={addresses[0].id}
-            />
-          )
-        },
-        {
-          show:deliveryType === 'دریافت حضوری',
-          html:restoranAddress,className:'fs-12'
-        }
-      ]
-    }
-  }
-  paymentType_layout(){
-    let {paymentType} = this.state;
-    return {
-      className:'p-h-12 m-b-24',
-      column:[
-        {html:'روش پرداخت مبلغ سفارش',className:'bold fs-16'},
-        {
-          html:(
-            <AIOButton
-              type='radio'
-              options={[
-                {text:'پرداخت آنلاین',value:'پرداخت آنلاین',before:this.getIcon('پرداخت آنلاین'),subtext:'پرداخت از طریق درگاه های پرداخت '},
-                {text:'پرداخت کیف پول',value:'پرداخت کیف پول',before:this.getIcon('پرداخت کیف پول'),subtext:'مانده اعتبار : 250،000 ریال'},
-                {text:'پرداخت حضوری',value:'پرداخت حضوری',before:this.getIcon('پرداخت حضوری'),subtext:'پرداخت از طریق دستگاه پوز پیک یا فروشگاه'},
-                {text:'کارت به کارت',value:'کارت به کارت',before:this.getIcon('کارت به کارت'),subtext:'واریز به کارت ایران فود'},
-              ]}
-              optionStyle='{width:"100%",borderBottom:"1px solid #bbb"}'
-              optionClassName='"bold fs-14"'
-              optionText='option'
-              optionValue='option'
-              value={paymentType}
-              onChange={(paymentType)=>this.setState({paymentType})}
-            />
-          )
-        }
-      ]
+      flex:1,
+      html:Shop.renderShipping({
+        options:[
+          {
+              title:'روش تحویل سفارش',field:'deliveryType',def:'ارسال با پیک',
+              options:[
+                  { text: 'ارسال با پیک', value: 'ارسال با پیک', icon: this.getIcon('ارسال با پیک') },
+                  { text: 'دریافت حضوری', value: 'دریافت حضوری', icon: this.getIcon('دریافت حضوری') },
+              ]
+          },
+          {
+              show:({deliveryType})=>deliveryType === 'ارسال با پیک',title:'آدرس تحویل سفارش',subtitle:'انتخاب از آدرس های من',field:'addressId',def:addresses[0].id,
+              options:addresses.map(({address,id})=>{return { text: address, value: id }})
+          },
+          {show:({deliveryType})=>deliveryType === 'دریافت حضوری',title:'آدرس تحویل سفارش',subtitle:'آدرس رستوران',options:[{text:address}]},
+          {
+              title:'روش پرداخت مبلغ سفارش',field:'paymentType',def:'پرداخت آنلاین',
+              options:[
+                  { text: 'پرداخت آنلاین', value: 'پرداخت آنلاین', before: this.getIcon('پرداخت آنلاین'), subtext: 'پرداخت از طریق درگاه های پرداخت ' },
+                  { text: 'پرداخت کیف پول', value: 'پرداخت کیف پول', before: this.getIcon('پرداخت کیف پول'), subtext: 'مانده اعتبار : 250،000 ریال' },
+                  { text: 'پرداخت حضوری', value: 'پرداخت حضوری', before: this.getIcon('پرداخت حضوری'), subtext: 'پرداخت از طریق دستگاه پوز پیک یا فروشگاه' },
+                  { text: 'کارت به کارت', value: 'کارت به کارت', before: this.getIcon('کارت به کارت'), subtext: 'واریز به کارت ایران فود' }
+              ]
+          },
+        ]
+      })
     }
   }
   render(){
+    let {image,Shop} = this.props;
     return (
       <RVD
         layout={{
+          style:{background:'#fff',height:'100%'},
           column:[
-            this.deliveryType_layout(),
-            this.deliveryAddress_layout(),
-            this.paymentType_layout()
+            this.header_layout(image),
+            this.shipping_layout(Shop)
           ]
         }}
       />
@@ -417,14 +459,17 @@ class RestoranInfo extends Component {
     this.state = {
       comments:[],
       coupons:[],
+      commentsPageSize:12,
+      commentsPageNumber:1
     }
   }
   componentDidMount(){
     let {apis} = this.context;
     let {id} = this.props;
+    let {commentsPageNumber,commentsPageSize} = this.state;
     apis({
       api:'restoran_comments',
-      parameter:id,
+      parameter:{id,pageSize:commentsPageSize,pageNumber:commentsPageNumber},
       name:'دریافت نظرات ثبت شده در مورد رستوران',
       callback:(comments)=>this.setState({comments})
     })
@@ -436,7 +481,8 @@ class RestoranInfo extends Component {
     })
   }
   title_layout(logo,name,rate){
-    let {onClose} = this.props;
+    let {onClose,header} = this.props;
+    if(header === false){return false}
     return {
       className:'m-b-12 p-12 orange-bg colorFFF',
       row:[
@@ -463,7 +509,7 @@ class RestoranInfo extends Component {
   coupon_layout({ percent, amount }) {
     return {
       style: { background: '#fff' },
-      className: 'br-8',
+      className: 'br-8 p-6',
       row: [
         { html: percent1(), align: 'vh', size: 30 },
         {
@@ -506,7 +552,7 @@ class RestoranInfo extends Component {
   }
   address_layout(latitude,longitude,address){
     return {
-      className:'m-b-12 p-h-12',html:<RestoranAddress {...{latitude,longitude,address}}/>
+      className:'m-b-12 p-h-12',html:<Address {...{latitude,longitude,address}}/>
     }
   }
   downloadMenu_layout(){
@@ -528,7 +574,7 @@ class RestoranInfo extends Component {
     return (
       <RVD
         layout={{
-          className:'bgFFF',
+          className:'bgFFF h-100',
           column: [
             this.title_layout(logo,name,rate),
             {
@@ -569,6 +615,7 @@ class RestoranTitle extends Component{
     }
   }
   rate_layout(rate){
+    if(rate === undefined){return false}
     return {html:<Rate rate={rate}/>}
   }
   render(){
@@ -650,7 +697,7 @@ class RestoranComments extends Component{
     )
   }
 }
-class RestoranAddress extends Component{
+class Address extends Component{
   map_layout(latitude,longitude){
     return {
       html:(

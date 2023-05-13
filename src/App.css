@@ -119,6 +119,12 @@ button,input{
   border-radius:6px;
   color:#FF5900;
 }
+.button-5,.aio-shop-cart-button-add{
+  color:#fff;
+  border:1px solid;
+  border-radius:6px;
+  background:#FF5900;
+}
 
 .product-card .aio-shop-add-button{
   background:none;
@@ -238,4 +244,17 @@ button,input{
 }
 .aio-button-check-out{
   color:orange !important;
+}
+.aio-popup-header{
+  background:#FF5900;
+  color:#fff;
+  font-size:16px;
+}
+.aio-button-tabs-option.active{
+  color:#FF5900;
+  
+}
+.aio-button-tabs-option.active:after{
+  background:#FF5900;
+  
 }
