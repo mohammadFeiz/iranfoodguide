@@ -92,3 +92,60 @@
 .aio-shop-product-card-image{
     width:72px;
 }
+.aio-shop-discount-code{
+    padding:6px;
+    border-radius:6px;
+    margin:0 12px;
+    margin-bottom:12px;
+    border:1px solid #ddd;
+    background:#fff;
+}
+.aio-shop-discount-code input{
+    width:100%;
+    border:none;
+    background:none;
+    outline:none;
+}
+.aio-shop-discount-code button{
+    background:dodgerblue;
+    color:#fff;
+    border:none;
+    height:32px;
+    border-radius:4px;
+}
+.aio-shop-discount-code button:disabled{
+    background:#bbb;
+    color:#fff;
+    border:none;
+    height:32px;
+    border-radius:4px;
+}
+.aio-shop-shipping-option{
+    margin:0 12px;
+    border-radius:6px;
+    margin-bottom:12px;
+    padding:12px;
+    background:#fff;
+}
+.aio-shop-shipping-radio-option{
+    font-size:14px;
+    font-weight:bold;
+    padding:8px 0;
+    color:#888;
+    width:100%;
+    border-bottom:1px solid #eee;
+}
+.aio-shop-shipping-radio-option:last-child{
+    border-bottom:none;
+}
+.aio-shop-shipping-option-title{
+    font-weight:bold;
+    font-size:16px;
+    margin-bottom:6px;
+}
+.aio-shop-shipping-discount-code-error{
+    color:red;
+    transform: translateY(-12px);
+    font-size:12px;
+    padding:0 16px;
+}

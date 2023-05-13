@@ -10,14 +10,13 @@ export default class SearchBox extends Component{
         this.state = {
             searchValue:props.value || '',
             historyMode:props.historyMode,
-            history:[]
+            historyList:[]
         }
     }
     async getHistory(){
-        let {getHistory,historyMode} = this.props;
-        if(!historyMode){return false}
-        let history = await getHistory();
-        this.setState({history})
+        let {history} = this.props;
+        if(!history){return false}
+        this.setState({historyList:await history.get()})
     }
     componentDidMount(){
         this.getHistory()
@@ -50,25 +49,25 @@ export default class SearchBox extends Component{
         }
     }
     history_layout(){
-        let {history} = this.state;
+        let {historyList} = this.state;
         return {
             column:[
                 {
                     html:'تاریخچه جستجو',align:'v',className:'search-box-label'
                 },
                 {
-                    flex:1,className:'ofy-auto',column:history.map((text)=>this.historyItem_layout(text))
+                    flex:1,className:'ofy-auto',column:historyList.map((text)=>this.historyItem_layout(text))
                 }
             ]
         }
     }
     removeHistory(text){
-        let {history} = this.state;
-        let newHistory = history.filter((o)=>o !== text)
-        this.setState({history:newHistory})
+        let {historyList} = this.state;
+        let newHistoryList = historyList.filter((o)=>o !== text)
+        this.setState({historyList:newHistoryList})
     }
     historyItem_layout(text){
-        let {removeHistory} = this.props;
+        let {history} = this.props;
         return {
             size:36,className:'search-box-history-item',
             row:[
@@ -82,7 +81,7 @@ export default class SearchBox extends Component{
                 {
                     size:36,html:<Icon path={mdiDeleteOutline} size={.8}/>,align:'vh',
                     onClick:async ()=>{
-                        let res = await removeHistory(text);
+                        let res = await history.remove(text);
                         if(res === true){this.removeHistory(text)}
                     }
                 }
@@ -127,11 +126,11 @@ export default class SearchBox extends Component{
         )
     }
     render(){
-        let {historyMode,onClick} = this.props;
+        let {history,onClick} = this.props;
         return (
             <div className='search-box' onClick={onClick}>
-                {historyMode && this.historyModeRender()}
-                {!historyMode && this.renderSearchBox()}
+                {history && this.historyModeRender()}
+                {!history && this.renderSearchBox()}
             </div>
         )
     }

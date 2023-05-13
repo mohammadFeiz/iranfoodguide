@@ -7,14 +7,17 @@ import { mdiPlus, mdiMinus, mdiTrashCanOutline, mdiCart } from '@mdi/js';
 import './cart-button.css';
 import AIOStorage from './../aio-storage/aio-storage';
 export default function AIOShop(obj = {}) {
-    let {
-        id, setState, cartCache,
-        productFields
-    } = obj
+    let {id, setState, cartCache,productFields,checkDiscountCode,getDiscounts = ()=>{return []},getShippingPrice = ()=>0,shippingOptions = []} = obj
     if (!id) { return }
     let $$ = {
+        factor:{},
+        shippingOptions,
+        checkDiscountCode:checkDiscountCode?async (discountCode)=>{
+            return await checkDiscountCode(discountCode,$$.factor);
+        }:undefined,
         storage: AIOStorage('aioshop' + id),
         cart: {},
+        shipping:{},
         getProductProp(product, prop, def) {
             let field = productFields[prop];
             let value = typeof field === 'function' ? field(product) : product[field];
@@ -37,8 +40,7 @@ export default function AIOShop(obj = {}) {
             if (cartCache) { $$.storage.save({ name: 'cart', value: newCart }) }
             setState($$)
         },
-        getCartFactor(obj = {}) {
-            let { discountItems = [], shippingPrice = 0 } = obj;
+        async updateFactor(shipping = {}) {
             let cart = $$.cart;
             let discount = 0;
             let total = 0;
@@ -55,6 +57,8 @@ export default function AIOShop(obj = {}) {
                 amount += itemAmount;
                 return { id, discountPercent, total: itemTotal, discount: itemDiscount, amount: itemAmount }
             })
+            $$.shipping = shipping;
+            let discountItems = await getDiscounts({ discount, total, amount, factors,shipping });
             let discounts = [];
             for (let i = 0; i < discountItems.length; i++) {
                 let { title, discountPercent, discount, maxDiscount } = discountItems[i];
@@ -69,9 +73,11 @@ export default function AIOShop(obj = {}) {
                     discounts.push({ discount, title })
                 }
             }
+            let shippingPrice = await getShippingPrice({ discount, discounts, total, amount, factors })
             amount += shippingPrice;
-            return { discount, discounts, total, amount, factors, shippingPrice }
-
+            let factor = { discount, discounts, total, amount, factors, shippingPrice };
+            $$.factor = factor;
+            return factor;
         },
         getProductCount(product) {
             let id = $$.getProductProp(product, 'id');
@@ -88,13 +94,11 @@ export default function AIOShop(obj = {}) {
             };
             return <CartButton {...props} />;
         },
-        renderFactor({ discountItems = [], shippingPrice }) {
-            let factor = $$.getCartFactor({ discountItems, shippingPrice })
-            return <AIOShopFactor factor={factor} shippingPrice={shippingPrice} />
+        renderFactor() {
+            return <AIOShopFactor Shop={$$} />
         },
         renderTotal() {
-            let factor = $$.getCartFactor()
-            return <AIOShopTotal factor={factor} />
+            return <AIOShopTotal Shop={$$} />
         },
         renderProductCard(product, { addCart, changeCart, className }) {
             return (
@@ -108,18 +112,16 @@ export default function AIOShop(obj = {}) {
                 />
             )
         },
-        renderShipping({options,discounts = [],shippingPrice}){
+        renderShipping(){
             return (
                 <Shipping
                     Shop={$$}
-                    options={options}
-                    discounts={discounts}
-                    shippingPrice={shippingPrice}
                 />
             )
         }
     }
     $$.cart = cartCache ? $$.storage.load({ name: 'cart', def: {} }) : {};
+    $$.updateFactor();
     return {
         getCart_object: $$.getCart_object.bind($$),
         getCart_list: $$.getCart_list.bind($$),
@@ -129,61 +131,126 @@ export default function AIOShop(obj = {}) {
         renderFactor: $$.renderFactor.bind($$),
         renderProductCard: $$.renderProductCard.bind($$),
         renderTotal: $$.renderTotal.bind($$),
-        getCartFactor: $$.getCartFactor.bind($$),
         renderShipping:$$.renderShipping.bind($$)
     }
 }
 class Shipping extends Component {
     constructor(props) {
         super(props);
-        this.state = this.createInitializeState()
-    }
-    createInitializeState(){
-        let {options} = this.props;
-        let state = {}
-        for(let i = 0; i < options.length; i++){
-            let {def,field} = options[i];
-            state[field] = def;
+        this.state = {
+            discountCode:'',
+            discountCodeAmount:0,
+            discountCodeError:'',
+            shipping:{},
         }
-        return state
     }
-    options_layout(){
-        let {options} = this.props;
-        return {column:options.map((o)=>{
+    async componentDidMount(){
+        let {Shop} = this.props;
+        let {shippingOptions} = Shop;
+        let shipping = {}
+        for(let i = 0; i < shippingOptions.length; i++){
+            let shippingOption = shippingOptions[i];
+            let option = typeof shippingOption === 'function'?shippingOption():shippingOption
+            let {def,field} = option;
+            if(!field){continue}
+            shipping[field] = def;
+        }
+        Shop.updateFactor(shipping)
+        this.setState({shipping})
+    }
+    options_layout(shippingOptions){
+        if(!shippingOptions.length){return false}
+        return {column:shippingOptions.map((o)=>{
             let option = typeof o === 'function'?o():o
+            if(!option){return false}
+            let {show} = option;
+            show = typeof show === 'function'?show({...this.state.shipping}):show;
+            if(show === false){return false}
+            if(option.type === 'html'){return this.html_layout(option)}
             return this.option_layout(option)
         })}
     }
-    option_layout(option){
-        if(!option){return false}
-        let {title,subtitle,options,field,show} = option;
-        show = typeof show === 'function'?show({...this.state}):show;
-        if(show === false){return false}
+    optionTitle_layout(title,subtitle){
         return {
-            className: 'p-h-12 m-b-24',
+            row: [
+                { html: title, className: 'aio-shop-shipping-option-title', align: 'v' },
+                { show:!!subtitle,size: 6 },
+                { show:!!subtitle,html: `( ${subtitle} )`,style:{fontSize:'75%'},align:'v'}
+            ]
+        }
+    }
+    html_layout(option){
+        let {title,subtitle,html} = option;
+        return {
+            className: 'aio-shop-shipping-option',
             column: [
-                {
-                    row: [
-                        { html: title, className: 'bold fs-16', align: 'v' },
-                        { show:!!subtitle,size: 6 },
-                        { show:!!subtitle,html: `( ${subtitle} )`,className:'fs-12',align:'v'}
-                    ]
-                },
-                {show:options.length === 1,html: options[0].text, className: 'fs-12'},
+                this.optionTitle_layout(title,subtitle),
+                {html}
+            ]
+        }
+    }
+    option_layout(option){
+        let {Shop} = this.props;
+        let {title,subtitle,options,field} = option;
+        return {
+            className: 'aio-shop-shipping-option',
+            column: [
+                this.optionTitle_layout(title,subtitle),
+                {show:options.length === 1,html: options[0].text, className: 'aio-shop-shipping-radio-option'},
                 {
                     show:options.length > 1,
                     html: (
                         <AIOButton
                             type='radio'
                             options={options.map((o)=>{return {...o,before:o.icon}})}
-                            optionStyle='{width:"100%",borderBottom:"1px solid #bbb"}'
-                            optionClassName='"bold fs-14"'
-                            value={this.state[field]}
-                            onChange={(value) => this.setState({ [field]:value })}
+                            optionClassName='"aio-shop-shipping-radio-option"'
+                            value={this.state.shipping[field]}
+                            onChange={async (value) => {
+                                let {shipping} = this.state;
+                                shipping[field] = value;
+                                await Shop.updateFactor(shipping); 
+                                this.setState({ shipping })
+                            }}
                         />
                     )
                 }
             ]
+        }
+    }
+    discountCode_layout(Shop){
+        let {checkDiscountCode} = Shop;
+        if(!checkDiscountCode){return false}
+        let {discountCode,discountCodeAmount} = this.state;
+        return {
+            className:'aio-shop-discount-code',
+            row:[
+                {
+                    flex:1,
+                    html:(
+                        <input disabled={!!discountCodeAmount} placeholder='کد تخفیف' type='text' value={discountCode} onChange={(e)=>this.setState({discountCode:e.target.value,discountCodeError:''})}/>
+                    )
+                },
+                {
+                    html:(
+                        <button
+                            disabled={!!discountCodeAmount || !discountCode}
+                            onClick={async ()=>{
+                                let res = await checkDiscountCode(discountCode);
+                                if(typeof res === 'number'){this.setState({discountCodeAmount:res})}
+                                else if(typeof res === 'string'){this.setState({discountCodeError:res})}
+                            }}
+                        >ثبت کد تخفیف</button>
+                    )
+                }
+            ]
+        }
+    }
+    discountCodeError_layout(){
+        let {discountCodeError} = this.state;
+        if(!discountCodeError){return false}
+        return {
+            className:'aio-shop-shipping-discount-code-error',
+            html:discountCodeError
         }
     }
     factor_layout(cartItems, Shop) {
@@ -197,18 +264,20 @@ class Shipping extends Component {
         }
     }
     render() {
-        let { Shop, onSubmit ,discounts, shippingPrice } = this.props;
-        let cartItems = Shop.getCart_list();
-        let factor = Shop.getCartFactor({ discounts, shippingPrice });
+        let { Shop, onSubmit } = this.props;
+        let {shippingOptions,getCart_list,factor} = Shop;
+        let cartItems = getCart_list();
         return (
             <RVD
                 layout={{
-                    style: { background: '#fff', height: '100%' },
+                    style: { background: '#f4f4f4', height: '100%' },
                     column: [
                         {
                             flex: 1, className: 'ofy-auto',
                             column: [
-                                this.options_layout(),
+                                this.options_layout(shippingOptions),
+                                this.discountCode_layout(Shop),
+                                this.discountCodeError_layout(),
                                 this.factor_layout(cartItems, Shop),
                             ]
                         },
@@ -233,8 +302,8 @@ class AIOShopTotal extends Component {
         }
     }
     render() {
-        let { factor } = this.props;
-        let { total, discount } = factor;
+        let { Shop } = this.props;
+        let { total, discount } = Shop.factor;
         return (
             <RVD
                 layout={{
@@ -269,7 +338,8 @@ class AIOShopFactor extends Component {
                 { flex: 1 },
                 { html: splitNumber(discount), align: 'v' },
                 { size: 3 },
-                { html: 'تومان', className: 'fs-10', align: 'v' }
+                { html: 'تومان', className: 'fs-10', align: 'v' },
+                { html: <Icon path={mdiMinus} size={0.7}/>,align: 'vh',style:{color:'red'} }
             ]
         }
     }
@@ -285,7 +355,8 @@ class AIOShopFactor extends Component {
                         { show: !!discountPercent, html: `(${discountPercent}%)`, className: 'm-h-3' },
                         { html: splitNumber(discount), align: 'v' },
                         { size: 3 },
-                        { html: 'تومان', className: 'fs-10', align: 'v' }
+                        { html: 'تومان', className: 'fs-10', align: 'v' },
+                        { html: <Icon path={mdiMinus} size={0.7}/>,align: 'vh',style:{color:'red'} }
                     ]
                 }
             })
@@ -300,7 +371,8 @@ class AIOShopFactor extends Component {
                 { flex: 1 },
                 { html: splitNumber(shippingPrice), align: 'v' },
                 { size: 3 },
-                { html: 'تومان', className: 'fs-10', align: 'v' }
+                { html: 'تومان', className: 'fs-10', align: 'v' },
+                { html: <Icon path={mdiPlus} size={0.7}/>,align: 'vh',style:{color:'green'} }
             ]
         }
     }
@@ -317,8 +389,8 @@ class AIOShopFactor extends Component {
         }
     }
     render() {
-        let { factor } = this.props;
-        let { total, discount, discounts, amount, shippingPrice } = factor;
+        let { Shop } = this.props;
+        let { total, discount, discounts = [], amount, shippingPrice } = Shop.factor;
         return (
             <RVD
                 layout={{

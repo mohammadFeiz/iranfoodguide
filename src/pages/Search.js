@@ -82,9 +82,10 @@ export default class Search extends Component{
             html:(
                 <SearchBox 
                     onChange={(value)=>this.search(value)}
-                    historyMode={true}
-                    getHistory={async ()=>await apis({api:'tarikhche_ye_jostojoo'})}
-                    removeHistory={async (text)=>await apis({api:'hazfe_tarikhche_ye_jostojoo',parameter:text}) }
+                    history={{
+                        get:async ()=>await apis({api:'tarikhche_ye_jostojoo'}),
+                        remove:async (text)=>await apis({api:'hazfe_tarikhche_ye_jostojoo',parameter:text})
+                    }}
                 />
             )
         }

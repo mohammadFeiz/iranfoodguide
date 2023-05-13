@@ -21,35 +21,68 @@ import pardakhte_online_src from '../images/pardakhte-online.png';
 import pardakhte_kife_pool_src from '../images/pardakhte-kife-pool.png';
 import kart_be_kart_src from '../images/kart-be-kart.png';
 import pardakhte_hozoori_src from '../images/pardakhte-hozoori.png';
-import { splitNumber } from '../npm/react-super-app/react-super-app';
 
 export default class RestoranPage extends Component {
   static contextType = AppContext;
   constructor(props) {
     super(props);
     this.state = {
-      Shop:AIOShop({
-        id:'iranfoodrestorancart' + props.id,cartCache:true,
-        setState:(Shop)=>this.setState({Shop}),
-        productFields:{
-          id:'id',
-          name:'name',
-          price:'price',
-          discountPercent:'discountPercent',
-          description:'description',
-          image:'image'
-        }
-      }),
       category: false,
       menu: [],
       categories:[],
       activeTabId:'info',
-      tabMode:true
+      tabMode:true,
+      cartTab:true
     }
   }
+  getIcon(option){
+    let icon = {
+      'ارسال با پیک':()=>ersal_ba_peyk_svg(),
+      'دریافت حضوری':()=>daryafte_hozoori_svg(),
+      'پرداخت آنلاین':()=><img src={pardakhte_online_src} />,
+      'پرداخت کیف پول':()=><img src={pardakhte_kife_pool_src} />,
+      'کارت به کارت':()=><img src={kart_be_kart_src} />,
+      'پرداخت حضوری':()=><img src={pardakhte_hozoori_src} />,
+    }[option];
+    return (<div style={{width:60}} className='align-vh'>{icon()}</div>)
+  }
+  getShippingOptions(){
+    let { addresses } = this.context;
+    let { address } = this.props;
+    return [
+      {
+          title:'روش تحویل سفارش',field:'deliveryType',def:'ارسال با پیک',
+          options:[
+              { text: 'ارسال با پیک', value: 'ارسال با پیک', icon: this.getIcon('ارسال با پیک') },
+              { text: 'دریافت حضوری', value: 'دریافت حضوری', icon: this.getIcon('دریافت حضوری') },
+          ]
+      },
+      {
+          show:({deliveryType})=>deliveryType === 'ارسال با پیک',title:'آدرس تحویل سفارش',subtitle:'انتخاب از آدرس های من',field:'addressId',def:addresses[0].id,
+          options:addresses.map(({address,id})=>{return { text: address, value: id }})
+      },
+      {type:'html',show:({deliveryType})=>deliveryType === 'دریافت حضوری',title:'آدرس تحویل سفارش',subtitle:'آدرس رستوران',html:address},
+      {
+          title:'روش پرداخت مبلغ سفارش',field:'paymentType',def:'پرداخت آنلاین',
+          options:[
+              { text: 'پرداخت آنلاین', value: 'پرداخت آنلاین', icon: this.getIcon('پرداخت آنلاین'), subtext: 'پرداخت از طریق درگاه های پرداخت ' },
+              { text: 'پرداخت کیف پول(10% تخفیف)', value: 'پرداخت کیف پول', icon: this.getIcon('پرداخت کیف پول'), subtext: 'مانده اعتبار : 250،000 ریال' },
+              { text: 'پرداخت حضوری', value: 'پرداخت حضوری', icon: this.getIcon('پرداخت حضوری'), subtext: 'پرداخت از طریق دستگاه پوز پیک یا فروشگاه' },
+              { text: 'کارت به کارت', value: 'کارت به کارت', icon: this.getIcon('کارت به کارت'), subtext: 'واریز به کارت ایران فود' }
+          ]
+      },
+      {
+        type:'html',
+        show:({paymentType})=>paymentType === 'کارت به کارت',
+        title:'اطلاعات حساب ایران فود',
+        html:'6219861033538751'
+      },
+      
+    ]
+  }
   async componentDidMount() {
-    let { apis } = this.context;
-    let { id } = this.props;
+    let { apis,addresses } = this.context;
+    let { id,address } = this.props;
     apis({
       api: 'restoran_menu',
       parameter: id,
@@ -59,11 +92,38 @@ export default class RestoranPage extends Component {
         this.setState({ menu,categories,category })
       }
     })
+    let Shop = AIOShop({
+      id:'iranfoodrestorancart' + id,cartCache:true,
+      setState:(Shop)=>this.setState({Shop}),
+      shippingOptions:this.getShippingOptions(),
+      productFields:{
+        id:'id',
+        name:'name',
+        price:'price',
+        discountPercent:'discountPercent',
+        description:'description',
+        image:'image'
+      },
+      checkDiscountCode:()=>{
+        return 123000;
+        return 'کد معتبر نیست'
+      },
+      getDiscounts:({shipping})=>{
+        let discounts = [];
+        if(shipping.paymentType === 'پرداخت کیف پول'){
+          discounts.push({discountPercent:10,title:'تخفیف پرداخت با کیف پول'})
+        }
+        return discounts
+      },
+      getShippingPrice:(obj)=>{
+        return 53000
+      }
+    })
+    this.setState({Shop})
   }
-  header_layout() {
+  header_layout(cartLength) {
     let { image, rate, onClose } = this.props;
-    let {Shop} = this.state;
-    let cartLength = Shop.getCart_list().length;
+    let {cartTab} = this.state;
     return (
       {
         html:(
@@ -72,7 +132,7 @@ export default class RestoranPage extends Component {
             image={image}
             icons={[
               {icon:<Icon path={mdiClose} size={1}/>,onClick:()=>onClose()},
-              {icon:SVG_Cart(),onClick:()=>this.openPopup('cart'),badge:cartLength},
+              {icon:SVG_Cart(),onClick:()=>this.openPopup('cart'),badge:cartLength,show:!cartTab},
             ]}
           />
         )
@@ -101,8 +161,8 @@ export default class RestoranPage extends Component {
       ]
     }
   }
-  tabs_layout(){
-    let {activeTabId,tabMode} = this.state;
+  tabs_layout(cartLength){
+    let {activeTabId,tabMode,cartTab} = this.state;
     if(!tabMode){return false}
     return {
       className:'m-b-12',
@@ -112,6 +172,7 @@ export default class RestoranPage extends Component {
           options={[
             {text:'منوی رستوران',value:'menu',style:{flex:1}},
             {text:'اطلاعات رستوران',value:'info',style:{flex:1}},
+            {text:'سبد خرید',value:'cart',style:{flex:1},before:<div className='badge-2'>{cartLength}</div>,show:!!cartTab},
           ]}
           value={activeTabId}
           onChange={(activeTabId)=>this.setState({activeTabId})}
@@ -202,16 +263,26 @@ export default class RestoranPage extends Component {
       html:<RestoranInfo {...this.props} header={false}/>
     }
   }
+  cart_layout(){
+    let {tabMode,activeTabId,Shop} = this.state;
+    if(!tabMode || activeTabId !== 'cart'){return false}
+    return {
+      flex:1,
+      html:<RestoranCart {...this.props} Shop={Shop} onSubmit={()=>this.openPopup('shipping')} header={false}/>
+    }
+  }
   render() {
-    let {tabMode,activeTabId} = this.state;
+    let {tabMode,activeTabId,Shop} = this.state;
+    let cartLength = Shop?Shop.getCart_list().length:0;
+    
     return (
       <RVD
         layout={{
           style:{height:'100%',background:'#fff'},
           column: [
-            this.header_layout(),
+            this.header_layout(cartLength),
             this.title_layout(),
-            this.tabs_layout(),
+            this.tabs_layout(cartLength),
             //this.filter_layout(),
             {
               show:!tabMode || (tabMode && activeTabId === 'menu'),
@@ -221,7 +292,8 @@ export default class RestoranPage extends Component {
                 this.foods_layout()
               ]
             },
-            this.info_layout()
+            this.info_layout(),
+            this.cart_layout()
           ]
         }}
       />
@@ -232,7 +304,7 @@ class Header extends Component{
   renderIcons(icons){
     let gap = 8;
     let size = 36;
-    return icons.map(({icon,onClick,badge},i)=>{
+    return icons.filter(({show = true})=>typeof show === 'function'?show():show).map(({icon,onClick,badge},i)=>{
       return (
         <div
           onClick={onClick}
@@ -305,7 +377,8 @@ class RestoranCart extends Component{
     super(props);
   }
   header_layout(image){
-    let {onClose} = this.props;
+    let {onClose,header} = this.props;
+    if(header === false){return false}
     return {
       html:(
         <Header
@@ -394,48 +467,8 @@ class Shipping extends Component{
       )
     }
   }
-  getIcon(option){
-    let icon = {
-      'ارسال با پیک':()=>ersal_ba_peyk_svg(),
-      'دریافت حضوری':()=>daryafte_hozoori_svg(),
-      'پرداخت آنلاین':()=><img src={pardakhte_online_src} />,
-      'پرداخت کیف پول':()=><img src={pardakhte_kife_pool_src} />,
-      'کارت به کارت':()=><img src={kart_be_kart_src} />,
-      'پرداخت حضوری':()=><img src={pardakhte_hozoori_src} />,
-    }[option];
-    return (<div style={{width:60}} className='align-vh'>{icon()}</div>)
-  }
   shipping_layout(Shop){
-    let {address} = this.props;
-    let {addresses} = this.context;
-    return {
-      flex:1,
-      html:Shop.renderShipping({
-        options:[
-          {
-              title:'روش تحویل سفارش',field:'deliveryType',def:'ارسال با پیک',
-              options:[
-                  { text: 'ارسال با پیک', value: 'ارسال با پیک', icon: this.getIcon('ارسال با پیک') },
-                  { text: 'دریافت حضوری', value: 'دریافت حضوری', icon: this.getIcon('دریافت حضوری') },
-              ]
-          },
-          {
-              show:({deliveryType})=>deliveryType === 'ارسال با پیک',title:'آدرس تحویل سفارش',subtitle:'انتخاب از آدرس های من',field:'addressId',def:addresses[0].id,
-              options:addresses.map(({address,id})=>{return { text: address, value: id }})
-          },
-          {show:({deliveryType})=>deliveryType === 'دریافت حضوری',title:'آدرس تحویل سفارش',subtitle:'آدرس رستوران',options:[{text:address}]},
-          {
-              title:'روش پرداخت مبلغ سفارش',field:'paymentType',def:'پرداخت آنلاین',
-              options:[
-                  { text: 'پرداخت آنلاین', value: 'پرداخت آنلاین', before: this.getIcon('پرداخت آنلاین'), subtext: 'پرداخت از طریق درگاه های پرداخت ' },
-                  { text: 'پرداخت کیف پول', value: 'پرداخت کیف پول', before: this.getIcon('پرداخت کیف پول'), subtext: 'مانده اعتبار : 250،000 ریال' },
-                  { text: 'پرداخت حضوری', value: 'پرداخت حضوری', before: this.getIcon('پرداخت حضوری'), subtext: 'پرداخت از طریق دستگاه پوز پیک یا فروشگاه' },
-                  { text: 'کارت به کارت', value: 'کارت به کارت', before: this.getIcon('کارت به کارت'), subtext: 'واریز به کارت ایران فود' }
-              ]
-          },
-        ]
-      })
-    }
+    return {flex:1,html:Shop.renderShipping()}
   }
   render(){
     let {image,Shop} = this.props;
