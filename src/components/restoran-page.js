@@ -30,7 +30,7 @@ export default class RestoranPage extends Component {
       category: false,
       menu: [],
       categories:[],
-      activeTabId:'info',
+      activeTabId:'menu',
       tabMode:true,
       cartTab:true
     }
@@ -96,26 +96,20 @@ export default class RestoranPage extends Component {
       id:'iranfoodrestorancart' + id,cartCache:true,
       setState:(Shop)=>this.setState({Shop}),
       shippingOptions:this.getShippingOptions(),
-      productFields:{
-        id:'id',
-        name:'name',
-        price:'price',
-        discountPercent:'discountPercent',
-        description:'description',
-        image:'image'
-      },
+      productFields:{id:'id',name:'name',price:'price',discountPercent:'discountPercent',description:'description',image:'image'},
       checkDiscountCode:()=>{
         return 123000;
         return 'کد معتبر نیست'
       },
-      getDiscounts:({shipping})=>{
+      getDiscounts:({factor,shipping})=>{
         let discounts = [];
         if(shipping.paymentType === 'پرداخت کیف پول'){
           discounts.push({discountPercent:10,title:'تخفیف پرداخت با کیف پول'})
         }
         return discounts
       },
-      getShippingPrice:(obj)=>{
+      getShippingPrice:({factor,shipping})=>{
+        if(shipping.paymentType === 'پرداخت حضوری'){return 0}
         return 53000
       }
     })

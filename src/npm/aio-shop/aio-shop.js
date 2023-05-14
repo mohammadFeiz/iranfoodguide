@@ -58,7 +58,7 @@ export default function AIOShop(obj = {}) {
                 return { id, discountPercent, total: itemTotal, discount: itemDiscount, amount: itemAmount }
             })
             $$.shipping = shipping;
-            let discountItems = await getDiscounts({ discount, total, amount, factors,shipping });
+            let discountItems = await getDiscounts({ factor:{discount, total, amount, factors},shipping });
             let discounts = [];
             for (let i = 0; i < discountItems.length; i++) {
                 let { title, discountPercent, discount, maxDiscount } = discountItems[i];
@@ -73,7 +73,7 @@ export default function AIOShop(obj = {}) {
                     discounts.push({ discount, title })
                 }
             }
-            let shippingPrice = await getShippingPrice({ discount, discounts, total, amount, factors })
+            let shippingPrice = await getShippingPrice({ factor:{discount,discounts, total, amount, factors},shipping })
             amount += shippingPrice;
             let factor = { discount, discounts, total, amount, factors, shippingPrice };
             $$.factor = factor;
