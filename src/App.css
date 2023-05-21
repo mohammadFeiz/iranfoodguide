@@ -269,5 +269,7 @@ button,input{
 }
 .aio-button-tabs-option.active:after{
   background:#FF5900;
-  
+}
+.aio-shop-submit-button{
+  background: #FF5900;
 }

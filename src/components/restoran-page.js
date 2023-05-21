@@ -21,6 +21,7 @@ import pardakhte_online_src from '../images/pardakhte-online.png';
 import pardakhte_kife_pool_src from '../images/pardakhte-kife-pool.png';
 import kart_be_kart_src from '../images/kart-be-kart.png';
 import pardakhte_hozoori_src from '../images/pardakhte-hozoori.png';
+import { splitNumber } from '../npm/react-super-app/react-super-app';
 
 export default class RestoranPage extends Component {
   static contextType = AppContext;
@@ -32,6 +33,7 @@ export default class RestoranPage extends Component {
       categories:[],
       activeTabId:'menu',
       tabMode:true,
+      coupons:[],
       cartTab:true
     }
   }
@@ -49,6 +51,7 @@ export default class RestoranPage extends Component {
   getShippingOptions(){
     let { addresses } = this.context;
     let { address } = this.props;
+    let {coupons} = this.state;
     return [
       {
           title:'روش تحویل سفارش',field:'deliveryType',def:'ارسال با پیک',
@@ -77,12 +80,29 @@ export default class RestoranPage extends Component {
         title:'اطلاعات حساب ایران فود',
         html:'6219861033538751'
       },
-      
+      {
+        title:'کوپن های تخفیف',field:'selectedCouponIds',def:[],show:()=>!!coupons.length,multiple:true,
+        options:({factor})=>{
+          return coupons.map(({id,title,discountPercent,discount,maxDiscount,minCartAmount = 0})=>{
+            let subtext = '';
+            if(discountPercent){
+              subtext += `${discountPercent} درصد تخفیف `
+            }
+            else if(discount){
+              subtext += `${splitNumber(discount)} تومان تخفیف `
+            }
+            if(maxDiscount){ subtext += `تا سقف ${splitNumber(maxDiscount)} تومان `}
+            if(minCartAmount){subtext += `برای سبد بالای ${splitNumber(minCartAmount)} تومان `}
+            let disabled = minCartAmount > factor.total - factor.discount;
+            return {text:title,subtext,value:id,disabled}
+          })
+        }
+      }
     ]
   }
   async componentDidMount() {
-    let { apis,addresses } = this.context;
-    let { id,address } = this.props;
+    let { apis } = this.context;
+    let { id } = this.props;
     apis({
       api: 'restoran_menu',
       parameter: id,
@@ -92,19 +112,32 @@ export default class RestoranPage extends Component {
         this.setState({ menu,categories,category })
       }
     })
+    apis({
+      api:'restoran_coupons',
+      parameter:id,
+      name:'دریافت کوپن های تخفیف رستوران',
+      callback:(coupons)=>this.setState({coupons})
+    })
     let Shop = AIOShop({
       id:'iranfoodrestorancart' + id,cartCache:true,
-      setState:(Shop)=>this.setState({Shop}),
-      shippingOptions:this.getShippingOptions(),
+      setState:()=>this.setState({Shop:this.state.Shop}),
+      getShippingOptions:()=>this.getShippingOptions(),
       productFields:{id:'id',name:'name',price:'price',discountPercent:'discountPercent',description:'description',image:'image'},
       checkDiscountCode:()=>{
         return 123000;
         return 'کد معتبر نیست'
       },
       getDiscounts:({factor,shipping})=>{
+        let {coupons} = this.state;
+        let {selectedCouponIds = []} = shipping;
         let discounts = [];
         if(shipping.paymentType === 'پرداخت کیف پول'){
           discounts.push({discountPercent:10,title:'تخفیف پرداخت با کیف پول'})
+        }
+        for(let i = 0; i < selectedCouponIds.length; i++){
+          let id = selectedCouponIds[i];
+          let coupon = coupons.find((coupon)=>coupon.id === id);
+          discounts.push(coupon);
         }
         return discounts
       },
@@ -210,6 +243,7 @@ export default class RestoranPage extends Component {
   }
   foods_layout() {
     let { menu,category,Shop } = this.state;
+    if(!Shop){return false}
     let activeMenu = menu.find(({name})=>name === category);
     if(!activeMenu){return false}
     let foods = activeMenu.items;
@@ -366,6 +400,79 @@ RestoranPage.defaultProps = {
   ifComment:'لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می‌باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می‌طلبد تا با نرم‌افزارها شناخت بیشتری را برای طراحان رایانه ای علی‌الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می‌توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساساً مورد استفاده قرار گیرد'
 }
 
+// class RestoranCart extends Component{
+//   constructor(props){
+//     super(props);
+//   }
+//   header_layout(image){
+//     let {onClose,header} = this.props;
+//     if(header === false){return false}
+//     return {
+//       html:(
+//         <Header
+//           image={image}
+//           title='سبد خرید'
+//           icons={[
+//             {icon:<Icon path={mdiClose} size={1}/>,onClick:()=>onClose()}
+//           ]}
+//         />
+//       )
+//     }
+//   }
+//   items_layout(cartItems,Shop){
+//     if(!cartItems.length){return {html:'سبد خرید شما خالی است',align:'vh'}}
+//     return {
+//       className:'m-b-24 of-visible',
+//       column:[
+//         {
+//           flex:1,className:'of-visible',gap:12,
+//           column:cartItems.map(({product})=>{
+//             return {className:'p-h-12 of-visible',html:Shop.renderProductCard(product,{changeCart:true})}
+//           })
+//         }
+//       ]
+//     }
+//   }
+//   total_layout(cartItems,Shop){
+//     if(!cartItems.length){return false}
+//     return {html:Shop.renderTotal(),className:'p-12 br-6 m-h-12',style:{background:'#fff',border:'1px solid #ddd'}}
+//   }
+//   submit_layout(cartItems){
+//     if(!cartItems.length){return false}
+//     let {onSubmit} = this.props;
+//     return {
+//       className:'p-12',html:<button onClick={()=>onSubmit()} className='button-5 w-100 h-36 bold'>تکمیل خرید</button>
+//     }
+//   }
+//   render(){
+//     let {image,Shop} = this.props;
+//     let cartItems = Shop.getCart_list()
+//     return (
+//       <RVD
+//         layout={{
+//           className:'bgFFF h-100',
+//           column:[
+//             this.header_layout(image),
+//             {
+//               flex:1,className:'ofy-auto',
+//               column:[
+//                 this.items_layout(cartItems,Shop),
+                
+//               ]
+//             },
+//             {
+//               column:[
+//                 this.total_layout(cartItems,Shop),
+//                 this.submit_layout(cartItems)
+//               ]
+//             }
+
+//           ]
+//         }}
+//       />
+//     )
+//   }
+// }
 class RestoranCart extends Component{
   constructor(props){
     super(props);
@@ -385,54 +492,22 @@ class RestoranCart extends Component{
       )
     }
   }
-  items_layout(cartItems,Shop){
-    if(!cartItems.length){return {html:'سبد خرید شما خالی است',align:'vh'}}
-    return {
-      className:'m-b-24 of-visible',
-      column:[
-        {
-          flex:1,className:'of-visible',gap:12,
-          column:cartItems.map(({product})=>{
-            return {className:'p-h-12 of-visible',html:Shop.renderProductCard(product,{changeCart:true})}
-          })
-        }
-      ]
-    }
-  }
-  total_layout(cartItems,Shop){
-    if(!cartItems.length){return false}
-    return {html:Shop.renderTotal(),className:'p-12 br-6 m-h-12',style:{background:'#fff',border:'1px solid #ddd'}}
-  }
-  submit_layout(cartItems){
-    if(!cartItems.length){return false}
+  cart_layout(Shop){
     let {onSubmit} = this.props;
     return {
-      className:'p-12',html:<button onClick={()=>onSubmit()} className='button-5 w-100 h-36 bold'>تکمیل خرید</button>
+      flex:1,
+      html:Shop.renderCart({onSubmit})
     }
   }
   render(){
     let {image,Shop} = this.props;
-    let cartItems = Shop.getCart_list()
     return (
       <RVD
         layout={{
           className:'bgFFF h-100',
           column:[
             this.header_layout(image),
-            {
-              flex:1,className:'ofy-auto',
-              column:[
-                this.items_layout(cartItems,Shop),
-                
-              ]
-            },
-            {
-              column:[
-                this.total_layout(cartItems,Shop),
-                this.submit_layout(cartItems)
-              ]
-            }
-
+            this.cart_layout(Shop)
           ]
         }}
       />
@@ -485,7 +560,6 @@ class RestoranInfo extends Component {
     super(props);
     this.state = {
       comments:[],
-      coupons:[],
       commentsPageSize:12,
       commentsPageNumber:1
     }
@@ -500,12 +574,6 @@ class RestoranInfo extends Component {
       name:'دریافت نظرات ثبت شده در مورد رستوران',
       callback:(comments)=>this.setState({comments})
     })
-    apis({
-      api:'restoran_coupons',
-      parameter:id,
-      name:'دریافت کوپن های تخفیف رستوران',
-      callback:(coupons)=>this.setState({coupons})
-    })
   }
   title_layout(logo,name,rate){
     let {onClose,header} = this.props;
@@ -515,38 +583,6 @@ class RestoranInfo extends Component {
       row:[
         {size:36,html:<Icon path={mdiArrowRight} size={1}/>,align:'vh',onClick:()=>onClose()},
         {flex:1,html:<RestoranTitle {...{logo,name,rate}}/>}
-      ]
-    }
-  }
-  coupons_layout(coupons) {
-    if (!coupons.length) { return false }
-    return {
-      className:'m-b-12',
-      column: [
-        { html: 'کوپن های تخفیف', className: 'fs-14 bold p-h-12' },
-        { size: 6 },
-        {
-          className: 'p-6 ofx-auto',
-          style: { background: '#FFC19C' },
-          gap: 12, row: coupons.map((o) => this.coupon_layout(o))
-        }
-      ]
-    }
-  }
-  coupon_layout({ percent, amount }) {
-    return {
-      style: { background: '#fff' },
-      className: 'br-8 p-6',
-      row: [
-        { html: percent1(), align: 'vh', size: 30 },
-        {
-          column: [
-            { flex: 1 },
-            { show: !!percent, html: `${percent} درصد تخفیف`, className: "fs-10 bold" },
-            { show: !!amount, html: `تا سقف ${amount / 1000} هزار تومان`, className: 'fs-9' },
-            { flex: 1 }
-          ]
-        }
       ]
     }
   }
@@ -597,7 +633,7 @@ class RestoranInfo extends Component {
   }
   render() {
     let {latitude,longitude,address,time,logo,name,rate,ifRate,ifComment} = this.props;
-    let {coupons,comments} = this.state;
+    let {comments} = this.state;
     return (
       <RVD
         layout={{
@@ -608,7 +644,6 @@ class RestoranInfo extends Component {
               flex:1,className:'ofy-auto',
               column:[
                 this.parts_layout(time,comments),
-                this.coupons_layout(coupons),
                 this.address_layout(latitude,longitude,address),
                 this.downloadMenu_layout(),
                 {size:12},
@@ -620,6 +655,45 @@ class RestoranInfo extends Component {
           ]
         }}
       />
+    )
+  }
+}
+class RestoranCoupons extends Component{
+  coupons_layout(coupons) {
+    if (!coupons.length) { return false }
+    return {
+      className:'m-b-12',
+      column: [
+        { html: 'کوپن های تخفیف', className: 'fs-14 bold p-h-12' },
+        { size: 6 },
+        {
+          className: 'p-6 ofx-auto',
+          style: { background: '#FFC19C' },
+          gap: 12, row: coupons.map((o) => this.coupon_layout(o))
+        }
+      ]
+    }
+  }
+  coupon_layout({ percent, amount }) {
+    return {
+      style: { background: '#fff' },
+      className: 'br-8 p-6',
+      row: [
+        { html: percent1(), align: 'vh', size: 30 },
+        {
+          column: [
+            { flex: 1 },
+            { show: !!percent, html: `${percent} درصد تخفیف`, className: "fs-10 bold" },
+            { show: !!amount, html: `تا سقف ${amount / 1000} هزار تومان`, className: 'fs-9' },
+            { flex: 1 }
+          ]
+        }
+      ]
+    }
+  }
+  render(){
+    return (
+      ''
     )
   }
 }

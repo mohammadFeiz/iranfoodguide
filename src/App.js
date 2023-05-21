@@ -178,16 +178,16 @@ class IranFoodGuide extends Component {
   }
   componentDidMount() {
     let { apis } = this.state;
-    apis({
-      api: 'getProfile',
-      callback: ({ firstName, lastName, sheba, email, id }) => {
-        this.ChangeState(
-          { profile: { firstName, lastName, sheba, email, id } },
-          'IranFoodGuide Component => getProfile'
-        )
-      },
-      name: 'دریافت اطلاعات پروفایل'
-    });
+    // apis({
+    //   api: 'getProfile',
+    //   callback: ({ firstName, lastName, sheba, email, id }) => {
+    //     this.ChangeState(
+    //       { profile: { firstName, lastName, sheba, email, id } },
+    //       'IranFoodGuide Component => getProfile'
+    //     )
+    //   },
+    //   name: 'دریافت اطلاعات پروفایل'
+    // });
     apis({
       api: 'mojoodiye_kife_pool',
       callback: (res) => this.setState({ mojoodiye_kife_pool: res }),

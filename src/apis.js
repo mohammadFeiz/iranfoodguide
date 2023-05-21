@@ -627,7 +627,33 @@ export function getMock({helper}){
                             id:'534534',
                             name: 'کباب کوبیده یک سیخ', shopName: '', rate: 3.4,
                             price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
+                            description:'150 گرم گوشت مخلوط گوسفندی و گوساله',
+                            items:[
+                                {
+                                    id:'456473456',
+                                    name: 'کباب لقمه زیر مجموعه 1', shopName: '', rate: 3.4,
+                                    price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+                                    description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
+                                },
+                                {
+                                    id:'64557865654346',
+                                    name: 'کباب لقمه زیر مجموعه 2', shopName: '', rate: 3.4,
+                                    price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+                                    description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
+                                },
+                                {
+                                    id:'6455458756878346',
+                                    name: 'کباب لقمه زیر مجموعه 3', shopName: '', rate: 3.4,
+                                    price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+                                    description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
+                                },
+                                {
+                                    id:'75663464563',
+                                    name: 'کباب لقمه زیر مجموعه 4', shopName: '', rate: 3.4,
+                                    price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+                                    description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
+                                },      
+                            ]
                         },
                         {
                             id:'3453445',
@@ -761,12 +787,13 @@ export function getMock({helper}){
         },
         restoran_coupons(){
             return [
-                { percent: 10, amount: 100000 },
-                { percent: 10, amount: 100000 },
-                { percent: 10, amount: 100000 },
-                { percent: 10, amount: 100000 },
-                { percent: 10, amount: 100000 },
-                { percent: 10, amount: 100000 }
+                { id:'23423423',title:'کوپن 1',discountPercent: 10, minCartAmount:500000, maxDiscount:100000 },
+                { id:'75684564',title:'کوپن 2',discountPercent: 10, maxDiscount:100000 },
+                { id:'4235345',title:'کوپن 3',discountPercent: 10, minCartAmount:500000 },
+                { id:'56345234',title:'کوپن 4',discountPercent: 10 },
+                               
+                { id:'23426',title:'کوپن 5',discount: 100000, minCartAmount:500000 },
+                { id:'645634534',title:'کوپن 6',discount: 100000 },
               ]
         }
     }
