@@ -250,7 +250,14 @@ export default class RestoranPage extends Component {
     return {
       gap: 12, flex: 1, className: 'ofy-auto',
       column: foods.map((o) => {
-        return { className: 'p-h-12 of-visible', html: Shop.renderProductCard(o,{addCart:'سفارش',changeCart:true}) }
+        let {items = []} = o;
+        let html;
+        if(items.length){
+          html = (
+            <button className='joziate-ghaza button-2'>جزییات</button>
+          )
+        }
+        return { className: 'p-h-12 of-visible', html: Shop.renderProductCard(o,{addCart:'سفارش',changeCart:true,html}) }
       })
     }
   }
@@ -279,6 +286,14 @@ export default class RestoranPage extends Component {
         type:'fullscreen',header:false,
         body:()=>{
           return <Shipping {...this.props} Shop={Shop} onClose={()=>rsa_actions.removePopup()}/>
+        }
+      })
+    }
+    else if(key === 'food details'){
+      addPopup({
+        type:'fullscreen',header:false,
+        body:()=>{
+          return ''
         }
       })
     }

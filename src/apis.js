@@ -57,7 +57,7 @@ export function getResponse({getState}){
             return {response,result}
         },
         async getAddresses(){//لیست آدرس ها
-            return {mock:true}
+            //return {mock:true}
             let {personId} = getState();
             let url = `${baseUrl}/People/GetPeopleAddress`
             let body = {
@@ -122,7 +122,7 @@ export function getResponse({getState}){
             }
         },
         async safheye_sefaresh() {
-            return {mock:true}
+            //return {mock:true}
             let url = `${baseUrl}/PageLayout/GetListOfFoodDelivery`;
             let body = {};
             let response = await Axios.post(url,body);

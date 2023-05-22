@@ -103,10 +103,11 @@ export default function AIOShop(obj = {}) {
         renderTotal() {
             return <AIOShopTotal Shop={$$} />
         },
-        renderProductCard(product, { addCart, changeCart, className }) {
+        renderProductCard(product, { addCart, changeCart, className,html }) {
             return (
                 <ProductCard
                     product={product}
+                    html={html}
                     getProductProp={$$.getProductProp.bind($$)}
                     renderCartButton={() => (
                         $$.renderCartButton(product, { addCart, changeCart })
@@ -606,8 +607,12 @@ class ProductCard extends Component {
             ]
         }
     }
+    html_layout(html){
+        if(!html){return null}
+        return html
+    }
     render() {
-        let { width = '100%', imageSize = 72, product, renderCartButton, getProductProp, className } = this.props;
+        let { width = '100%', imageSize = 72, product, renderCartButton, getProductProp, className,html } = this.props;
         let name = getProductProp(product, 'name', '');
         let image = getProductProp(product, 'image', '');
         let price = getProductProp(product, 'price', 0);
@@ -625,6 +630,7 @@ class ProductCard extends Component {
                                 <>
                                     {this.image_layout(image)}
                                     {this.discount_layout(discountPercent)}
+                                    {this.html_layout(html)}
                                 </>
                             )
                         },
