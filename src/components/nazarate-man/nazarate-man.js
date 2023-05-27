@@ -1,10 +1,7 @@
 import React,{Component} from "react";
 import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
-import {splitNumber} from './../../npm/react-super-app/react-super-app';
 import PopupHeader from './../../components/popup-header';
 import AppContext from "../../app-context";
-import {Icon} from '@mdi/react';
-import { mdiArrowDown,mdiArrowUp } from "@mdi/js";
 export default class Nazarate_man extends Component{
     static contextType = AppContext;
     render(){

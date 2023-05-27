@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import RVD from './../npm/react-virtual-dom/react-virtual-dom';
-import { splitNumber } from './../npm/react-super-app/react-super-app';
+import SplitNumber from "../npm/aio-functions/split-number";
 import { Icon } from '@mdi/react';
 import { mdiAccount, mdiAccountCircleOutline, mdiChevronRight, mdiMapMarker, mdiPlusCircle, mdiPlusThick } from '@mdi/js';
 import Form from './../npm/aio-form-react/aio-form-react';
@@ -43,7 +43,7 @@ export default class Profile extends Component {
                     className: 'h-24 br-12 p-h-6',
                     row: [
                         { html: 'کیف پول', className: 'fs-10' },
-                        { html: splitNumber(mojoodiye_kife_pool), className: 'fs-12 bold' },
+                        { html: SplitNumber(mojoodiye_kife_pool), className: 'fs-12 bold' },
                         { html: 'تومان', className: 'fs-10' },
                         { html: <Icon path={mdiPlusCircle} size={0.7} /> }
                     ]

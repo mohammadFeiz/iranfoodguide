@@ -21,7 +21,7 @@ import pardakhte_online_src from '../images/pardakhte-online.png';
 import pardakhte_kife_pool_src from '../images/pardakhte-kife-pool.png';
 import kart_be_kart_src from '../images/kart-be-kart.png';
 import pardakhte_hozoori_src from '../images/pardakhte-hozoori.png';
-import { splitNumber } from '../npm/react-super-app/react-super-app';
+import SplitNumber from './../npm/aio-functions/split-number';
 
 export default class RestoranPage extends Component {
   static contextType = AppContext;
@@ -89,10 +89,10 @@ export default class RestoranPage extends Component {
               subtext += `${discountPercent} درصد تخفیف `
             }
             else if(discount){
-              subtext += `${splitNumber(discount)} تومان تخفیف `
+              subtext += `${SplitNumber(discount)} تومان تخفیف `
             }
-            if(maxDiscount){ subtext += `تا سقف ${splitNumber(maxDiscount)} تومان `}
-            if(minCartAmount){subtext += `برای سبد بالای ${splitNumber(minCartAmount)} تومان `}
+            if(maxDiscount){ subtext += `تا سقف ${SplitNumber(maxDiscount)} تومان `}
+            if(minCartAmount){subtext += `برای سبد بالای ${SplitNumber(minCartAmount)} تومان `}
             let disabled = minCartAmount > factor.total - factor.discount;
             return {text:title,subtext,value:id,disabled}
           })

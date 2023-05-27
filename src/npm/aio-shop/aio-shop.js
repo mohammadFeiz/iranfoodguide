@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import RVD from '../react-virtual-dom/react-virtual-dom';
 import AIOButton from './../../npm/aio-button/aio-button';
-import { splitNumber } from '../react-super-app/react-super-app';
+import SplitNumber from '../aio-functions/split-number';
 import { Icon } from '@mdi/react';
 import { mdiPlus, mdiMinus, mdiTrashCanOutline, mdiCart } from '@mdi/js';
 import './cart-button.css';
@@ -341,7 +341,7 @@ class Shipping extends Component {
     }
     submit_layout(onSubmit, factor) {
         return {
-            className:'aio-shop-submit-button-container',html: <button onClick={() => onSubmit()} className='aio-shop-submit-button'>{`پرداخت ${splitNumber(factor.amount)} تومان`}</button>
+            className:'aio-shop-submit-button-container',html: <button onClick={() => onSubmit()} className='aio-shop-submit-button'>{`پرداخت ${SplitNumber(factor.amount)} تومان`}</button>
         }
     }
     render() {
@@ -377,7 +377,7 @@ class AIOShopTotal extends Component {
             row: [
                 { html: 'جمع سبد خرید', className: 'bold' },
                 { flex: 1 },
-                { html: splitNumber(total), align: 'v', className: 'bold' },
+                { html: SplitNumber(total), align: 'v', className: 'bold' },
                 { size: 3 },
                 { html: 'تومان', className: 'fs-10', align: 'v' }
             ]
@@ -405,7 +405,7 @@ class AIOShopFactor extends Component {
             row: [
                 { html: 'مجموع قیمت' },
                 { flex: 1 },
-                { html: splitNumber(total), align: 'v' },
+                { html: SplitNumber(total), align: 'v' },
                 { size: 3 },
                 { html: 'تومان', className: 'fs-10', align: 'v' }
             ]
@@ -418,7 +418,7 @@ class AIOShopFactor extends Component {
             row: [
                 { html: 'مجموع تخفیف' },
                 { flex: 1 },
-                { html: splitNumber(discount), align: 'v' },
+                { html: SplitNumber(discount), align: 'v' },
                 { size: 3 },
                 { html: 'تومان', className: 'fs-10', align: 'v' },
                 { html: <Icon path={mdiMinus} size={0.7} />, align: 'vh', style: { color: 'red' } }
@@ -435,7 +435,7 @@ class AIOShopFactor extends Component {
                         { html: title },
                         { flex: 1 },
                         { show: !!discountPercent, html: `(${discountPercent}%)`, className: 'm-h-3' },
-                        { html: splitNumber(discount), align: 'v' },
+                        { html: SplitNumber(discount), align: 'v' },
                         { size: 3 },
                         { html: 'تومان', className: 'fs-10', align: 'v' },
                         { html: <Icon path={mdiMinus} size={0.7} />, align: 'vh', style: { color: 'red' } }
@@ -451,7 +451,7 @@ class AIOShopFactor extends Component {
             row: [
                 { html: 'هزینه ارسال' },
                 { flex: 1 },
-                { html: splitNumber(shippingPrice), align: 'v' },
+                { html: SplitNumber(shippingPrice), align: 'v' },
                 { size: 3 },
                 { html: 'تومان', className: 'fs-10', align: 'v' },
                 { html: <Icon path={mdiPlus} size={0.7} />, align: 'vh', style: { color: 'green' } }
@@ -464,7 +464,7 @@ class AIOShopFactor extends Component {
             row: [
                 { html: 'قابل پرداخت', className: 'bold' },
                 { flex: 1 },
-                { html: splitNumber(amount), align: 'v', className: 'bold' },
+                { html: SplitNumber(amount), align: 'v', className: 'bold' },
                 { size: 3 },
                 { html: 'تومان', className: 'fs-10', align: 'v' }
             ]

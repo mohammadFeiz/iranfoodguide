@@ -1,6 +1,6 @@
 import React,{Component} from "react";
 import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
-import {splitNumber} from './../../npm/react-super-app/react-super-app';
+import SplitNumber from "../../npm/aio-functions/split-number";
 import PopupHeader from './../../components/popup-header';
 import AppContext from "../../app-context";
 import {Icon} from '@mdi/react';
@@ -56,7 +56,7 @@ class MojoodiCard extends Component{
                     className:'p-12 m-12',
                     style:{background:'#fff'},
                     column:[
-                        {html:`${splitNumber(value)} ریال`,align:'h',className:'fs-14 bold'},
+                        {html:`${SplitNumber(value)} ریال`,align:'h',className:'fs-14 bold'},
                         {html:'موجودی کیف پول شما',align:'h',className:'fs-12'}
                     ]
                 }}
@@ -86,7 +86,7 @@ class TarikhcheCard extends Component{
                                 },
                                 {
                                     row:[
-                                        {html:`مبلغ ${splitNumber(amount)} ریال`},
+                                        {html:`مبلغ ${SplitNumber(amount)} ریال`},
                                         {flex:1},
                                         {html:time}
                                     ]
