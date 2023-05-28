@@ -176,6 +176,16 @@ export function getResponse({getState}){
             //id => آی دی رستوران
             //pageSize => تعداد کامنت صفحه
             //pageNumber => شماره صفحه کامنت
+
+            let url = `${baseUrl}/FeedBack/GetRestaurantComments`;
+            let body = {"RestaurantId": restaurantId,
+                            "PageNumber":pageSize,
+                            "RecordsPerPage":pageNumber
+                        }
+            let response = await Axios.post(url,body);
+            let result = response.data.data.items;
+            return {response,result};
+
             return {mock:true}
         },
         async restoran_coupons(restaurantId){
