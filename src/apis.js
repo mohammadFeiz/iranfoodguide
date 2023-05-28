@@ -163,8 +163,14 @@ export function getResponse({getState}){
         async hazfe_tarikhche_ye_jostojoo(){
             return {mock:true} 
         },
-        async restoran_menu(){
-            return {mock:true}
+        async restoran_menu(restaurantId){
+            let url = `${baseUrl}/Menu/Search`;
+            let body = {"RestaurantId": restaurantId}
+            let response = await Axios.post(url,body);
+            let result = response.data.data.items.FoodCategories;
+            return {response,result};
+
+            // return {mock:true}
         },
         async restoran_comments({id,pageSize,pageNumber}){
             //id => آی دی رستوران
@@ -172,8 +178,15 @@ export function getResponse({getState}){
             //pageNumber => شماره صفحه کامنت
             return {mock:true}
         },
-        async restoran_coupons(){
-            return {mock:true}
+        async restoran_coupons(restaurantId){
+
+            let url = `${baseUrl}/RestaurantDiscount/Search`;
+            let body = {"RestaurantId": restaurantId}
+            let response = await Axios.post(url,body);
+            let result = response.data.data.items;
+            return {response,result};
+
+            // return {mock:true}
         }
     }
 }
