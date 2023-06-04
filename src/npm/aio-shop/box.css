@@ -1,0 +1,15 @@
+.as-box{
+    border-radius:12px;
+    margin-bottom:var(--as-gap);
+    padding:12px;
+    background:#fff;
+    border:1px solid #eee;
+    position:relative;
+}
+.as-box-content{
+}
+
+.as-box-subtitle{
+    margin-right:6px;
+    font-weight: normal;
+}

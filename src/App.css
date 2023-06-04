@@ -125,14 +125,14 @@ button,input{
   border-radius:6px;
 }
 
-.button-4,.aio-shop-cart-button-add{
+.button-4,.as-cart-count-button-add{
   background:none;
   border:1px solid;
   height:24px;
   border-radius:6px;
   color:#FF5900;
 }
-.button-5,.aio-shop-cart-button-add{
+.button-5,.as-cart-count-button-add{
   color:#fff;
   border:1px solid;
   border-radius:6px;
@@ -244,8 +244,8 @@ button,input{
   display:none;
 }
 
-.aio-shop-cart-button-step{
-  color:orange !important;
+.as-cart-count-button-step{
+  color:#FF5900 !important;
 }
 
 .colorGreen{
@@ -270,7 +270,7 @@ button,input{
 .aio-button-tabs-option.active:after{
   background:#FF5900;
 }
-.aio-shop-submit-button{
+.as-submit-button{
   background: #FF5900;
 }
 .joziate-ghaza{

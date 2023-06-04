@@ -26,7 +26,7 @@ export default class App extends Component {
     //this.baseUrl = 'https://localhost:7203'
     this.baseUrl = 'https://iranfoodguide.ir'
     this.state = {
-      backOffice: false, isLogin: false,
+      isLogin: false,
       registerFields: [
         { type: 'text', label: 'نام', field: 'firstName', required: true, rowKey: '1' },
         { type: 'html', html: () => '', rowWidth: 12, rowKey: '1' },
@@ -145,6 +145,7 @@ class IranFoodGuide extends Component {
     super(props);
     this.state = {
       comming_soon: false,
+      backOffice:true,
       mobileNumber: props.mobileNumber,
       personId: props.personId,
       logout: props.logout,

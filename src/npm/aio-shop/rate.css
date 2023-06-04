@@ -1,0 +1,33 @@
+.as-rate-text{
+    font-size:12px;
+    color:#333;
+}
+.as-rate-icon{
+    color:orange;
+}
+.as-rate-items .r-range-slider{
+    height:24px;
+}
+.as-rate-items .r-range-slider-line{
+    height:4px !important;
+    border-radius:12px;
+}
+.as-rate-items .r-range-slider-fill{
+    height:4px !important;
+    border-radius:12px;
+}
+.as-rate-items .r-range-slider-point{
+    display:none;
+}
+.as-rate-item-text{
+    width:120px;
+    font-size:12px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-align:right;
+}
+.as-rate-item-value{
+    font-weight:bold;
+    font-size:12px;
+    width:36px;
+}

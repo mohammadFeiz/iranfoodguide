@@ -1,0 +1,15 @@
+.as-list{
+}
+.as-list-search{
+    padding:var(--as-gap);
+}
+.as-list-search .search-box{
+    background:#fff;
+    border:1px solid #eee;
+}
+.as-list-products{
+    padding:var(--as-gap);
+}
+.as-list .as-product-card.horizontal{
+    margin-bottom:var(--as-gap);
+}

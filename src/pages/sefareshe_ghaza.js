@@ -5,7 +5,7 @@ import Card from './../card/card';
 import Timer from "../components/timer";
 import Search from './../pages/Search';
 import AppContext from "../app-context";
-import SearchBox from "../components/search-box";
+import SearchBox from "./../npm/search-box/search-box";
 export default class Sefareshe_ghaza extends Component {
     static contextType = AppContext;
     state = { 

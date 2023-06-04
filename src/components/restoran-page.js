@@ -13,7 +13,7 @@ import SVG_Cart from './../svgs/cart';
 import GroupButton from './group-button';
 import percent1 from '../svgs/percent1';
 import AppContext from '../app-context';
-import SearchBox from './search-box';
+import SearchBox from './../npm/search-box/search-box';
 import AIOShop from './../npm/aio-shop/aio-shop';
 import ersal_ba_peyk_svg from '../svgs/ersal-ba-peyk';
 import daryafte_hozoori_svg from '../svgs/daryafte-hozoori';
@@ -48,25 +48,25 @@ export default class RestoranPage extends Component {
     }[option];
     return (<div style={{width:60}} className='align-vh'>{icon()}</div>)
   }
-  getShippingOptions(){
+  getShippingOptions({factor,shipping}){
     let { addresses } = this.context;
     let { address } = this.props;
     let {coupons} = this.state;
     return [
       {
-          title:'روش تحویل سفارش',field:'deliveryType',def:'ارسال با پیک',
+          title:'روش تحویل سفارش',field:'deliveryType',value:'ارسال با پیک',
           options:[
               { text: 'ارسال با پیک', value: 'ارسال با پیک', icon: this.getIcon('ارسال با پیک') },
               { text: 'دریافت حضوری', value: 'دریافت حضوری', icon: this.getIcon('دریافت حضوری') },
           ]
       },
       {
-          show:({deliveryType})=>deliveryType === 'ارسال با پیک',title:'آدرس تحویل سفارش',subtitle:'انتخاب از آدرس های من',field:'addressId',def:addresses[0].id,
+          show:({deliveryType})=>deliveryType === 'ارسال با پیک',title:'آدرس تحویل سفارش',subtitle:'انتخاب از آدرس های من',field:'addressId',value:addresses[0].id,
           options:addresses.map(({address,id})=>{return { text: address, value: id }})
       },
-      {type:'html',show:({deliveryType})=>deliveryType === 'دریافت حضوری',title:'آدرس تحویل سفارش',subtitle:'آدرس رستوران',html:address},
+      {type:'html',show:({deliveryType})=>deliveryType === 'دریافت حضوری',title:'آدرس تحویل سفارش',subtitle:'آدرس رستوران',html:()=>address},
       {
-          title:'روش پرداخت مبلغ سفارش',field:'paymentType',def:'پرداخت آنلاین',
+          title:'روش پرداخت مبلغ سفارش',field:'paymentType',value:'پرداخت آنلاین',
           options:[
               { text: 'پرداخت آنلاین', value: 'پرداخت آنلاین', icon: this.getIcon('پرداخت آنلاین'), subtext: 'پرداخت از طریق درگاه های پرداخت ' },
               { text: 'پرداخت کیف پول(10% تخفیف)', value: 'پرداخت کیف پول', icon: this.getIcon('پرداخت کیف پول'), subtext: 'مانده اعتبار : 250،000 ریال' },
@@ -78,25 +78,23 @@ export default class RestoranPage extends Component {
         type:'html',
         show:({paymentType})=>paymentType === 'کارت به کارت',
         title:'اطلاعات حساب ایران فود',
-        html:'6219861033538751'
+        html:()=>'6219861033538751'
       },
       {
-        title:'کوپن های تخفیف',field:'selectedCouponIds',def:[],show:()=>!!coupons.length,multiple:true,
-        options:({factor})=>{
-          return coupons.map(({id,title,discountPercent,discount,maxDiscount,minCartAmount = 0})=>{
-            let subtext = '';
-            if(discountPercent){
-              subtext += `${discountPercent} درصد تخفیف `
-            }
-            else if(discount){
-              subtext += `${SplitNumber(discount)} تومان تخفیف `
-            }
-            if(maxDiscount){ subtext += `تا سقف ${SplitNumber(maxDiscount)} تومان `}
-            if(minCartAmount){subtext += `برای سبد بالای ${SplitNumber(minCartAmount)} تومان `}
-            let disabled = minCartAmount > factor.total - factor.discount;
-            return {text:title,subtext,value:id,disabled}
-          })
-        }
+        title:'کوپن های تخفیف',field:'selectedCouponIds',value:[],show:()=>!!coupons.length,multiple:true,
+        options:coupons.map(({id,title,discountPercent,discount,maxDiscount,minCartAmount = 0})=>{
+          let subtext = '';
+          if(discountPercent){
+            subtext += `${discountPercent} درصد تخفیف `
+          }
+          else if(discount){
+            subtext += `${SplitNumber(discount)} تومان تخفیف `
+          }
+          if(maxDiscount){ subtext += `تا سقف ${SplitNumber(maxDiscount)} تومان `}
+          if(minCartAmount){subtext += `برای سبد بالای ${SplitNumber(minCartAmount)} تومان `}
+          let disabled = minCartAmount > factor.total - factor.discount;
+          return {text:title,subtext,value:id,disabled}
+        })
       }
     ]
   }
@@ -119,19 +117,22 @@ export default class RestoranPage extends Component {
       callback:(coupons)=>this.setState({coupons})
     })
     let Shop = AIOShop({
-      id:'iranfoodrestorancart' + id,cartCache:true,
-      setState:()=>this.setState({Shop:this.state.Shop}),
-      getShippingOptions:()=>this.getShippingOptions(),
+      id:'iranfoodrestorancart' + id,
+      unit:'تومان',
+      addText:'سفارش',
+      cartCache:true,
+      update:()=>this.setState({Shop:this.state.Shop}),
+      getShippingOptions:this.getShippingOptions.bind(this),
       productFields:{id:'id',name:'name',price:'price',discountPercent:'discountPercent',description:'description',image:'image'},
       checkDiscountCode:()=>{
         return 123000;
-        return 'کد معتبر نیست'
+        //return 'کد معتبر نیست'
       },
-      getDiscounts:({factor,shipping})=>{
+      getDiscounts:({shipping})=>{
         let {coupons} = this.state;
-        let {selectedCouponIds = []} = shipping;
+        let {selectedCouponIds = [],paymentType} = shipping;
         let discounts = [];
-        if(shipping.paymentType === 'پرداخت کیف پول'){
+        if(paymentType === 'پرداخت کیف پول'){
           discounts.push({discountPercent:10,title:'تخفیف پرداخت با کیف پول'})
         }
         for(let i = 0; i < selectedCouponIds.length; i++){
@@ -141,16 +142,16 @@ export default class RestoranPage extends Component {
         }
         return discounts
       },
-      getShippingPrice:({factor,shipping})=>{
+      getExtras:({shipping})=>{
         if(shipping.paymentType === 'پرداخت حضوری'){return 0}
-        return 53000
+        return {amount:53000,title:'هزینه ارسال'}
       }
     })
     this.setState({Shop})
   }
   header_layout(cartLength) {
     let { image, rate, onClose } = this.props;
-    let {cartTab} = this.state;
+    let {cartTab,Shop} = this.state;
     return (
       {
         html:(
@@ -159,7 +160,7 @@ export default class RestoranPage extends Component {
             image={image}
             icons={[
               {icon:<Icon path={mdiClose} size={1}/>,onClick:()=>onClose()},
-              {icon:SVG_Cart(),onClick:()=>this.openPopup('cart'),badge:cartLength,show:!cartTab},
+              {icon:SVG_Cart(),onClick:()=>Shop.openPopup('cart'),badge:cartLength,show:!cartTab},
             ]}
           />
         )
@@ -257,7 +258,7 @@ export default class RestoranPage extends Component {
             <button className='joziate-ghaza button-2'>جزییات</button>
           )
         }
-        return { className: 'p-h-12 of-visible', html: Shop.renderProductCard(o,{addCart:'سفارش',changeCart:true,html}) }
+        return { className: 'p-h-12 of-visible', html: Shop.renderProductCard({product:o,config:{changeCart:true,html}}) }
       })
     }
   }
@@ -270,22 +271,6 @@ export default class RestoranPage extends Component {
         type:'fullscreen',header:false,
         body:()=>{
           return <RestoranInfo {...this.props} onClose={()=>rsa_actions.removePopup()}/>
-        }
-      })
-    }
-    else if(key === 'cart'){
-      addPopup({
-        type:'fullscreen',header:false,
-        body:()=>{
-          return <RestoranCart {...this.props} Shop={Shop} onClose={()=>rsa_actions.removePopup()} onSubmit={()=>this.openPopup('shipping')}/>
-        }
-      })
-    }
-    else if(key === 'shipping'){
-      addPopup({
-        type:'fullscreen',header:false,
-        body:()=>{
-          return <Shipping {...this.props} Shop={Shop} onClose={()=>rsa_actions.removePopup()}/>
         }
       })
     }
@@ -311,35 +296,38 @@ export default class RestoranPage extends Component {
     if(!tabMode || activeTabId !== 'cart'){return false}
     return {
       flex:1,
-      html:<RestoranCart {...this.props} Shop={Shop} onSubmit={()=>this.openPopup('shipping')} header={false}/>
+      html:Shop.renderCart()
     }
   }
   render() {
     let {tabMode,activeTabId,Shop} = this.state;
-    let cartLength = Shop?Shop.getCart_list().length:0;
+    let cartLength = Shop?Shop.getCartItems().length:0;
     
     return (
-      <RVD
-        layout={{
-          style:{height:'100%',background:'#fff'},
-          column: [
-            this.header_layout(cartLength),
-            this.title_layout(),
-            this.tabs_layout(cartLength),
-            //this.filter_layout(),
-            {
-              show:!tabMode || (tabMode && activeTabId === 'menu'),
-              flex:1,
-              column:[
-                this.category_layout(),
-                this.foods_layout()
-              ]
-            },
-            this.info_layout(),
-            this.cart_layout()
-          ]
-        }}
-      />
+      <>
+        <RVD
+          layout={{
+            style:{height:'100%',background:'#fff'},
+            column: [
+              this.header_layout(cartLength),
+              this.title_layout(),
+              this.tabs_layout(cartLength),
+              //this.filter_layout(),
+              {
+                show:!tabMode || (tabMode && activeTabId === 'menu'),
+                flex:1,
+                column:[
+                  this.category_layout(),
+                  this.foods_layout()
+                ]
+              },
+              this.info_layout(),
+              this.cart_layout()
+            ]
+          }}
+        />
+        {Shop && Shop.renderPopups()}
+      </>
     )
   }
 }
@@ -408,167 +396,7 @@ class Header extends Component{
     )
   }
 }
-// RestoranPage.defaultProps = {
-//   name: 'رستوران 1', image: shandiz_image, logo: shandiz_logo,id:'1233445',
-//   rate: 3.4,ifRate:4, distance: 3, time: 35, tags: ['ایرانی', 'کبابی', 'فست فود', 'خارجی', 'سالادبار', 'عربی', 'صبحانه'],
-//   address:'تهران خیابان شیخ بهایی خیابان نوربخش پلاک 30 واحد 4 طبقه دوم',
-//   ifComment:'لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می‌باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می‌طلبد تا با نرم‌افزارها شناخت بیشتری را برای طراحان رایانه ای علی‌الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می‌توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساساً مورد استفاده قرار گیرد'
-// }
 
-// class RestoranCart extends Component{
-//   constructor(props){
-//     super(props);
-//   }
-//   header_layout(image){
-//     let {onClose,header} = this.props;
-//     if(header === false){return false}
-//     return {
-//       html:(
-//         <Header
-//           image={image}
-//           title='سبد خرید'
-//           icons={[
-//             {icon:<Icon path={mdiClose} size={1}/>,onClick:()=>onClose()}
-//           ]}
-//         />
-//       )
-//     }
-//   }
-//   items_layout(cartItems,Shop){
-//     if(!cartItems.length){return {html:'سبد خرید شما خالی است',align:'vh'}}
-//     return {
-//       className:'m-b-24 of-visible',
-//       column:[
-//         {
-//           flex:1,className:'of-visible',gap:12,
-//           column:cartItems.map(({product})=>{
-//             return {className:'p-h-12 of-visible',html:Shop.renderProductCard(product,{changeCart:true})}
-//           })
-//         }
-//       ]
-//     }
-//   }
-//   total_layout(cartItems,Shop){
-//     if(!cartItems.length){return false}
-//     return {html:Shop.renderTotal(),className:'p-12 br-6 m-h-12',style:{background:'#fff',border:'1px solid #ddd'}}
-//   }
-//   submit_layout(cartItems){
-//     if(!cartItems.length){return false}
-//     let {onSubmit} = this.props;
-//     return {
-//       className:'p-12',html:<button onClick={()=>onSubmit()} className='button-5 w-100 h-36 bold'>تکمیل خرید</button>
-//     }
-//   }
-//   render(){
-//     let {image,Shop} = this.props;
-//     let cartItems = Shop.getCart_list()
-//     return (
-//       <RVD
-//         layout={{
-//           className:'bgFFF h-100',
-//           column:[
-//             this.header_layout(image),
-//             {
-//               flex:1,className:'ofy-auto',
-//               column:[
-//                 this.items_layout(cartItems,Shop),
-                
-//               ]
-//             },
-//             {
-//               column:[
-//                 this.total_layout(cartItems,Shop),
-//                 this.submit_layout(cartItems)
-//               ]
-//             }
-
-//           ]
-//         }}
-//       />
-//     )
-//   }
-// }
-class RestoranCart extends Component{
-  constructor(props){
-    super(props);
-  }
-  header_layout(image){
-    let {onClose,header} = this.props;
-    if(header === false){return false}
-    return {
-      html:(
-        <Header
-          image={image}
-          title='سبد خرید'
-          icons={[
-            {icon:<Icon path={mdiClose} size={1}/>,onClick:()=>onClose()}
-          ]}
-        />
-      )
-    }
-  }
-  cart_layout(Shop){
-    let {onSubmit} = this.props;
-    return {
-      flex:1,
-      html:Shop.renderCart({onSubmit})
-    }
-  }
-  render(){
-    let {image,Shop} = this.props;
-    return (
-      <RVD
-        layout={{
-          className:'bgFFF h-100',
-          column:[
-            this.header_layout(image),
-            this.cart_layout(Shop)
-          ]
-        }}
-      />
-    )
-  }
-}
-class Shipping extends Component{
-  static contextType = AppContext;
-  constructor(props){
-    super(props);
-    this.state = {
-      discountCode:'',
-    }
-  }
-  header_layout(image){
-    let {onClose} = this.props;
-    return {
-      html:(
-        <Header
-          image={image}
-          title='تکمیل خرید'
-          icons={[
-            {icon:<Icon path={mdiClose} size={1}/>,onClick:()=>onClose()}
-          ]}
-        />
-      )
-    }
-  }
-  shipping_layout(Shop){
-    return {flex:1,html:Shop.renderShipping()}
-  }
-  render(){
-    let {image,Shop} = this.props;
-    return (
-      <RVD
-        layout={{
-          style:{background:'#fff',height:'100%'},
-          column:[
-            this.header_layout(image),
-            this.shipping_layout(Shop)
-          ]
-        }}
-      />
-    )
-  }
-}
 class RestoranInfo extends Component {
   static contextType = AppContext;
   constructor(props){

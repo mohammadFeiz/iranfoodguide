@@ -1,6 +1,6 @@
 import React,{Component} from "react";
-import RVD from './../npm/react-virtual-dom/react-virtual-dom';
-import AIOButton from './../npm/aio-button/aio-button';
+import RVD from './../react-virtual-dom/react-virtual-dom';
+import AIOButton from './../aio-button/aio-button';
 import {Icon} from "@mdi/react";
 import { mdiDeleteOutline, mdiHistory, mdiMagnify } from "@mdi/js";
 import './search-box.css';

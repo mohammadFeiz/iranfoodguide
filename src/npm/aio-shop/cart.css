@@ -1,0 +1,8 @@
+.as-cart{
+    background:#f8f8f8;
+    height:100%;
+    padding:12px;
+}
+.as-cart .as-product-card{
+    margin-bottom: var(--as-gap);
+}

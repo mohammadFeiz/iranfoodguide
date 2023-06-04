@@ -1,0 +1,151 @@
+
+:root{
+    --as-gap:12px;
+}
+.as-cart-button{
+    width:36px;
+    height:36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.as-badge-1{
+    position:absolute;
+    right:-3px;
+    top:3px;
+    font-size:14px;
+    color:#fff;
+    background:orange;
+    padding:0 3px;
+    border-radius:12px;
+}
+.product-count-button.disabled{
+    background: #aaa;
+    opacity:0.4;
+}
+.product-delete-button{
+    color: #0094D4;
+    background:none; 
+    width:30px;
+    height:30px;
+}
+
+.count-popup-container{
+    position:fixed;
+    border-radius:12px;
+    box-sizing: border-box;
+    bottom:0;
+    width:100%;
+    height:100%;
+    left:0;
+    z-index:10;
+}
+.count-popup{
+    padding:12px;
+    background:#fff;
+}
+.as-discount-box{
+    background:orange;
+    color:#fff;
+    padding:0 3px;
+    border-radius: 4px;
+}
+.as-discount-box-small{
+    font-size:12px;
+}
+.as-discount-box-medium{
+    
+}
+.as-discount-box-large{
+    font-size:16px;
+}
+
+.as-submit-button-container{
+    padding-top:0;
+}
+.as-submit-button{
+    background:orange;
+    border:none;
+    width: 100%;
+    font-weight: bold;
+    font-size:14px;
+    height:36px;
+    color:#fff;
+    border-radius:6px;
+}
+
+.as-not-exist{
+    color:red;
+    font-size:16px;
+    font-weight: bold;
+    margin:0 6px;
+}
+.as-review{
+    color:#888;
+    font-size:14px;
+    padding-right:12px;
+}
+
+.bold-key{
+    font-weight:bold;
+    border-right:2px solid orange;
+}
+
+.as-variant-option-price{
+    font-size:75%;
+    opacity:0.7
+}
+.as-variant-option-final-price{
+    font-weight:bold;
+}
+.as-variant-option-unit{
+    font-size:75%;
+    opacity:0.7
+}
+.as-variant-list{
+    
+}
+.as-variant-list-item{
+    padding:3px 0;
+    font-size:10px;
+}
+.as-detail-key{
+    background:#f8f8f8;
+    flex:3;
+    margin-left:6px;
+    padding:6px;
+}
+.as-detail-value{
+    background:#f8f8f8;
+    flex:5;
+    padding:6px;
+}
+.as-link{
+    font-size:14px;
+    font-weight:bold;
+    color:#0d60cc;
+}
+.as-fs-l{
+    font-size:16px;
+}
+.as-fs-m{
+    font-size:14px;
+}
+.as-fs-s{
+    font-size:12px;
+}
+.as-fc-d{
+    color:#323130;
+}
+.as-fc-m{
+    color:#605E5C;
+}
+.as-fc-l{
+    color:#A19F9D;
+}
+.as-bold{
+    font-weight:bold;
+}
+.as-border-bottom{
+    border-bottom:1px solid #ddd;
+}

@@ -1,6 +1,6 @@
 import React,{Component} from "react";
 import RVD from '../npm/react-virtual-dom/react-virtual-dom';
-import SearchBox from "../components/search-box";
+import SearchBox from "./../npm/search-box/search-box";
 import GroupButton from "../components/group-button";
 import AIOButton from '../npm/aio-button/aio-button';
 import Card from "../card/card";
