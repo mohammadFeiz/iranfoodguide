@@ -1,9 +1,11 @@
 import React, { Component, createRef } from 'react';
+import {Align} from './../aio-functions/aio-functions';
 import { Icon } from '@mdi/react';
 import { mdiClose, mdiChevronRight, mdiChevronLeft, mdiCheckCircleOutline, mdiAlertOutline, mdiInformationOutline, mdiChevronDown } from '@mdi/js';
 import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
 import $ from 'jquery';
 import './aio-popup.css';
+
 
 export default class AIOPopup extends Component{
     constructor(props){
@@ -249,3 +251,64 @@ export default class AIOPopup extends Component{
       )
     }
   }
+
+  export class Popover extends Component{
+  constructor(props){
+    super(props);
+    this.dom = createRef();
+  }
+  componentDidMount(){
+    this.update($(this.dom.current));
+  }
+  update(popup){
+    let {getTarget} = this.props;
+    let target = getTarget();
+    if(!target ||!target.length){return}
+    var {rtl,openRelatedTo,animate,fitHorizontal,attrs = {},fixPopupPosition = (o)=>o} = this.props;
+    Align(popup,target,{fixStyle:fixPopupPosition,pageSelector:openRelatedTo,animate,fitHorizontal,style:attrs.style,rtl})
+    popup.focus();
+  }
+  getClassName(){
+    let {attrs = {}} = this.props;
+    let {className:popupClassName} = attrs;
+    let className = 'aio-popover';
+    
+    if(popupClassName){className += ' ' + popupClassName}
+    return className;
+  }
+  getBackClassName(){
+    let {backdropAttrs = {}} = this.props;
+    let {className:backdropClassName} = backdropAttrs;
+    let className = 'aio-popover-backdrop';
+    if(backdropClassName){className += ' ' + backdropClassName}
+    return className;
+  }
+  //start
+  render(){
+    var {attrs = {},body,backdropAttrs = {},backdrop,id,onClose} = this.props;
+    let props = {
+      className:this.getBackClassName(),
+      style:backdropAttrs.style,
+      onClick:(e)=>{
+        e.stopPropagation();
+        if($(e.target).attr('data-uniq-id') === id){return;}
+        if($(e.target).parents(`[data-uniq-id=${id}]`).length){return;}
+        onClose()
+      }
+    }
+    if(backdrop === false){
+      return(
+        <div {...attrs} ref={this.dom} data-uniq-id={id} className={this.getClassName()}>
+            {body()}
+        </div>
+    );  
+    }
+    return(
+      <div {...props}>
+        <div {...attrs} ref={this.dom} data-uniq-id={id} className={this.getClassName()}>
+            {body()}
+        </div>
+      </div>
+    );
+  }
+}

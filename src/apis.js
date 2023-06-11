@@ -178,7 +178,7 @@ export function getResponse({getState}){
             //pageNumber => شماره صفحه کامنت
 
             let url = `${baseUrl}/FeedBack/GetRestaurantComments`;
-            let body = {"RestaurantId": restaurantId,
+            let body = {"RestaurantId": id,
                             "PageNumber":pageSize,
                             "RecordsPerPage":pageNumber
                         }

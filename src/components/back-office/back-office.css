@@ -1,0 +1,24 @@
+.bo-submit-button,.bo-edit-button{
+    border:1px solid dodgerblue;
+    background:dodgerblue;
+    color:#fff;
+    border-radius:4px;
+    margin:0 1px;
+}
+.bo-reset-button{
+    border:1px solid dodgerblue;
+    color:dodgerblue;
+    background:none;
+    border-radius:4px;
+    margin:0 1px;
+}
+.bo-submit-button:disabled,.bo-edit-button:disabled{
+    opacity:0.3;
+}
+.bo-remove-button{
+    background:red;
+    color:#fff;
+    border:none;
+    border-radius:4px;
+    margin:0 1px;
+}

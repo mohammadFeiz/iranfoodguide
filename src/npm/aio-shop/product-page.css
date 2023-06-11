@@ -21,7 +21,7 @@
 .as-product-page-body{
     padding:var(--as-gap);
 }
-.as-product-page-image img{
+.as-product-page-image img,.as-product-page-image .aio-button{
     max-height:200px;
 }
 .as-product-page-option-type-button{

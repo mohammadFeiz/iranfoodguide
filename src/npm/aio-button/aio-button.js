@@ -1,6 +1,13 @@
 import React,{Component,createRef,createContext} from 'react';
+import {Icon} from '@mdi/react';
+import {mdiAttachment, mdiClose} from '@mdi/js';
+import Input from './input';
+import Table from './table';
+import DownloadUrl from '../aio-functions/download-url';
+import { Popover } from '../aio-popup/aio-popup';
 import $ from 'jquery'
 import './index.css';
+
 let aioButtonContext = createContext();
 let ABCLS = {
   button:'aio-button',radio:'aio-button-radio',tabs:'aio-button-tabs',option:'aio-button-option',options:'aio-button-options',
@@ -14,11 +21,11 @@ let ABCLS = {
 class Radio extends Component {
   static contextType = aioButtonContext;
   render(){
-    let {className,justify,rtl,style,gap,type,multiple} = this.context;
+    let {className,justify,rtl,style,gap,type,multiple,label} = this.context;
     var {options = [],attrs = {}} = this.props;
     return (
       <div 
-        {...attrs} className={ABCLS.radio + (rtl?' rtl':'') + (className?' ' + className:'')} 
+        {...attrs} className={ABCLS.radio + (rtl?' rtl':'') + (className?' ' + className:'') + (label?' has-label':'')} data-label={label}
         style={{justifyContent:justify?'center':undefined,...style}}
       >
         {
@@ -33,7 +40,7 @@ class Radio extends Component {
 class Tabs extends Component {
   static contextType = aioButtonContext;
   render(){
-    let {className,rtl,style,gap,before,after} = this.context;
+    let {className,rtl,style,gap,before,after,disabled} = this.context;
     var {options = [],attrs = {}} = this.props;
     return (
       <div 
@@ -46,13 +53,11 @@ class Tabs extends Component {
             return <Option key={i} {...option} renderIndex={i} gap={gap} rtl={rtl}/>
           })
         }
-        {after !== undefined && after}
+        {after !== undefined && <><div style={{flex:1}}></div>{after}</>}
       </div>
     );
   }
 }
-
-
 export default class AIOButton extends Component {
     constructor(props){
       super(props);
@@ -207,11 +212,11 @@ export default class AIOButton extends Component {
     getOptions(){
       let {options,type = 'button',text} = this.props;
       if(type === 'button' || type === 'checkbox' || type === 'file'){return}
-      if(type === 'select' && !this.state.open){return;}
       this.tags = [];
       this.text = undefined;
       let result = [];
       options = [...options];
+      this.options_dic = {};
       for(let realIndex = 0; realIndex < options.length; realIndex++){
         let option = options[realIndex];
         let value = this.getProp({option,index:realIndex,field:'value',def:undefined})
@@ -252,6 +257,7 @@ export default class AIOButton extends Component {
         }
         let show = this.getProp({option,index:realIndex,field:'show',def:true})
         if(!show){continue}
+        this.options_dic[JSON.stringify(value)] = text;
         let checkIcon = this.getProp({option,index:realIndex,field:'checkIcon',def:undefined}); 
         let subtext = this.getProp({option,index:realIndex,field:'subtext',def:undefined});
         
@@ -270,7 +276,9 @@ export default class AIOButton extends Component {
           if(props.disabled){return}
           if(option.onClick){option.onClick(props)}
           else if(option.onChange){option.onChange(value,props)}
-          else if(type === 'select' || type === 'tabs'){this.props.onChange(value,props)}
+          else if(type === 'select' || type === 'tabs'){
+            if(this.props.onChange){this.props.onChange(value,props)}
+          }
           else if(type === 'radio'){
             let {multiple} = this.props;
             if(multiple){
@@ -302,36 +310,26 @@ export default class AIOButton extends Component {
       return result;
     }
     getText(){
-      let {type,text,options} = this.props;
+      let {type,value,text} = this.props;
       if(type === 'select'){
-        if(text !== undefined && typeof text !== 'function'){return text}
-        if(this.state.open){
-          return typeof text === 'function'?text(this.text):(this.text === undefined?'':this.text);  
-        }
-        else{
-          for(let i = 0; i < options.length; i++){
-            let option = options[i];
-            let show = this.getProp({option,index:i,field:'show',def:true})
-            if(!show){continue}
-            let option_value = this.getProp({option,index:i,field:'value',def:undefined})
-            let option_text = this.getProp({option,index:i,field:'text',def:undefined});
-            if(option_value !== undefined && option_value === this.props.value){return typeof text === 'function'?text(option_text):option_text}
-          }
-          return ''
-        }
+        if(text === undefined){return this.options_dic[JSON.stringify(value)] || '';}
+        return (typeof text === 'function'?text(this.options_dic[value]):text) || '';
       }
-      if(type === 'button' || type === 'file'){return typeof text === 'function'?text():text}
-      if(type === 'multiselect'){return typeof text === 'function'?text():text}
+      else if(['checkbox','multiselect','button','file'].indexOf(type) !== -1){
+        return typeof text === 'function'?text():text;
+      }
     }
-    getSubtext(){
-      let {type,subtext,value} = this.props;
-      if(type === 'button' || type === 'file'){return typeof subtext === 'function'?subtext():subtext}
-      if(type === 'select'){return typeof subtext === 'function'?subtext(value):subtext}
-      if(type === 'multiselect'){return typeof subtext === 'function'?subtext(value):subtext}
-      
+    getCaret(){
+      let {caret = true,caretAttrs,type,popOver} = this.props;
+      if(type === 'select' || type === 'multiselect' || (type === 'button' && !!popOver)){
+        let icon = caret === true?<div className={ABCLS.caret} {...caretAttrs}></div>:caret;
+        return <><div style={{flex:1}}></div>{icon || ''}</>
+      }
     }
     render(){
-      let {type,popOver,caret,style} = this.props;
+      let {type,show,subtext,value} = this.props;
+      if(type === 'table'){return <Table {...this.props}/>}
+      if(['text','number','textarea','color','password'].indexOf(type) !== -1){return <Input {...this.props}/>}
       let {open,touch} = this.state;
       let context = {
         ...this.props,touch,
@@ -345,25 +343,23 @@ export default class AIOButton extends Component {
       let dataUniqId = 'aiobutton' + (Math.round(Math.random() * 10000000));
       let options = this.getOptions();
       this.options = options;
-      let text = this.getText();
-      let subtext = this.getSubtext();
-      let show = typeof this.props.show === 'function'?this.props.show({options}):this.props.show;
-      if(show === false){return null}
+      if((typeof show === 'function'?show({options}):show) === false){return null}
+      let COMPONENT = {'button':Button,'file':Button,'select':Button,'multiselect':Multiselect,'radio':Radio,'tabs':Tabs,'checkbox':Checkbox}[type]
+      let props = {
+        text:this.getText(),caret:this.getCaret(),dom:this.dom,dataUniqId,type,options,tags:this.tags,
+        subtext:typeof subtext === 'function'?subtext(value):subtext,
+      }
       return (
         <aioButtonContext.Provider value={context}>
-            {type === 'multiselect' && <Multiselect dom={this.dom} dataUniqId={dataUniqId} tags={this.tags} text={text} subtext={subtext} caret={caret === undefined?true:caret} style={style}/>}
-            {(type === 'button' || type === 'file') && <Button dom={this.dom} dataUniqId={dataUniqId} text={text} subtext={subtext} caret={caret === undefined?(popOver?true:false):caret}/>}
-            {type === 'select' && <Button dom={this.dom} dataUniqId={dataUniqId} text={text} subtext={subtext} caret={caret === undefined?true:caret} type={type}/>}
-            {(type === 'radio') && <Radio dom={this.dom} options={options}/>}
-            {(type === 'tabs') && <Tabs dom={this.dom} options={options}/>}
-            {type === 'checkbox' && <Checkbox dom={this.dom} {...this.props}/>}
-            {this.showPopup(open,options) && <Popup dataUniqId={dataUniqId} options={options} type={type}/>}
+            <COMPONENT {...props}/>
+            {this.showPopup(open,options) && <Popup parentDom={this.dom} dataUniqId={dataUniqId} options={options} type={type}/>}
         </aioButtonContext.Provider>
       );
     }    
 }
 AIOButton.defaultProps = {gap:6};
 class Checkbox extends Component{
+  static contextType = aioButtonContext;
   getText(){
     let {text} = this.props;
     return typeof text === 'function'?text():text;
@@ -380,17 +376,20 @@ class Checkbox extends Component{
     }
   }
   render(){
-    let {className,disabled,onChange,value,gap,rtl} = this.props;
+    let {className,disabled,onChange,value,gap,rtl,before,after,label} = this.context;
     return (
       <Option
         {...this.props}
+        data-label={label}
         attrs={{onKeyDown:(e)=>this.keyDown(e),...this.props.attrs}}
         onKeyDown={(e)=>this.keyDown(e)}
         gap={gap}
+        before={before}
+        after={after}
         rtl={rtl}
         text={this.getText()}
         subtext={this.getSubtext()}
-        className={ABCLS.radioOption + ' ' + ABCLS.checkbox + (disabled?' disabled': '') + (className?' ' + className:'')}
+        className={ABCLS.radioOption + ' ' + ABCLS.checkbox + (disabled?' disabled': '') + (className?' ' + className:'') + (label?' has-label':'')}
         checked={!!value}
         onClick={()=>{if(!disabled){onChange(!!value,this.props)}}}
       />
@@ -399,28 +398,132 @@ class Checkbox extends Component{
 }
 class Button extends Component{
   static contextType = aioButtonContext;
+  constructor(props){
+    super(props);
+    this.state = {
+      files:[]
+    }
+  }
+  async addFiles(Files){
+    let {onAdd = ()=>true} = this.context;
+    let {files} = this.state;
+    let res = await onAdd(Files);
+    if(res !== true){return}
+    for(let i = 0; i < Files.length; i++){
+      let file = Files[i];
+      let {minName,sizeString} = this.getFile(file.name,file.size);
+      let url = URL.createObjectURL(file);
+      files.push({name:file.name,size:file.size,url,minName,sizeString,file})
+    }
+    this.change(files);
+  }
+  change(files){
+    let {onChange = ()=>{}} = this.context;
+    this.setState({files});
+    onChange(files)
+  }
+  async removeFile(index,name){
+    let {onRemove = ()=>true} = this.context;
+    let {files} = this.state;
+    let newFiles = [];
+    for (let i = 0; i < files.length; i++){
+      if(i === index){continue}
+      newFiles.push(files[i])
+    }
+    let res = await onRemove(name);
+    if(res === true){
+      this.change(newFiles);
+    }
+  }
+  getFile(filename,fileSize){
+    try{
+      let minName,sizeString;
+      let lastDotIndex = filename.lastIndexOf('.');
+      let name = filename.slice(0,lastDotIndex);
+      let format = filename.slice(lastDotIndex + 1,filename.length);
+      if(name.length > 10 + 5){
+          minName = name.slice(0,10) + '...' + name.slice(10,10 + 5) + '.' + format;
+      }
+      else{minName = filename;}
+      let size = fileSize;
+      let gb = size / (1024 * 1024 * 1024),mb = size / (1024 * 1024),kb = size / 1024;
+      if(gb >= 1){sizeString = gb.toFixed(2) + ' GB';}
+      else if(mb >= 1){sizeString = mb.toFixed(2) + ' MB';}
+      else if(kb >= 1){sizeString = kb.toFixed(2) + ' KB';}
+      else {sizeString = size + ' byte'}
+      return {minName,sizeString}
+    }
+    catch{
+      return {minName:'untitle',sizeString:'0'}
+    }
+  }
+  getFiles(){
+    let {files} = this.state;
+    let result = [];
+    for (let i = 0; i < files.length; i++){
+      let {minName,sizeString,name,url} = files[i];
+      result.push(
+        <div key={i} className='aio-button-file'>
+          <div className='aio-button-file-icon'>
+            <Icon path={mdiAttachment} size={.8}/>
+          </div>
+          <div className='aio-button-file-name' onClick={()=>DownloadUrl(url,name)}>
+          {`${minName} (${sizeString})`}
+          </div>
+          <div className='aio-button-file-icon' onClick={()=>this.removeFile(i,name)}>
+            <Icon path={mdiClose} size={.8}/>
+          </div>
+        </div>
+      )
+    }
+    return result
+  }
+  componentDidMount(){
+    let {value = [],type} = this.context;
+    if(type !== 'file'){return}
+    if(!Array.isArray(value)){value = [value]}
+    let files = [];
+    for(let i = 0; i < value.length; i++){
+      let {name,size,url} = value[i];
+      let {minName,sizeString} = this.getFile(name,size);
+      files.push({name,size,url,minName,sizeString})
+    }
+    this.setState({files})
+  }
   render(){
-    let {type,onButtonClick,before,gap,attrs = {},rtl,caretAttrs,badge,badgeAttrs,after,disabled,className,style,onChange} = this.context;
+    let {type,onButtonClick,before,gap,attrs = {},rtl,showFiles = true,badge,badgeAttrs,after,disabled,className,style,label} = this.context;
     let {dataUniqId,text,subtext,caret,dom} = this.props;
+    let {files} = this.state;
     let props = {
+      'data-label':label,
       tabIndex:0,...attrs,style,onClick:onButtonClick,'data-uniq-id':dataUniqId,disabled,ref:dom,
-      className:`${ABCLS.button} ${rtl?'rtl':'ltr'}${className?' ' + className:''}`,
+      className:`${ABCLS.button} ${rtl?'rtl':'ltr'}${className?' ' + className:''}${label?' has-label':''}`,
     }
     let inside = (
       <>
         {before !== undefined && <Before before={before} gap={gap}/>} 
         {text !== undefined && <Text text={text} subtext={subtext}/>}
-        {caret !== false && <Caret caret={caret} attrs={caretAttrs}/>} 
+        {!!caret && caret} 
         {after !== undefined && <After after={after} gap={gap} caret={caret}/>} 
         {badge !== undefined && <Badge badge={badge} attrs={badgeAttrs}/>}
       </>
-    )
+    );
     if(type === 'file'){
       return (
-        <label {...props}>
-          <input type='file' style={{display:'none'}} multiple onChange={(e)=>onChange(e.target.files)}/>
-          {inside}
-        </label>)
+        <>
+          <label {...props} className={props.className + (props.disabled?' disabled':'')}>
+            <input type='file' disabled={props.disabled} style={{display:'none'}} multiple onChange={(e)=>this.addFiles(e.target.files)}/>
+            {inside}
+          </label>
+          {
+            !!showFiles && !!files.length && (
+              <div className='aio-button-files'>
+                {this.getFiles()}
+              </div>
+            )
+          }
+        </>
+      )
     }
     return (<button {...props}>{inside}</button>)
   }
@@ -434,11 +537,6 @@ function Text(props){
   )
 }
 function Before(props){return <>{props.before}<div className={ABCLS.gap} style={{width:props.gap}}></div></>}
-function Caret(props){
-  let {attrs = {}} = props
-  let icon = props.caret === true?<div className={ABCLS.caret} {...attrs}></div>:props.caret;
-  return (<><div style={{flex:1}}></div>{icon}</>)
-}
 function After(props){
   return (
     <>
@@ -482,84 +580,6 @@ class Popup extends Component{
     this.dom = createRef();
     this.state = {searchValue:'',addValue:''};
   }
-  componentDidMount(){
-    this.update($(this.dom.current));
-  }
-  getLimit(dom){
-    var offset = dom.offset();
-    var left = offset.left - window.pageXOffset;
-    var top = offset.top - window.pageYOffset;
-    var width = dom.outerWidth();
-    var height = dom.outerHeight();
-    var right = left + width;
-    var bottom = top + height;
-    return {left,top,right,bottom,width,height};
-  }
-  update(popup){
-      let {dataUniqId} = this.props;
-      var {rtl,openRelatedTo,animate,popupWidth,popupAttrs = {},popupPosition,fixPopupPosition = (o)=>o} = this.context;
-      var button = $(`.${ABCLS.button}[data-uniq-id = ${dataUniqId}]`);
-      var parent = openRelatedTo?popup.parents(openRelatedTo):undefined;
-      parent = Array.isArray(parent) && parent.length === 0?undefined:parent;
-      var bodyWidth = window.innerWidth;
-      var bodyHeight = window.innerHeight;
-      var parentLimit = parent?this.getLimit(parent):{left:0,top:0,right:bodyWidth,bottom:bodyHeight};
-      if(parentLimit.left < 0){parentLimit.left = 0;}
-      if(parentLimit.right > bodyWidth){parentLimit.right = bodyWidth;}
-      if(parentLimit.top < 0){parentLimit.top = 0;}
-      if(parentLimit.bottom > bodyHeight){parentLimit.bottom = bodyHeight;}
-      // $('body').append(`
-      //   <div class="test-msf" style="position:fixed;left:0;top:0;width:${parentLimit.width}px;height:${parentLimit.height}px;background:#ff000030">
-      //   </div>
-      // `)
-      // setTimeout(()=>{
-      //   $('.test-msf').remove();
-      // },3000)
-      var buttonLimit = this.getLimit(button);
-      var popupLimit = this.getLimit(popup); 
-      var left,right,top,bottom,style = {};
-      top = buttonLimit.bottom;
-      bottom = top + popupLimit.height;  
-      if(popupWidth){
-        style.left = buttonLimit.left;
-        style.width = popupWidth === 'fit'?buttonLimit.width:popupWidth;
-      }
-      else if(rtl){
-        right = buttonLimit.right;
-        left = right - popupLimit.width;
-        if(left < parentLimit.left){style.left = parentLimit.left;}
-        else{style.left = left;}
-      }
-      else{
-        left = buttonLimit.left; 
-        right = left + popupLimit.width;
-        if(right > parentLimit.right){style.left = parentLimit.right - popupLimit.width;}
-        else{style.left = left}
-      }
-      if(bottom > parentLimit.bottom){
-        if(popupLimit.height > buttonLimit.top - parentLimit.top){style.top = parentLimit.bottom - popupLimit.height;}  
-        else{style.top = buttonLimit.top - popupLimit.height;}
-      }
-      else{style.top = buttonLimit.bottom;}
-      let attrsStyle = popupAttrs.style;
-      if(animate){
-        let a = {...style,...attrsStyle}
-        let beforeTop = a.top + 90,afterTop = a.top,obj;
-        if(animate === true){
-          a.top = beforeTop; a.opacity = 0;
-          obj = {top:afterTop,opacity:1}
-        }
-        else{obj = animate}
-        popup.css(fixPopupPosition(a))
-        popup.animate(obj,{duration:100})
-      }
-      else{
-        let a = {...style,...attrsStyle};
-        popup.css(fixPopupPosition(a))
-      }
-      popup.focus();
-    }
-  
   getOptions(){
     let {searchValue} = this.state;
     let {gap,dragStart,dragOver,drop,rtl,onSwap} = this.context;
@@ -578,11 +598,10 @@ class Popup extends Component{
     this.exact = exact;
     return result;
   }
-  renderPopOver(){return this.context.popOver?this.context.popOver(this.context,()=>this.context.toggle(false)):null}
-  renderOptions(){
+  getBody(){
     let {popOver,searchText = 'Search',addText ='Add',search,popupHeader,popupFooter,onAdd} = this.context;
+    if(popOver){return popOver(this.context,()=>this.context.toggle(false))}
     let {searchValue} = this.state;
-    if(popOver){return null}
     let options = this.getOptions();
     return (
       <>
@@ -594,46 +613,40 @@ class Popup extends Component{
       </>
     )
   }
-  getClassName(){
-    let {rtl,popupAttrs = {}} = this.context;
-    let {className:popupClassName} = popupAttrs;
-    let className = ABCLS.popup;
-    if(rtl){className += ' rtl'}
-    if(popupClassName){className += ' ' + popupClassName}
-    return className;
-  }
-
-  //start
   render(){
-    var {toggle,popupAttrs = {},keyDown,backColor} = this.context;
-    let {dataUniqId} = this.props;
-    let props = {
-      className:ABCLS.popupContainer,style:{background:backColor},
-      onClick:(e)=>{
-        e.stopPropagation();
-        if($(e.target).attr('data-uniq-id') === dataUniqId){return;}
-        if($(e.target).parents(`[data-uniq-id=${dataUniqId}]`).length){return;}
-        toggle(false,true)
-      }
-    }
-    return(
-      <div {...props}>
-        <div {...popupAttrs} ref={this.dom} data-uniq-id={dataUniqId} className={this.getClassName()} tabIndex={0} onKeyDown={(e)=>keyDown(e,$(this.dom.current))}>
-            {this.renderPopOver()}
-            {this.renderOptions()}   
-        </div>
-      </div>
-    );
+    var {
+      toggle,popupAttrs = {},keyDown,backdropAttrs,openRelatedTo,
+      rtl,animate,popupWidth,fixPopupPosition,dom
+    } = this.context;
+    let {dataUniqId,parentDom,type} = this.props;
+    return (
+      <Popover
+        rtl={rtl} animate={animate} fitHorizontal={popupWidth === 'fit' || type === 'multiselect'}
+        openRelatedTo={openRelatedTo} fixPopupPosition={fixPopupPosition}
+        getTarget={()=>$(parentDom.current)}
+        id={dataUniqId}
+        onClose={()=>toggle(false,true)}
+        backdropAttrs={{
+          ...backdropAttrs,
+          className:ABCLS.popupContainer
+        }}
+        attrs={{
+          onKeyDown:(e)=>keyDown(e,$(this.dom.current)),
+          ...popupAttrs
+        }}
+        body={()=>this.getBody()}
+      />
+    )
   }
 }
 class Multiselect extends Component{
   static contextType = aioButtonContext;
   render(){
     let {showTags,style = {}} = this.context;
-    let {dataUniqId,tags,text,subtext,caret} = this.props;
+    let {dataUniqId,tags,text,subtext,caret,dom} = this.props;
     return (
       <div className={ABCLS.multiselect} style={{width:style.width}}>
-        <Button dataUniqId={dataUniqId} text={text} subtext={subtext} caret={caret}/>
+        <Button dom={dom} dataUniqId={dataUniqId} text={text} subtext={subtext} caret={caret}/>
         {showTags !== false && tags.length !== 0 && <Tags tags={tags}/>}
       </div>
     )
@@ -703,8 +716,11 @@ function CheckIcon(props){
 }
 class Option extends Component{
   render(){
-    let {type,option,realIndex,renderIndex,checked,before,after,text,subtext,className,style,onClick,title,checkIcon,gap = 6,dragStart,dragOver,drop,rtl,onSwap,attrs,multiple} = this.props;
-    let props = {className,title,style,onClick,datarenderindex:renderIndex,datarealindex:realIndex,tabIndex:0,...attrs}
+    let {
+      type,option,realIndex,renderIndex,checked,before,after,text,subtext,className,style,onClick,
+      title,checkIcon,gap = 6,dragStart,dragOver,drop,rtl,onSwap,attrs,multiple,
+    } = this.props;
+    let props = {className,title,style,onClick,datarenderindex:renderIndex,datarealindex:realIndex,tabIndex:0,...attrs,'data-label':this.props['data-label']}
     let checkIconProps = {checked,checkIcon,gap:!before && !text?0:gap,type,multiple}
     if(onSwap){
       props.onDragStart = dragStart;

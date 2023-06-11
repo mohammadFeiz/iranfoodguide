@@ -54,7 +54,11 @@ export default class Map extends Component {
     }
     setCoords({ latitude, longitude }) {
         clearTimeout(this.timeout);
-        this.timeout = setTimeout(() => this.setState({ latitude, longitude }), 500);
+        this.timeout = setTimeout(() => {
+            let {onChange = ()=>{}} = this.props;
+            this.setState({ latitude, longitude });
+            onChange(latitude,longitude)
+        }, 500);
     }
     flyTo(lat, lng) {
         this.map.flyTo([lat, lng], 18);
@@ -65,8 +69,8 @@ export default class Map extends Component {
         this.setState({ latitude: lat, longitude: lng })
     }
     footer_layout() {
-        let { onChange } = this.props;
-        if (!onChange) { return null }
+        let { onSubmit } = this.props;
+        if (!onSubmit) { return null }
         let { latitude, longitude } = this.state;
         return (
             <RVD
@@ -92,7 +96,7 @@ export default class Map extends Component {
                                     let res = await Axios.get(url,param);
                                     if(res.status !== 200){return}
                                     let address = res.data.formatted_address;
-                                    onChange(latitude, longitude,address)
+                                    onSubmit(latitude, longitude,address)
                                 }}>تایید موقعیت</button> }
                             ]
                         },
@@ -111,8 +115,9 @@ export default class Map extends Component {
     render() {
         let {
             changeView, zoom = 12, onClick, style, search,
-            key = 'web.3037ddd42c9e4173af6427782584a2a1',
-            onChange
+            apiKey = 'web.3037ddd42c9e4173af6427782584a2a1',
+            onChange,
+            onSubmit
         } = this.props;
         let { latitude, longitude, delay,prevLatitude,prevLongitude } = this.state;
         if(this.props.latitude !== prevLatitude || this.props.longitude !== prevLongitude){
@@ -124,7 +129,7 @@ export default class Map extends Component {
             <div style={style}>
                 <NeshanMap
                     options={{
-                        key,
+                        key:apiKey,
                         center: [latitude, longitude],
                         maptype: 'standard-day',
                         dragging: changeView !== false,
@@ -144,7 +149,7 @@ export default class Map extends Component {
                         if (onClick) {
                             myMap.on('click', (e) => onClick());
                         }
-                        if (onChange) {
+                        if (onChange || onSubmit) {
                             myMap.on('move', (e) => {
                                 //marker.setLatLng(e.target.getCenter())
                                 let { lat, lng } = e.target.getCenter()
