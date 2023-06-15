@@ -10,9 +10,8 @@ export default class CartCountButton extends Component {
         super(props);
         let {count = 0,product,variantId} = props;
         let Variant = AIOVariant(product);
-        let properties = Variant.getVariant(variantId)
-        let isExist = Variant.isExist(variantId);
-        this.state = { count, prevCount: count,properties,isExist }
+        let properties = Variant.getProperties({variantId})
+        this.state = { count, prevCount: count,properties }
     }
     validateCount(count) {
         if(count === 0){return 0}
@@ -71,11 +70,11 @@ export default class CartCountButton extends Component {
     }
     dirButton_layout(dir) {
         let { count,properties } = this.state;
-        let { max,min,step } = properties;
+        let { max,min,step,inStock } = properties;
         return {
             align: 'vh',
             html: (
-                <button className='as-cart-count-button-step' onClick={() => this.change(count + (dir * step))} disabled={dir === 1 && count >= max}>
+                <button className='as-cart-count-button-step' onClick={() => this.change(count + (dir * step))} disabled={dir === 1 && (count >= max || count >= inStock)}>
                     {this.getIcon(dir,count,min,max)}
                 </button>
             )
@@ -89,21 +88,17 @@ export default class CartCountButton extends Component {
             className:'of-visible',
             row: [
                 this.dirButton_layout(1),
-                { className:'of-visible',html: (<div data-step={step > 1?`${step}+`:undefined} className='as-cart-count-button-input as-fs-m as-fc-d' onClick={() => this.setState({ popup: true })}>{count}</div>) },
+                { align:'v',className:'of-visible',html: (<div data-step={step > 1?`${step}+`:undefined} className='as-cart-count-button-input as-fs-m as-fc-d' onClick={() => this.setState({ popup: true })}>{count}</div>) },
                 this.dirButton_layout(-1)
             ]
         }
     }
-    notExist_layout(){
-        return {html:'نا موجود',className:'as-cart-count-button-not-exist',align:'v'}
-    }
     render() {
         this.handlePropsChanged()
-        let { count,isExist } = this.state;
+        let { count } = this.state;
         let { setCartCount} = this.props;
         let layout;
-        if(!isExist){layout = this.notExist_layout()}
-        else if (count) {
+        if (count) {
             if (!setCartCount) { layout = this.cartIcon_layout() }
             else { layout = this.changeButton_layout() }
         }

@@ -12,20 +12,36 @@ import './product-page.css';
 export default class ProductPage extends Component{
     constructor(props){
         super(props);
-        let Variant = AIOVariant(props.product);
+        let {product,variantId} = props;
+        let {variants = []} = product;
+        let Variant = AIOVariant(product);
+        if(variantId !== undefined){
+            if(!Variant.getVariantById(variantId)){
+                this.state = {error:'محصول مورد نظر یافت نشد'}
+                return;
+            }
+        }
+        let variantKey;
+        let variantMode = !!variants.length;
+        if(variantMode){
+            let firstVariant = Variant.getFirstVariant(variantId)
+            variantKey = firstVariant?firstVariant.key:undefined;
+        }
+        
         this.state = {
-            variantId:props.variantId?props.variantId:Variant.getFirst(),
+            variantKey,
+            variantMode,
             Variant,
-            isExist:true
+            isExist:Variant.isExist({variantKey})
         }
     }
-    changeVariantId(index,value){
-        let {variantId,Variant} = this.state
-        let selectedValues = variantId.split('_');
-        selectedValues[index] = value;
-        let newVariantId = selectedValues.join('_');
-        let isExist = Variant.isExist(newVariantId)
-        this.setState({variantId:newVariantId,isExist})
+    changeVariantKey(optionTypeIndex,optionValueId){
+        let {variantKey,Variant} = this.state
+        let optionValueIds = variantKey.split('_');
+        optionValueIds[optionTypeIndex] = optionValueId;
+        let newVariantKey = optionValueIds.join('_');
+        let isExist = Variant.isExist({variantKey:newVariantKey})
+        this.setState({variantKey:newVariantKey,isExist})
     }
     getImage(image) {
         return <img src={image} height='100%'/>
@@ -80,21 +96,24 @@ export default class ProductPage extends Component{
         return <div className='as-product-page-rate-container'><Rate rate={rate} singleStar={true}/></div>
     }
     name_layout(name){return {className:'as-fs-l as-fc-d as-bold',html:name}}
-    optionTypes_layout(optionTypes,variants){
-        if(this.props.variantId){
-            let {getIconByKey} = this.props;
-            return {html:(<Box layout={{html:this.state.Variant.getList(this.props.variantId,getIconByKey)}}/>)}
-        }
+    variant_layout(optionTypes,variants){
+        let {Variant,variantKey,isExist} = this.state;
         if(!optionTypes.length){return false}
-        let keys = Object.keys(variants);
-        if(!keys.length){return false}
-        let {Variant,variantId,isExist} = this.state;
+        if(!variants.length){return false}
+        if(!variantKey){return false}
+        let {variantId} = this.props;
+        if(variantId !== undefined){
+            let variantKey = Variant.getVariantKeyByVariantId(variantId);
+            let detail = Variant.variantsDic[variantKey];
+            let label = detail.label
+            return {html:(<Box layout={{html:label}}/>)}
+        }
         return {
             html:(
                 <Box
                     layout={{
                         column:[
-                            {gap:6,column:optionTypes.map((o,i)=>this.optionType_layout(o,i))},
+                            {gap:6,column:optionTypes.map((o,i)=>this.optionValues_layout(o,i))},
                             {
                                 html:(
                                     <AIOButton
@@ -105,8 +124,8 @@ export default class ProductPage extends Component{
                                         popupAttrs={{className:'as-product-page-variant-options-popup'}}
                                         options={Variant.options}
                                         optionText='option.textAndPriceLayout'
-                                        value={variantId}
-                                        onChange={(variantId)=>this.setState({variantId,isExist:Variant.isExist(variantId)})}
+                                        value={variantKey}
+                                        onChange={(variantKey)=>this.setState({variantKey,isExist:Variant.isExist({variantKey})})}
                                     />
                                 )
                             }
@@ -116,29 +135,33 @@ export default class ProductPage extends Component{
             )
         }
     }
-    optionType_layout({text,value,nameDictionary},index){
-        let {variantId,Variant} = this.state;
-        let exist = Variant.existValues[index];
-        let selectedValue = variantId.split('_')[index];
+    optionValues_layout({name,id},index){
+        let {variantKey,Variant} = this.state;
+        let optionValues = Variant.optionValueDic[id];
+        let selectedOptionValueId = variantKey.split('_')[index];
         return {
             className:'as-product-page-option-type',
             column:[
-                this.label_layout(text),
+                this.label_layout(name),
                 {size:6},
                 {
                     className:'ofx-auto',
-                    row:exist.map((v)=>this.optionButton_layout(nameDictionary[v],v,selectedValue === v,index))
+                    row:optionValues.map((o)=>{
+                        let active = selectedOptionValueId === o.optionValueId;
+                        return this.optionButton_layout(o,active,index)
+                    })
                 }
             ]
         }
     }
-    optionButton_layout(text,value,active,index){
+    optionButton_layout(o,active,index){
+        let {optionValueName,optionValueId} = o;
         return {
             html:(
                 <button 
                     className={'as-product-page-option-type-button as-fs-m' + (active?' active':'')}
-                    onClick={()=>this.changeVariantId(index,value)}
-                >{text}</button>
+                    onClick={()=>this.changeVariantKey(index,optionValueId)}
+                >{optionValueName}</button>
             )
         }
     }
@@ -204,16 +227,22 @@ export default class ProductPage extends Component{
         return {html:<Box {...obj}/>,className:'as-fs-m as-fc-m'}
     }
     footer_layout(product,price,discountPercent,inStock,min,max,renderCartCountButton){
+        let {variantKey,isExist,Variant} = this.state;
+        if(!isExist){return {html:'ناموجود',className:'as-product-page-footer as-not-exist',align:'v'}}
         let {getCartCount,unit} = this.props;
-        let {variantId,isExist} = this.state;
-        let count = getCartCount({variantId});
+        let variantId = Variant.getVariantIdByVariantKey(variantKey)
+        let count = getCartCount({variantId,productId:product.id});
         if(count && count < min){
             count = min
         }
         let maxText = '',minText = '';
-        if(!!min){minText = `حداقل ${min} عدد`}
-        if(count === max){maxText = `حداکثر ${max} عدد`}
-        else if(count === inStock){maxText = `سقف موجودی`}
+        if(max && inStock){
+            if(!!min){minText = `حداقل ${min} عدد`}
+            if(max && inStock){
+                if(count === max){maxText = `حداکثر ${max} عدد`}
+                else if(count === inStock){maxText = `سقف موجودی`}
+            }
+        }
         return {
             className:'as-product-page-footer',
             row:[
@@ -229,7 +258,7 @@ export default class ProductPage extends Component{
                     ]
                 },
                 {flex:1},
-                {show:!!isExist,html:<Price unit={unit} price={price} discountPercent={discountPercent} type='v' size='l'/>} 
+                {html:<Price unit={unit} price={price} discountPercent={discountPercent} type='v' size='l'/>} 
             ]
         }        
     }
@@ -248,10 +277,11 @@ export default class ProductPage extends Component{
         }
     }
     render(){
-        let {variantId,Variant} = this.state;
+        let {variantKey,Variant,error} = this.state;
+        if(error){return (<RVD layout={{className:'as-product-page',html:error,align:'vh'}}/>)}
         let {product,collections = [],renderCartCountButton,renderProductSlider} = this.props;
-        let {name,variants = {},optionTypes = [],commentsLength} = product;
-        let {image,price,discountPercent,review,rate,rates,details,inStock = Infinity,min,max} = Variant.getVariant(variantId);
+        let {name,variants = [],optionTypes = [],commentsLength} = product;
+        let {image,price,discountPercent,review,rate,rates,details,inStock = Infinity,min,max} = Variant.getProperties({variantKey});
         return (
             <RVD
                 layout={{
@@ -264,7 +294,7 @@ export default class ProductPage extends Component{
                                 this.import_layout(0),
                                 this.comments_layout(commentsLength),
                                 this.import_layout(1),
-                                this.optionTypes_layout(optionTypes,variants),
+                                this.variant_layout(optionTypes,variants),
                                 this.import_layout(2),
                                 this.details_layout(details),
                                 this.import_layout(3),

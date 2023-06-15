@@ -8,12 +8,12 @@ import './product-card.css';
 export default class ProductCard extends Component {
     constructor(props){
         super(props);
-        let {product,variantId,getIconByKey} = props;
-        let Variant = AIOVariant(product)
-        let variantLayout = Variant.getList(variantId,getIconByKey); 
-        let properties = Variant.getVariant(variantId);
+        let {product,variantId} = props;
+        let Variant = AIOVariant(product);
+        let properties = Variant.getProperties({variantId});
+        let isExist = Variant.isExist({variantId})
         let discountPercentNumber = getDiscountPercent(properties.discountPercent);
-        this.state = {discountPercentNumber,variantLayout,properties}
+        this.state = {discountPercentNumber,properties,Variant,isExist}
     }
     getImage(image,type) {
         let {onClick} = this.props;
@@ -23,32 +23,22 @@ export default class ProductCard extends Component {
         else if (type === 'shipping'){props.width = '100%'}
         return <img {...props} />
     }
-    discount_layout() {
-        let {properties,discountPercentNumber} = this.state;
-        if(!discountPercentNumber){return false}
-        let {price,discountPercent} = properties;
-        let {type = 'horizontal',unit} = this.props;
-        if(type !== 'horizontal'){return false}
-        return <Price price={price} unit={unit} discountPercent={discountPercent} type='h' size='s' style={{position:'absolute',left:6,top:6}} showPrice={false}/>
-    }
     name_layout() { 
         let { properties } = this.state;
         let { productName } = properties;
         return { html: productName, className: 'as-product-card-name' } 
     }
     description_layout() {
-        let { variantLayout,properties } = this.state;
+        let { properties,Variant } = this.state;
         let {description} = properties;
-        if (!description && !variantLayout) { return false }
-        return { html: variantLayout || description, className: 'as-product-card-description' }
-    }
-    price_layout() {
-        let { properties } = this.state;
-        let {price,discountPercent} = properties; 
-        let {unit} = this.props;
-        return {
-            html:<Price unit={unit} price={price} discountPercent={discountPercent} type='h' showDiscountPercent={false}/>
-        }
+        let {variantId} = this.props;
+        let variantKey = Variant.getVariantKeyByVariantId(variantId);
+        let html;
+        if(variantId){html = Variant.variantsDic[variantKey].label}
+        else if(description){html = description;}
+        else {return false}
+        if (!description && variantId === undefined) { return false }
+        return { html, className: 'as-product-card-description' }
     }
     html_layout(html){
         if(!html){return null}
@@ -64,7 +54,6 @@ export default class ProductCard extends Component {
             html: (
                 <>
                     {this.getImage(image,type)}
-                    {this.discount_layout()}
                     {this.html_layout(html)}
                 </>
             )
@@ -72,11 +61,13 @@ export default class ProductCard extends Component {
     }
     cartButton_layout(){
         let {product,variantId,renderCartCountButton,config = {}} = this.props;
+        let {isExist} = this.state;
         let {showCart = true} = config;
         if(!showCart){return false}
+        if(!isExist){return {html:'نا موجود',className:'fs-10',color:'red',align:'v'}}
         return { 
             className:'of-visible',
-            html: renderCartCountButton({product,variantId,config})
+            html: !isExist?'نا موجود':renderCartCountButton({product,variantId,config})
         }
     }
     getClassName(){
@@ -84,6 +75,9 @@ export default class ProductCard extends Component {
         return 'as-product-card' + (className ? ' ' + className : '') + (' ' + type)
     }
     getLayout_horizontal(){
+        let { properties } = this.state;
+        let {price,discountPercent} = properties; 
+        let {unit} = this.props;
         return {
             className: this.getClassName(),
             row: [
@@ -101,9 +95,9 @@ export default class ProductCard extends Component {
                                 {
                                     className:'of-visible',
                                     row: [
-                                        this.price_layout(),
-                                        {flex:1},
                                         this.cartButton_layout(),
+                                        {flex:1},
+                                        {html:<Price unit={unit} price={price} discountPercent={discountPercent}/>},
                                         { size: 12 }
                                     ]
                                 },
@@ -137,10 +131,9 @@ export default class ProductCard extends Component {
                                 {size:6},
                                 {
                                     row:[
-                                        {flex:1},
-                                        this.cartButton_layout(),
+                                        this.cartButton_layout()
                                     ]
-                                },
+                                }
                             ]
                         }
                     ]
@@ -149,8 +142,10 @@ export default class ProductCard extends Component {
         }
     }
     getLayout_shipping(){
-        let {properties} = this.state;
-        let {price,discountPercent,variantName} = properties;
+        let {properties,Variant} = this.state;
+        let {variantId} = this.props;
+        let {price,discountPercent} = properties;
+        let {variantsDic} = Variant;
         let {unit} = this.props;
         return {
             className: this.getClassName(),
@@ -160,16 +155,19 @@ export default class ProductCard extends Component {
                 {
                     flex: 1,
                     column: [
-                        { flex: 1 },
                         this.name_layout(),
-                        {html:variantName,className:'as-fs-s as-fc-m m-b-6 as-bold',align:'v',show:!!variantName},
+                        {
+                            size:24,
+                            html:()=>{
+                                let variantKey = Variant.getVariantKeyByVariantId(variantId);
+                                return variantsDic[variantKey].label;
+                            },className:'fs-10',align:'v',show:variantId !== undefined},
                         {
                             row:[
-                                {html:<Price unit={unit} price={price} discountPercent={discountPercent} type='h' size='s'/>,flex:1},
+                                {html:<Price unit={unit} price={price} discountPercent={discountPercent} type='h'/>,flex:1},
                                 this.cartButton_layout()
                             ]
                         },
-                        { flex: 1 }
                     ]
                 }
             ]

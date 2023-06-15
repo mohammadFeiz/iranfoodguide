@@ -32,6 +32,12 @@ export default class Shipping extends Component {
         this.changeShipping(shipping)
     }
     items_layout(cartItems,renderProductCard) {
+        let cartItems_layout = cartItems.map(({productId,variantId,type,product}) => {
+            if(!productId){console.error('Cart error => missing productId props')}
+            if(type === 'variant' && !variantId){console.error('Cart error => missing variantId props in cartItem by type = "variant"')}
+            let html = renderProductCard({product,variantId,config:{type:'shipping'}})
+            return {className: 'of-visible', html}
+        })
         return {
             html:(
                 <Box
@@ -40,14 +46,7 @@ export default class Shipping extends Component {
                         column: [
                             {
                                 flex: 1, className: 'of-visible',
-                                column: cartItems.map(({productId,variantId,type,product}) => {
-                                    if(!productId){console.error('Cart error => missing productId props')}
-                                    if(type === 'variant' && !variantId){console.error('Cart error => missing variantId props in cartItem by type = "variant"')}
-                                    return { 
-                                        className: 'of-visible', 
-                                        html: renderProductCard({product,variantId,config:{type:'shipping'}})
-                                    }
-                                })
+                                column:cartItems_layout
                             }
                         ]
                     }}

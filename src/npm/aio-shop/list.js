@@ -23,7 +23,7 @@ export default class List extends Component{
     }
     render(){
         let {config = {},renderProductCard} = this.props;
-        let {header,footer,search} = config;
+        let {header,footer} = config;
         let items = this.getItemsBySearch();
         return (
             <RVD
@@ -31,7 +31,7 @@ export default class List extends Component{
                     className:'as-list of-visible',
                     column:[
                         {
-                            show:!!search,className:'as-list-search',
+                            className:'as-list-search',
                             html:<SearchBox onChange={(searchValue)=>this.setState({searchValue})}/>
                         },
                         {

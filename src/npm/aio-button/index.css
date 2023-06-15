@@ -18,6 +18,7 @@ body.aio-button-open {
   font-size: 12px;
   font-family: inherit;
   background:#eee;
+  height:36px;
 }
 .aio-button.has-label:before{
   content:attr(data-label);
@@ -623,4 +624,9 @@ a.aio-button-option {
   display:flex;
   align-items: center;
   justify-content: center;
+  opacity:0.5;
+}
+.aio-button-popover{
+  display:flex;
+  flex-direction: column;
 }

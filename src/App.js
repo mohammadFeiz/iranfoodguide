@@ -98,7 +98,6 @@ export default class App extends Component {
     )
   }
   render() {
-    return <BackOffice/>
     let { isLogin, token, logout, userId } = this.state;
     if (isLogin) {
       return <IranFoodGuide token={token} personId={this.personId} logout={logout} mobileNumber={userId} roles={[]} />
@@ -223,7 +222,7 @@ class IranFoodGuide extends Component {
   render() {
     let {backOffice} = this.state;
     if(backOffice){
-      return <BackOffice/>
+      return <BackOffice onClose={()=>this.setState({backOffice:false})}/>
     }
     return (
       <AppContext.Provider value={this.getContext()}>
@@ -246,7 +245,7 @@ class IranFoodGuide extends Component {
             this.state.rsa_actions = obj;
             this.setState({ rsa_actions: obj })
           }}
-          header={() => <AppHeader/>}
+          header={() => <AppHeader SetState={(obj)=>this.setState(obj)}/>}
         />
       </AppContext.Provider>
     )
@@ -263,7 +262,8 @@ class AppHeader extends Component {
     )
   }
   profile_layout(){
-    return {className: 'of-visible', align: 'v',html: this.renderIcon('account')}
+    let {SetState} = this.props;
+    return {className: 'of-visible', align: 'v',html: this.renderIcon('account'),onClick:()=>SetState({backOffice:true})}
   }
   logo_layout(){
     return {

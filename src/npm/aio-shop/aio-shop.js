@@ -17,19 +17,20 @@ import './aio-shop.css';
 export default function AIOShop(obj = {}) {
     let { 
         id, update, cartCache,checkDiscountCode, getDiscounts = () => { return [] },
-        getExtras = () => [], getShippingOptions = () => [],getIconByKey = ()=>'',unit,addText='افزودن به سبد خرید'
+        getExtras = () => [], getShippingOptions = () => [],getIconByKey = ()=>'',unit,addText='افزودن به سبد خرید',getProductById,
     } = obj
     if (!id) { return }
     let $$ = {
         factor: {},
+        changesOfCart:{},
         storage: AIOStorage('aioshop' + id),
         cart: {},
         shipping: {},
         getCartItem({productId,variantId}){
-            let p = $$.cart[productId];
-            if(!p){return false}
-            if(variantId){return p.variants[variantId];}
-            return p;
+            let cartItem = $$.cart[productId];
+            if(!cartItem){return false}
+            if(variantId){return cartItem.variants[variantId];}
+            return cartItem;
         },
         getCartItems(productId) {
             let productIds;
@@ -107,7 +108,7 @@ export default function AIOShop(obj = {}) {
                 let newCart = {};
                 if(variantId){
                     let cartItem = $$.cart[product.id] || {product,variants:{},type:'variant'};
-                    cartItem.variants[variantId] = cartItem.variants[variantId] || {...AIOVariant(product).getVariant(variantId),product};
+                    cartItem.variants[variantId] = cartItem.variants[variantId] || {...AIOVariant(product).getProperties({variantId}),product};
                     cartItem.variants[variantId].count = count;
                     newCart = {...$$.cart,[product.id]: cartItem};
                 }
@@ -305,11 +306,10 @@ export default function AIOShop(obj = {}) {
         },
         isChangable({product,variantId,config = {}}){
             let  { changeCart} = config;
-            let {variants = {}} = product;
-            let hasVariant = !!Object.keys(variants).length;
-            if(variantId && !hasVariant){alert('error 0999545'); return false} 
+            let {variants = []} = product;
+            if(variantId && !variants.length){alert('error 0999545'); return false} 
             if(changeCart !== true){return false}
-            if(hasVariant && !variantId){return false}
+            if(variants.length && !variantId){return false}
             return true
         },
         renderProductCard({product, variantId,config = {}}) {
@@ -358,9 +358,22 @@ export default function AIOShop(obj = {}) {
                     className={className}
                 />
             )
-        }
+        },
+        // validateCart(){
+        //     if(!getProductById){return}
+        //     let cartItems = $$.getCartItems();
+        //     for(let i = 0; i < cartItems.length; i++){
+        //         let cartItem = cartItems[i];
+        //         let oldProduct = cartItem;
+        //         debugger;
+        //         let newProduct = getProductById(oldProduct.productId,oldProduct.variantId)
+        //         let oldProperties = AIOVariant(cartItem.product).getProperties({variantkey:cartItem.variantKey});
+        //         if(cartItem.count > )
+        //     }
+        // }
     }
     $$.cart = cartCache ? $$.storage.load({ name: 'cart', def: {} }) : {};
+    //$$.validateCart();
     $$.updateFactor();
     return {
         getCartItems: $$.getCartItems.bind($$),
@@ -381,10 +394,3 @@ export default function AIOShop(obj = {}) {
         renderList:$$.renderList.bind($$)
     }
 }
-
-
-
-
-
-
-

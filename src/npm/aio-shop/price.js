@@ -3,87 +3,82 @@ import RVD from '../react-virtual-dom/react-virtual-dom';
 import SplitNumber from '../aio-functions/split-number';
 import getDiscountPercent from './getDiscountPercent';
 export default class Price extends Component{
-    price_layout(sum,price,config){
+    price_layout(sum){
         if(!sum){return false}
-        return {show:!!sum,html:(<del>{SplitNumber(price)}</del>),align:'v',...config}
+        let {price} = this.props;
+        return {show:!!sum,html:(<del>{SplitNumber(price)}</del>),align:'v',style:{fontSize:'80%'}}
     }
-    finalPrice_layout(sum,price,config){
-        return {html:`${SplitNumber(price - (price * sum / 100))}`,align:'v',...config}
+    finalPrice_layout(sum){
+        let {price} = this.props;
+        return {html:`${SplitNumber(price - (price * sum / 100))}`,align:'v',style:{fontWeight:'bold'}}
     }
-    unit_layout(unit,config){
-        return {html:unit,align:'v',...config}
+    unit_layout(){
+        let {unit} = this.props;
+        return {html:unit,align:'v',style:{fontSize:'70%'}}
     }
     validateDiscountPercent(v = 0){v = +v; if(isNaN(v)){v = 0} return v}
-    discountPercent_layout(discountPercentNumber,showDiscountPercent){
-        let {discountPercent,size = 'm'} = this.props;
-        if(showDiscountPercent === false || !discountPercentNumber){return false}
+    discountPercent_layout(sum){
+        if(!sum){return false}
+        let {discountPercent} = this.props;
         let list = !Array.isArray(discountPercent)?[{value:discountPercent}]:discountPercent.map((o)=>{
             return typeof o === 'object'?o:{value:o}
         })
-        let sizeClassName = {
-            's':'as-discount-box-small',
-            'm':'as-discount-box-medium',
-            'l':'as-discount-box-large'
-        }[size]
         return {
-            gap:3,
-            row:list.map(({text,value,color})=>{
+            gap:3,style:{fontSize:'85%'},
+            row:list.map(({value})=>{
                 value = this.validateDiscountPercent(value);
                 return {
-                    show:!!value,html:value + '%',style:{background:color},
-                    className:'as-discount-box ' + sizeClassName,align:'v'
+                    show:!!value,html:value + '%',
+                    className:'as-discount-box',align:'v'
                 }
             })
         }
     }
     render(){
-        let {price,discountPercent,style,type,showDiscountPercent,showPrice,size = 'm',unit} = this.props;
-        let discountPercentNumber = getDiscountPercent(discountPercent)
+        let {discountPercent,type = 'v'} = this.props;
+        let sum = getDiscountPercent(discountPercent)
         if(type === 'h'){
             return (
                 <RVD
                     layout={{
-                        gap:3,style,
+                        className:'as-price-layout',
+                        gap:3,
                         row:[
-                            this.discountPercent_layout(discountPercentNumber,showDiscountPercent),
-                            showPrice !== false?this.price_layout(discountPercentNumber,price,{className:'as-fs-m as-fc-m'}):false,
-                            showPrice !== false?this.finalPrice_layout(discountPercentNumber,price,{className:'as-fs-m as-fc-d as-bold'}):false,
-                            showPrice !== false?this.unit_layout(unit,{className:'as-fs-s as-fc-l'}):false,
-                            
+                            this.discountPercent_layout(sum),
+                            this.price_layout(sum),
+                            this.finalPrice_layout(sum),
+                            this.unit_layout()
                         ]
                     }}
                 />
             )
         }
+        return (
+            <RVD
+                layout={{
+                    className:'as-price-layout',
+                    column:[
+                        {flex:1},
+                        {
+                            gap:3,show:!!sum,
+                            row:[
+                                {flex:1},
+                                this.price_layout(sum),
+                                this.discountPercent_layout(sum)
+                            ]
+                        },
+                        {
+                            row:[
+                                {flex:1},
+                                this.finalPrice_layout(sum),
+                                this.unit_layout()
+                            ]
+                        },
+                        {flex:1}
+                    ]
+                }}
+            />
+        )
         
-        if(type === 'v'){
-            return (
-                <RVD
-                    layout={{
-                        style,
-                        column:[
-                            {flex:1},
-                            {
-                                gap:6,show:!!discountPercentNumber,
-                                row:[
-                                    {flex:1},
-                                    this.price_layout(discountPercentNumber,price,{className:size === 'l'?'as-fs-m as-fc-l':(size==='m'?'as-fs-s as-fc-l':'as-fs-s as-fc-l')}),
-                                    this.discountPercent_layout(discountPercentNumber,showDiscountPercent)
-                                ]
-                            },
-                            {
-                                row:[
-                                    {flex:1},
-                                    this.finalPrice_layout(discountPercentNumber,price,{className:size === 'l'?'as-fs-l as-fc-d as-bold':(size==='m'?'as-fs-m as-fc-d as-bold':'as-fs-s as-fc-d as-bold')}),
-                                    this.unit_layout(unit,{className:size === 'l'?'as-fs-m as-fc-l as-bold':(size==='m'?'as-fs-s as-fc-l as-bold':'as-fs-s as-fc-l as-bold')})
-                                ]
-                            },
-                            {flex:1}
-                        ]
-                    }}
-                />
-            )
-        }
-
     }
 }

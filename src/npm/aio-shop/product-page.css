@@ -5,10 +5,6 @@
     box-sizing: border-box;
     height:100%;
 }
-.as-product-page-footer-discount-box-container .as-discount-box{
-    padding:1px 3px;
-    font-size:14px;
-}
 
 .as-product-page .as-cart-count-button-add{
     height:36px;
@@ -21,7 +17,7 @@
 .as-product-page-body{
     padding:var(--as-gap);
 }
-.as-product-page-image img,.as-product-page-image .aio-button{
+.as-product-page-image img{
     max-height:200px;
 }
 .as-product-page-option-type-button{
@@ -93,4 +89,7 @@
 .as-product-page-variant-options-popup .aio-button-option:hover{
     background:#eee !important;
     color:unset !important;
+}
+.as-product-page-footer .as-price-layout{
+    font-size:16px;
 }

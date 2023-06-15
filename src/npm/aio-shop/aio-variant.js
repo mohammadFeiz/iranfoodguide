@@ -2,83 +2,122 @@ import React from 'react';
 import RVD from '../react-virtual-dom/react-virtual-dom';
 import Price from './price';
 export default function AIOVariant(product) {
-    let { variants = {}, optionTypes = [] } = product;
+    let { variants = [], optionTypes = [] } = product;
     let $$ = {
-        existValues: [],
+        variantsDic:{},
+        optionValueDic:{},
         options: [],
-        getFirst() {
+        getVariantById(id){return id === undefined?undefined:variants.find((o)=>o.id === id)},
+        getVariantByKey(key){return key === undefined?undefined:variants.find((o)=>o.key === key)},
+        getVariantKeyByVariantId(variantId){
+            if(variantId === undefined){return}
+            let variant = this.getVariantById(variantId);
+            if(!variant){return}
+            return variant.key;
+        },
+        getVariantKeyByValues(values){
+            return values.join('_')
+        },
+        getOptionTypeById(id){
+            return optionTypes.find((o)=>o.id === id)
+        },
+        getVariantIdByVariantKey(variantKey){
+            if(variantKey === undefined){return}
+            let variant = this.getVariantByKey(variantKey);
+            if(!variant){return}
+            return variant.id;
+        },
+        getOptionValueName({optionTypeId,optionValueId}){
+            let {optionValues} = this.getOptionTypeById(optionTypeId);
+            return optionValues.find((o)=>o.id === optionValueId).name;
+        },
+        getFirstVariant(variantId) {
             let { defaultVariant } = product;
-            if (!this.variantIds.length) { return false }
+            if (!variants.length) { return }
+            if(variantId){
+                let variant = this.getVariantById(variantId)
+                if(variant){return variant}
+            }
             if (defaultVariant) {
-                if (variants[defaultVariant]) {
-                    let inStock = this.getInStock(defaultVariant);
-                    if (inStock) { return defaultVariant }
+                let variant = this.getVariantById(defaultVariant)
+                if (variant) {
+                    let inStock = this.getInStock(variant.key);
+                    if (inStock) { return variant }
                 }
             }
-            for (let i = 0; i < this.variantIds.length; i++) {
-                let key = this.variantIds[i]
-                let inStock = this.getInStock(key);
-                if (inStock) { return key }
+            for (let i = 0; i < variants.length; i++) {
+                let variant = variants[i]
+                let inStock = this.getInStock(variant.key);
+                if (inStock) { return variant }
             }
-            return false
         },
-        getList(variantId,getIconByKey,inline){
-            if(!variantId){return false}
-            let values = variantId.split('_'); 
-            let childs = optionTypes.map((ot,i)=>{
-                let value = values[i];
-                let {nameDictionary = {[value]:value},iconKey,text} = ot;
-                let icon = typeof iconKey === 'object'?iconKey[value] : iconKey;
-                icon = getIconByKey(icon) || '';
-                return {
-                    className:'as-variant-list-item',
-                    gap:3,
-                    row:[
-                        {show:!!icon,html:icon,align:'vh'},
-                        {html:text,align:'vh'},
-                        {html:':',align:'vh'},
-                        {html:nameDictionary[value],align:'vh'},
-                        
-                    ]
-                }
-            })
-            return <RVD layout={{[inline?'row':'column']:childs,className:'as-variant-list'}}/>
-        },
-        getInStock(variantId) {
-            if(!variantId){
+        getInStock(variantKey) {
+            if(!variantKey){
                 let {inStock = Infinity} = product;
                 return inStock;
             }
-            let variant = variants[variantId];
+            let variant = this.getVariantByKey(variantKey);
             if(!variant){return false}
             let { inStock = Infinity } = variant;
             return inStock;
         },
-        getExistValues() {
-            let result = optionTypes.map(() => [])
-            for (let i = 0; i < this.variantIds.length; i++) {
-                let values = this.variantIds[i].split('_');
-                for (let j = 0; j < optionTypes.length; j++) {
-                    if (result[j].indexOf(values[j]) === -1) {
-                        result[j].push(values[j])
+        getOptionValueDic() {
+            try{
+                let res = {};
+            for(let i = 0; i < optionTypes.length; i++){
+                let {id,name} = optionTypes[i];
+                let preventDuplicate = []
+                res[id] = [];
+                for(let j = 0; j < variants.length; j++){
+                    let {key} = variants[j];
+                    let keyList = key.split('_')
+                    let optionValueId = keyList[i];
+                    if(preventDuplicate.indexOf(optionValueId) === -1){
+                        preventDuplicate.push(optionValueId);
+                        res[id].push({
+                            optionValueName:this.getOptionValueName({optionTypeId:id,optionValueId}),
+                            optionTypeName:name,optionValueId,optionTypeId:id
+                        })
                     }
                 }
             }
-            return result;
+            return res
+            }
+            catch{
+                debugger;
+                let res = {};
+            for(let i = 0; i < optionTypes.length; i++){
+                let {id,name} = optionTypes[i];
+                let preventDuplicate = []
+                res[id] = [];
+                for(let j = 0; j < variants.length; j++){
+                    let {value} = variants[j];
+                    let optionValueId = value[id];
+                    if(preventDuplicate.indexOf(optionValueId) === -1){
+                        preventDuplicate.push(optionValueId);
+                        res[id].push({
+                            optionValueName:this.getOptionValueName({optionTypeId:id,optionValueId}),
+                            optionTypeName:name,optionValueId,optionTypeId:id
+                        })
+                    }
+                }
+            }
+            return res
+            }
         },
-        getProp(variantId, prop, def) {
+        getProp(variantKey, prop, def) {
             let result;
-            if (!variantId) { result = product[prop] }
+            if (!variantKey) { result = product[prop] }
             else {
-                let variant = variants[variantId];
+                let variant = this.getVariantByKey(variantKey);
                 result = variant && variant[prop] !== undefined ? variant[prop] : product[prop]; 
             }
             if (result === undefined) { result = def }
             return result;
         },
-        getDetails(variantId) {
-            if (!variantId) { return product.details || [] }
-            let variant = variants[variantId];
+        getDetails(variantKey) {
+            if (!variantKey) { return product.details || [] }
+            let variant = this.getVariantByKey(variantKey);
             if (!variant) { return false }
             let { details: variant_details = [] } = variant;
             let { details: product_details = [] } = product;
@@ -107,55 +146,20 @@ export default function AIOVariant(product) {
             }
             return result_list
         },
-        getPriceLayout(key) {
-            let price = this.getProp('price', key);
-            let discountPercent = this.getProp('discountPercent', key);
-            return <Price price={price} discountPercent={discountPercent} type='h' size='s' />
+        getPriceLayout(variantKey) {
+            let price = this.getProp(variantKey,'price');
+            let discountPercent = this.getProp(variantKey,'discountPercent');
+            return <Price price={price} discountPercent={discountPercent} type='h'/>
         },
-        getText(key) {
-            if (!key) { return }
-            let values = key.split('_');
-            let str = '';
-            for (let i = 0; i < optionTypes.length; i++) {
-                let { nameDictionary = { [value]: value }, text } = optionTypes[i];
-                let value = values[i];
-                str += text;
-                str += ' : ' + nameDictionary[value];
-                if (i < optionTypes.length - 1) { str += ' - ' }
-            }
-            return str;
-        },
-        getTextLayout(key) {
-            if (!key) { return }
-            let values = key.split('_');
-            return (
-                <RVD
-                    layout={{
-                        gap: 6,
-                        row: optionTypes.map((o, i) => {
-                            let { nameDictionary = { [value]: value }, text } = o;
-                            let value = values[i];
-                            return {
-                                gap: 3,
-                                row: [
-                                    { html: `${text} :`, align: 'v', className: 'as-fs-s as-fc-l' },
-                                    { html: nameDictionary[value], align: 'v', className: 'as-fs-m as-fc-d as-bold' }
-                                ]
-                            }
-                        })
-                    }}
-                />
-            )
-        },
-        getTextAndPriceLayout(key) {
-            if (!key) { return }
+        getTextAndPriceLayout(variantKey) {
+            if (!variantKey) { return }
             return (
                 <RVD
                     layout={{
                         column: [
-                            { html: this.getTextLayout(key) },
+                            { html: $$.variantsDic[variantKey].label, align: 'v', className: 'as-fs-s as-fc-l' },
                             { size: 3 },
-                            { html: this.getPriceLayout(key) }
+                            { html: this.getPriceLayout(variantKey) }
                         ]
                     }}
                 />
@@ -163,80 +167,107 @@ export default function AIOVariant(product) {
         },
         getOptions() {
             let result = []
-            let variant_list = Object.keys(variants);
-            for (let i = 0; i < variant_list.length; i++) {
-                let key = variant_list[i];
-                if (!this.getInStock(key)) { continue }
+            for (let i = 0; i < variants.length; i++) {
+                let variant = variants[i];
+                let variantKey = variant.key;
+                if (!this.getInStock(variantKey)) { continue }
                 result.push({
-                    value: key,
-                    text: this.getText(key),
-                    textAndPriceLayout: this.getTextAndPriceLayout(key),
-                    textLayout: this.getText(key),
-                    priceLayout: this.getPriceLayout(key),
-                    price: this.getProp('price', key)
+                    value: variantKey,
+                    variantLabel: $$.variantsDic[variantKey].label,
+                    textAndPriceLayout: this.getTextAndPriceLayout(variantKey),
+                    priceLayout: this.getPriceLayout(variantKey),
+                    price: this.getProp(variantKey,'price')
                 })
             }
             return result;
         },
-        getVariant(variantId) {
-            let { variants = {} } = product;
+        getVariantLabel({variantId,variantKey}){
+            variantKey = variantKey || this.getVariantKeyByVariantId(variantId);
+            let variantValues = variantKey.split('_');
+            return optionTypes.map((optionType,i)=>{
+                let {optionValues,name} = optionType;
+                let variantValue = variantValues[i];
+                let optionValue = optionValues.find((o)=>o.id === variantValue)
+                let optionTypeName = name;
+                let optionValueName = optionValue.name;
+                return `${optionTypeName} : ${optionValueName}`;
+            }).join(' - ')
+        },
+        getDiscountPercent(dp = 0){
+            function validate(v = 0){v = +v; if(isNaN(v)){v = 0} return v};
+            let list = !Array.isArray(dp)?[{value:dp}]:dp.map((o)=>{
+                return typeof o === 'object'?o:{value:o}
+            })
+            let sum = 0;
+            for(let i = 0; i < list.length; i++){
+                sum += validate(list[i].value);
+            }
+            return sum;
+        },
+        getProperties(obj = {}) {
+            let {variantKey,variantId} = obj;
+            if(!variantKey && variantId !== undefined){variantKey = this.getVariantKeyByVariantId(variantId);}
             let type, id;
-            if (variantId) {
-                if (!variants[variantId]) {type = 'product'; id = product.id;}
-                else {type = 'variant'; id = variants[variantId].id;}
+            if (variantKey) {
+                let variant = this.getVariantByKey(variantKey);
+                if (!variant) {type = 'product'; id = product.id;}
+                else {type = 'variant'; id = variant.id;}
             }
             else {type = 'product'; id = product.id;}
             return {
-                type, id, variantName:this.getText(variantId),
-                variantId,
+                type, id,
+                variantKey,variantId,
                 productId:product.id,
                 productName: product.name,
-                image: this.getProp(variantId,'image', ''),
-                min: this.getProp(variantId,'min', 0),
-                max: this.getProp(variantId,'max', Infinity),
-                step: this.getProp(variantId,'step', 1),
-                price: this.getProp(variantId,'price', 0),
-                inStock: this.getProp(variantId,'inStock', Infinity),
-                discountPercent: this.getProp(variantId,'discountPercent', 0),
-                review: this.getProp(variantId,'review'),
-                description: this.getProp(variantId,'description'),
-                rate: this.getProp(variantId,'rate'),
-                rates: this.getProp(variantId,'rates', []),
-                details: this.getDetails(variantId)
+                image: this.getProp(variantKey,'image', ''),
+                min: this.getProp(variantKey,'min', 0),
+                max: this.getProp(variantKey,'max', Infinity),
+                step: this.getProp(variantKey,'step', 1),
+                price: this.getProp(variantKey,'price', 0),
+                inStock: this.getProp(variantKey,'inStock', Infinity),
+                discountPercent: this.getProp(variantKey,'discountPercent', 0),
+                review: this.getProp(variantKey,'review'),
+                description: this.getProp(variantKey,'description'),
+                rate: this.getProp(variantKey,'rate'),
+                rates: this.getProp(variantKey,'rates', []),
+                details: this.getDetails(variantKey)
             }
         },
-        getVariants() {
-            let result = {};
-            for (let i = 0; i < $$.variantIds.length; i++) {
-                let variantId = $$.variantIds[i];
-                result[variantId] = this.getVariant(variantId)
-            }
-            return result;
-        },
-        isExist(variantId) {
-            if(!variantId){
+        isExist(obj) {
+            let {variantKey,variantId} = obj;
+            if(!variantKey && variantId !== undefined){variantKey = this.getVariantKeyByVariantId(variantId);}
+            if(!variantKey){
                 let {max = Infinity,inStock = Infinity} = product;
                 return !!max && !!inStock;
             }
-            if(!variants[variantId]){return false}
-            let max = this.getProp(variantId,'max', Infinity)
-            let inStock = this.getProp(variantId,'inStock', Infinity)
+            if(!this.getVariantByKey(variantKey)){return false}
+            let max = this.getProp(variantKey,'max', Infinity)
+            let inStock = this.getProp(variantKey,'inStock', Infinity)
             return !!max && !!inStock;
         }
     }
-    $$.variantIds = Object.keys(variants);
-    $$.existValues = $$.getExistValues();
+    $$.variantsDic = {};
+    for(let i = 0; i < variants.length; i++){
+        let variant = variants[i];
+        $$.variantsDic[variant.key] = {}
+        $$.variantsDic[variant.key].label = $$.getVariantLabel({variantKey:variant.key});
+        $$.variantsDic[variant.key].properties = $$.getProperties({variantKey:variant.key})
+    }
     $$.options = $$.getOptions();
+    $$.optionValueDic = $$.getOptionValueDic()
     return {
-        getFirst: $$.getFirst.bind($$),
-        getList:$$.getList.bind($$),
-        existValues: $$.existValues,
+        variantsDic:$$.variantsDic,
+        optionValueDic:$$.optionValueDic,
+        getVariantKeyByValues:$$.getVariantKeyByValues.bind($$),
+        getFirstVariant: $$.getFirstVariant.bind($$),
         options: $$.options,
-        variantIds: $$.variantIds,
         isExist: $$.isExist.bind($$),
         getProp: $$.getProp.bind($$),
         getDetails: $$.getDetails,
-        getVariant: $$.getVariant.bind($$),
-        getVariants: $$.getVariants.bind($$),
+        getProperties: $$.getProperties.bind($$),
+        getVariantById:$$.getVariantById.bind($$),
+        getVariantByKey:$$.getVariantByKey.bind($$),
+        getVariantKeyByVariantId:$$.getVariantKeyByVariantId.bind($$),
+        getVariantIdByVariantKey:$$.getVariantIdByVariantKey.bind($$)
     }
 }

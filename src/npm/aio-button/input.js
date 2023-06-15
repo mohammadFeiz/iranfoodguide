@@ -18,11 +18,9 @@ export default class Input extends Component{
     handleClick(e){
       let target = $(e.target);
       if(target.attr('data-uniq-id') === this.dataUniqId){
-        console.log('ai 1')
         return
       }
       if(target.parents(`[data-uniq-id=${this.dataUniqId}]`).length){
-        console.log('ai 2')
         return
       }
       this.setState({open:false})
@@ -189,7 +187,7 @@ export default class Input extends Component{
     render(){
       let {type,label,className} = this.props;
       return (
-        <div className='aio-input-container'>
+        <>
           <div 
             ref={this.container} 
             data-uniq-id={this.dataUniqId}
@@ -206,7 +204,7 @@ export default class Input extends Component{
             {this.getCaret()}
           </div>
           {this.getPopup()}
-        </div>
+        </>
       )
     }
   }

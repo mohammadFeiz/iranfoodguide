@@ -50,15 +50,7 @@
     padding:0 3px;
     border-radius: 4px;
 }
-.as-discount-box-small{
-    font-size:12px;
-}
-.as-discount-box-medium{
-    
-}
-.as-discount-box-large{
-    font-size:16px;
-}
+
 
 .as-submit-button-container{
     padding-top:0;
@@ -148,4 +140,8 @@
 }
 .as-border-bottom{
     border-bottom:1px solid #ddd;
+}
+.as-price-layout{
+    font-size:12px;
+    color:#000;
 }
