@@ -66,6 +66,10 @@ export function getResponse({getState}){
             //     phone:String, تلفن رستوران
             //     ifRate:Number, امتیاز ایران فود به این رستوران
             //     ifComment:String, کامنت ایران فود در مورد این رستوران
+            //     deliveryTime:Number, مدت زمان ارسال به دقیقه
+            //     tags:ArrayOfObjects, تگ های رستوران
+            //     startTime:Number bewtween (0 and 23) زمان شروع به کار
+            //     endTime:Number bewtween (0 and 23) زمان پایان کار
             // }
 
             return {mock:true} 
@@ -80,6 +84,10 @@ export function getResponse({getState}){
             //     longitude:Number, موقعیت رستوران در راستای لانگیتیود
             //     address:String, آدرس رستوران
             //     phone:String, تلفن رستوران
+            //     deliveryTime:Number, مدت زمان ارسال به دقیقه
+            //     tags:ArrayOfObjects, تگ های رستوران
+            //     startTime:Number bewtween (0 and 23) زمان شروع به کار
+            //     endTime:Number bewtween (0 and 23) زمان پایان کار
             // }
 
             //در صورت موفقیت در عملیات باید یک آبجکت شامل آی دی رستوران ریترن شود
