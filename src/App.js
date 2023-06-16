@@ -23,6 +23,7 @@ import './App.css';
 export default class App extends Component {
   constructor(props) {
     super(props);
+    this.mockAdminPanel = true;
     //this.baseUrl = 'https://localhost:7203'
     this.baseUrl = 'https://iranfoodguide.ir'
     this.state = {
@@ -98,6 +99,7 @@ export default class App extends Component {
     )
   }
   render() {
+    if(this.mockAdminPanel){return <IranFoodGuide mockAdminPanel={true}/>}
     let { isLogin, token, logout, userId } = this.state;
     if (isLogin) {
       return <IranFoodGuide token={token} personId={this.personId} logout={logout} mobileNumber={userId} roles={[]} />
@@ -145,7 +147,7 @@ class IranFoodGuide extends Component {
     super(props);
     this.state = {
       comming_soon: false,
-      backOffice:false,
+      backOffice:!!props.mockAdminPanel,
       mobileNumber: props.mobileNumber,
       personId: props.personId,
       logout: props.logout,
@@ -177,6 +179,8 @@ class IranFoodGuide extends Component {
     this.setState(obj);
   }
   componentDidMount() {
+    let {mockAdminPanel} = this.props;
+    if(mockAdminPanel){return}
     let { apis } = this.state;
     apis({
       api: 'getProfile',

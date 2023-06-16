@@ -26,26 +26,17 @@ export default class BackOffice extends Component {
             }),
             tabs: [
                 { text: 'رستوران ها', value: 'restorans' },
+                { text: 'تگ های رستوران ها', value: 'restoranTags' },
+                { text: 'تگ های غذا ها', value: 'foodTags' },
                 { text: 'صفحه سفارش غذا', value: 'order-page' },
                 { text: 'اسلایدر ها', value: 'sliders' }
             ],
-            activeTabId: 'restorans',
+            activeTabId: 'restoranTags',
             orderPageItems: [],
             sliders: [],
             restorans: [],
             scores: []
         }
-    }
-    async componentDidMount() {
-        let { apis } = this.state;
-        let restorans = await apis({
-            api: 'get_restorans',
-            name: 'دریافت لیست رستوزان ها',
-            def: []
-        });
-        this.mounted = true;
-        this.setState({ restorans })
-
     }
     header_layout() {
         let {onClose} = this.props;
@@ -72,7 +63,10 @@ export default class BackOffice extends Component {
         }
     }
     getBody() {
-        let { activeTabId, orderPageItems, sliders, restorans } = this.state;
+        let { activeTabId, orderPageItems, sliders } = this.state;
+        if (activeTabId === 'restorans') {return (<Restorans/>)}
+        if (activeTabId === 'restoranTags') {return (<Tags type='restoran' trans='رستوران'/>)}
+        if (activeTabId === 'foodTags') {return (<Tags type='food' trans='غذا'/>)}
         if (activeTabId === 'order-page') {
             return (
                 <OrderPage
@@ -94,16 +88,7 @@ export default class BackOffice extends Component {
                 />
             )
         }
-        if (activeTabId === 'restorans') {
-            return (
-                <Restorans
-                    restorans={restorans}
-                    onChange={(restorans) => {
-                        this.setState({ restorans })
-                    }}
-                />
-            )
-        }
+        
     }
     body_layout() {
         return {
@@ -117,7 +102,6 @@ export default class BackOffice extends Component {
         }
     }
     render() {
-        if (!this.mounted) { return null }
         return (
             <BOContext.Provider value={this.getContext()}>
                 <RVD
@@ -638,12 +622,108 @@ class SliderCard extends Component {
         )
     }
 }
+class Tags extends Component{
+    static contextType = BOContext;
+    constructor(props){
+        super(props);
+        this.state = {tags:[],isSubmited:true}
+    }
+    async componentDidMount(){
+        let {apis} = this.context;
+        let {type,trans} = this.props;
+        apis({
+            api:`get_${type}_tags`,
+            name:`دریافت لیست تگ های ${trans} ها`,
+            callback:(tags)=>this.setState({tags,error:this.getError(tags)})
+        })
+    }
+    submit(){
+        let {apis} = this.context;
+        let {type,trans} = this.props;
+        let {tags} = this.state;
+        apis({
+            api:`set_${type}_tags`,
+            name:`ثبت لیست تگ های ${trans} ها`,
+            parameter:tags,
+            callback:()=>this.setState({isSubmited:true})
+        })
+    }
+    getError(tags){
+        let ids = [];
+        let names = []
+        for(let i = 0; i < tags.length; i++){
+            let {text,value} = tags[i];
+            if(!text){return 'وارد کردن نام تگ ضروری است'}
+            if(names.indexOf(text) !== -1){return 'وجود نام تکراری در تگ ها'}            
+            if(!value){return 'وارد کردن آی دی تگ ضروری است'}
+            if(ids.indexOf(value) !== -1){return 'وجود آی دی تکراری در تگ ها'}            
+            ids.push(value);
+            names.push(text)
+        }
+        return '';
+    }
+    change(tags){
+        this.setState({tags,isSubmited:false,error:this.getError(tags)})
+    }
+    header(){
+        let {isSubmited,error} = this.state;
+        return (
+            <RVD
+                layout={{
+                    row:[
+                        {html:<button disabled={isSubmited || !!error} className='bo-submit-button' onClick={()=>this.submit()}>ثبت</button>,align:'v'},
+                        {size:6},
+                        {html:error,align:'v',className:'fs-10',style:{color:'red'}}
+                    ]
+                }}
+            />
+        )
+    }
+    table_layout(){
+        let {tags} = this.state;
+        return {
+            html:(
+                <AIOButton
+                    type='table'
+                    header={this.header()}
+                    rows={tags}
+                    add={{text:'',value:''}}
+                    columns={[
+                        {title:'نام',value:'row.text',type:'text'},
+                        {title:'آی دی',value:'row.value',type:'text'},  
+                    ]}
+                    onChange={(tags)=>this.change(tags)}
+                />
+            )
+        }
+    }
+    render(){
+        return (
+            <RVD
+                layout={{
+                    column:[
+                        this.table_layout()
+                    ]
+                }}
+            />
+        )
+    }
+}
 class Restorans extends Component {
     static contextType = BOContext;
     constructor(props) {
         super(props);
-        let { restorans } = props;
-        this.state = { restorans, popup: false, searchValue: '' }
+        this.state = { restorans:[], popup: false, searchValue: '' }
+    }
+    async componentDidMount() {
+        let { apis } = this.context;
+        let restorans = await apis({
+            api: 'get_restorans',
+            name: 'دریافت لیست رستوزان ها',
+            def: []
+        });
+        this.mounted = true;
+        this.setState({ restorans })
     }
     getRestoranById(id) {
         let { restorans } = this.state;
@@ -775,6 +855,8 @@ class Restorans extends Component {
                 logo: false,
                 latitude: 35.699739,
                 longitude: 51.338097,
+                startTime:0,
+                endTime:0,
                 address: '',
                 ifRate: 0,
                 ifComment: '',
@@ -810,6 +892,7 @@ class Restorans extends Component {
         })
     }
     render() {
+        if(!this.mounted){return false}
         return (
             <>
                 <RVD
@@ -832,13 +915,29 @@ class RestoranCard extends Component {
     static contextType = BOContext;
     constructor(props) {
         super(props);
+        this.timeOptions = this.getTimeOptions();
         this.state = {
             model: { ...props.restoran },
             popup: false,
-            menu: []
+            menu: [],
+            tagOptions:undefined
         }
     }
+    getTimeOptions(){
+        return new Array(24).fill(0).map((o,i)=>{
+            let hour = i.toString();
+            hour = hour.length === 1?`0${hour}`:hour;
+            return {text:<div style={{direction:'ltr'}}>{`${hour} : 00`}</div>,value:i}
+        })
+    }
+    
     componentDidMount(){
+        let { apis } = this.context;
+        apis({
+            api:'get_restoran_tags',
+            name:'دریافت لیست تگ های رستوران ها',
+            callback:(tagOptions)=>this.setState({tagOptions})
+        })
         this.updateMenu()    
     }
     async updateMenu(){
@@ -891,12 +990,12 @@ class RestoranCard extends Component {
             <RVD
                 layout={{
                     onClick: () => this.openMap(),
-                    style: { border: '1px dashed #333', height: 72 },
+                    style: { border: '1px dashed',fontSize:12, height: 72,...style },
                     column: [
                         { flex: 1 },
-                        { align: 'vh', html: <Icon path={path} size={1} />, style },
-                        { html: `موقعیت رستوران`, align: 'vh' },
-                        { html: status, align: 'vh' },
+                        { align: 'vh', html: <Icon path={path} size={1} /> },
+                        { html: `موقعیت رستوران`, align: 'vh',style:{color:'#333'} },
+                        { html: status, align: 'vh',className:'bold' },
                         { flex: 1 }
                     ]
                 }}
@@ -974,7 +1073,7 @@ class RestoranCard extends Component {
         )
     }
     form_layout() {
-        let { model } = this.state;
+        let { model,tagOptions } = this.state;
         let { onRemove, type } = this.props;
         return {
             html: (
@@ -982,7 +1081,7 @@ class RestoranCard extends Component {
                     lang='fa'
                     theme={{
                         inlineLabel: true,
-                        labelStyle: { width: 70 },
+                        labelStyle: { width: 90 },
                         rowStyle: { marginBottom: 0 },
                         bodyStyle: { padding: 6 }
                     }}
@@ -996,12 +1095,18 @@ class RestoranCard extends Component {
                         { type: 'html', html: () => this.logo_layout(), rowKey: '0' },
                         { type: 'html', rowKey: '0' },
                         { show: type === 'edit', type: 'html', html: () => this.menu_layout(), rowKey: '0' },
-                        { type: 'html', html: () => this.map_layout(), rowKey: '0' },
+                        { type: 'html', html: () => this.map_layout(), rowKey: '0',rowWidth:90 },
                         { type: 'html', html: () => this.remove_layout(), rowKey: '0', show: !!onRemove, rowWidth: 72 },
                         { type: 'text', field: 'model.id', label: 'آی دی', disabled: true, show: model.id !== undefined },
                         { type: 'text', field: 'model.name', label: 'نام', validations: [['required']] },
                         { type: 'textarea', field: 'model.address', label: 'آدرس', validations: [['required']] },
-                        { type: 'text', field: 'model.phone', label: 'تلفن ثابت', justNumber: true, validations: [['required']] }
+                        { type: 'text', field: 'model.phone', label: 'تلفن ثابت', justNumber: true, validations: [['required']] },
+                        { type: 'select', field: 'model.startTime', label: 'ساعت شروع', validations: [['required']],options:this.timeOptions },
+                        { type: 'select', field: 'model.endTime', label: 'ساعت پایان', validations: [['required']],options:this.timeOptions },
+                        { type: 'number', field: 'model.tax', label: 'درصد مالیات' ,validations:[['>=',0],['<=',100]]},
+                        { type: 'number', field: 'model.deliveryTime', label: 'زمان ارسال(دقیقه)' },
+                        { type: 'multiselect', field: 'model.tags', label: 'تگ ها',options:tagOptions },
+                        
 
                     ]}
                 />
@@ -1105,6 +1210,8 @@ class RestoranCard extends Component {
         })
     }
     render() {
+        let {menu,tagOptions} = this.state;
+        if(!tagOptions){return null}
         return (
             <>
                 <RVD

@@ -5,6 +5,52 @@ export function getResponse({getState}){
     //let baseUrl = 'https://iranfoodguide.ir/api'
     let mock = true
     return {
+        async get_restoran_tags(){
+            //ریترن آرایه ای از آبجکت های تگ رستوران
+            
+            //هر آبجکت مانند زیر است
+            // {
+            //     id:String, آی دی تگ
+            //     name:String, نام تگ
+            // }
+            return {mock:true}
+        },
+        async set_restoran_tags(tags){
+            // پارامتر ورودی آرایه ی تگهای رستوران است
+            //هر تگ آبجکتی مانند زیر است
+            // {
+            //     id:String, آی دی تگ
+            //     name:String, نام تگ
+            // }
+
+            //در صورت موفقیت در عملیات باید ترو ریترن شود
+            
+            return {mock:true}
+        },
+        async get_food_tags(){
+            //ریترن آرایه ای از آبجکت های تگ غذا
+            
+            //هر آبجکت مانند زیر است
+            // {
+            //     id:String, آی دی تگ
+            //     name:String, نام تگ
+            // }
+            
+            //در صورت موفقیت در عملیات باید ترو ریترن شود
+            
+            return {mock:true}
+        },
+        async set_food_tags(tags){
+            // پارامتر ورودی آرایه ی تگهای غذا است
+            //هر تگ آبجکتی مانند زیر است
+            // {
+            //     id:String, آی دی تگ
+            //     name:String, نام تگ
+            // }
+
+            //در صورت موفقیت در عملیات باید ترو ریترن شود
+            return {mock:true}
+        },
         async get_restorans(){
             //ریترن آرایه ای از آبجکت های رستوران
             
@@ -152,6 +198,22 @@ export function getResponse({getState}){
 export function getMock({helper}){
     let Storage = AIOStorage('iranfoodbackoffice')
     return {
+        get_restoran_tags(){
+            let res = Storage.load({name:'restoranTags',def:[]})
+            return res
+        },
+        set_restoran_tags(restoranTags){
+            Storage.save({name:'restoranTags',value:restoranTags})
+            return true
+        },
+        get_food_tags(){
+            let res = Storage.load({name:'foodTags',def:[]})
+            return res
+        },
+        set_food_tags(foodTags){
+            Storage.save({name:'foodTags',value:foodTags})
+            return true
+        },
         get_restorans(){
             let res = Storage.load({name:'restorans',def:[]})
             return res;

@@ -73,6 +73,8 @@
   }
   .aio-popover{
     border:1px solid #ddd;
+    display:flex;
+    flex-direction: column;
     background:#fff;
     border-radius:4px;
     position:fixed;
