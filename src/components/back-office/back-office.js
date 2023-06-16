@@ -65,8 +65,8 @@ export default class BackOffice extends Component {
     getBody() {
         let { activeTabId, orderPageItems, sliders } = this.state;
         if (activeTabId === 'restorans') {return (<Restorans/>)}
-        if (activeTabId === 'restoranTags') {return (<Tags type='restoran' trans='رستوران'/>)}
-        if (activeTabId === 'foodTags') {return (<Tags type='food' trans='غذا'/>)}
+        if (activeTabId === 'restoranTags') {return (<Tags key='restoran' type='restoran' trans='رستوران'/>)}
+        if (activeTabId === 'foodTags') {return (<Tags key='food' type='food' trans='غذا'/>)}
         if (activeTabId === 'order-page') {
             return (
                 <OrderPage
