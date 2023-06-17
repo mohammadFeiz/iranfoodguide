@@ -13,6 +13,13 @@ export function getResponse({getState}){
             //     id:String, آی دی تگ
             //     name:String, نام تگ
             // }
+
+            let url = `${baseUrl}/ResType/Search`;
+            let body = {}
+            let response = await Axios.post(url,body);
+            let result = response.data.data.items;
+            return {response,result};
+
             return {mock:true}
         },
         async set_restoran_tags(tags){
@@ -36,6 +43,12 @@ export function getResponse({getState}){
             //     name:String, نام تگ
             // }
             
+            let url = `${baseUrl}/FoodType/Search`;
+            let body = {}
+            let response = await Axios.post(url,body);
+            let result = response.data.data.items;
+            return {response,result};
+
             //در صورت موفقیت در عملیات باید ترو ریترن شود
             
             return {mock:true}
@@ -77,6 +90,36 @@ export function getResponse({getState}){
         async add_restoran(restoran){
             // پارامتر ورودی آبجکت رستوران برای افزودن است
             
+            let url = `${baseUrl}/People/${registered?'UpdateProfile':'CreateProfile'}`
+            let body = {
+                "Title":restoran.name,
+                "LatinTitle":restoran.name,
+                "address": {          
+                    "fullAddress": restoran.address,
+                    "latitude": restoran.latitude,
+                    "longitude": restoran.longitude
+                  },
+                  "phoneNumbers": [
+                    {
+                        "Title":restoran.name,
+                        "phoneNumber": restoran.phone,
+                    }] ,
+                    "workingTimes": [
+                        {
+                          "startTime":restoran.startTime,// "12:00",
+                          "endTime": restoran.endTime,
+                          "applyChangeTime": "12:00"
+                        }
+                      ],
+                      "types": [
+                        {
+                          "typeId": 0
+                        }
+                      ]
+            }
+            let response = await Axios.post(url,body);
+            return {response}
+
             // این آبجکت به شکل زیر است
             // {
             //     name:String, نام رستوران
