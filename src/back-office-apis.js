@@ -1,126 +1,205 @@
 import Axios from 'axios';
 import AIOStorage from './npm/aio-storage/aio-storage';
-export function getResponse({getState}){
+export function getResponse({ getState }) {
     //let baseUrl = 'https://localhost:7203/api/v1'
-    //let baseUrl = 'https://iranfoodguide.ir/api'
-    let mock = true
+    let baseUrl = 'https://iranfoodguide.ir/api'
     return {
-        async get_restoran_tags(){
-            //ریترن آرایه ای از آبجکت های تگ رستوران
-            
-            //هر آبجکت مانند زیر است
-            // {
-            //     id:String, آی دی تگ
-            //     name:String, نام تگ
-            // }
+        //در یافت لیست تگ های رستوران و تگ های غذا بسته به تایپ ورودی
+        async get_tags({ type }) {
+            //parameters
+            // type => 'restoran' | 'food'
 
-            let url = `${baseUrl}/ResType/Search`;
-            let body = {}
-            let response = await Axios.post(url,body);
-            let result = response.data.data.items;
-            return {response,result};
 
-            return {mock:true}
+            //آدرس درخواست 
+            let url;
+            if (type === 'restoran') { url = `${baseUrl}/ResType/Search`; }
+            else if (type === 'food') { url = `${baseUrl}/FoodType/Search` }
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            method = "post"
+
+            //بادی متد پست (any | undefined)
+            let body;
+            if (type === 'restoran') { body = {}; }
+            else if (type === 'food') { body = {}; }
+
+            let response = await Axios[method](url, body);
+
+            //دریافت دیتا از روی ریسپانس
+            let data;
+            data = response.data.data.items
+
+            //مپ کردن دیتای سرور به دیتای فرانت
+            let result;
+            //result = data.map((o)=>{
+            //    return {
+            //        name:<...>, //String نام تگ
+            //        id:<...>, //String آی دی تگ
+            //    }
+            //});
+
+            return { response, result };
         },
-        async set_restoran_tags(tags){
-            // پارامتر ورودی آرایه ی تگهای رستوران است
-            //هر تگ آبجکتی مانند زیر است
-            // {
-            //     id:String, آی دی تگ
-            //     name:String, نام تگ
-            // }
+        async add_tag({ type, tagName }) {
+            //parameters
+            // type => 'restoran' | 'food'
+            // tagName => نام تگ
 
-            //در صورت موفقیت در عملیات باید ترو ریترن شود
-            
-            return {mock:true}
-        },
-        async get_food_tags(){
-            //ریترن آرایه ای از آبجکت های تگ غذا
-            
-            //هر آبجکت مانند زیر است
-            // {
-            //     id:String, آی دی تگ
-            //     name:String, نام تگ
-            // }
-            
-            let url = `${baseUrl}/FoodType/Search`;
-            let body = {}
-            let response = await Axios.post(url,body);
-            let result = response.data.data.items;
-            return {response,result};
 
-            //در صورت موفقیت در عملیات باید ترو ریترن شود
-            
-            return {mock:true}
-        },
-        async set_food_tags(tags){
-            // پارامتر ورودی آرایه ی تگهای غذا است
-            //هر تگ آبجکتی مانند زیر است
-            // {
-            //     id:String, آی دی تگ
-            //     name:String, نام تگ
-            // }
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`;
 
-            //در صورت موفقیت در عملیات باید ترو ریترن شود
-            return {mock:true}
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+
+            //دریافت آی دی تگ اضافه شده از روی ریسپانس
+            let id;
+            //id = <...>
+
+            return { response, result: { id } }
         },
-        async get_restorans(){
-            //ریترن آرایه ای از آبجکت های رستوران
-            
-            //هر آبجکت مانند زیر است
+        async remove_tag({ type, tagId }) {
+            //parameters
+            // type => 'restoran' | 'food'
+            // tagId => آی دی تگ
+
+
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`;
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+
+            return { response, result: true }
+        },
+        async get_restorans() {
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`;
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+
+            //دریافت دیتا از روی ریسپانس
+            let data = [];
+            //data = <...>
+
+            //مپ کردن دیتای سرور به دیتای فرانت
+            let result = [];
+            // result = data.map((o)=>{
+            //     return {
+            //         id:<...>, //String آی دی رستوران
+            //         name:<...>, //String نام رستوران
+            //         latitude:<...>, //Number موقعیت رستوران در راستای لتیتیود
+            //         longitude:<...>, //Number موقعیت رستوران در راستای لانگیتیود
+            //         image:<...>, //String یو آر ال تصویر رستوران
+            //         logo:<...>, //String یو آر ال لوگوی رستوران
+            //         address:<...>, //String آدرس رستوران
+            //         phone:<...>, //String تلفن رستوران
+            //         ifRate:<...>, //Number امتیاز ایران فود به این رستوران
+            //         ifComment:<...>, //String کامنت ایران فود در مورد این رستوران
+            //         deliveryTime:<...>, //Number مدت زمان ارسال به دقیقه
+            //         tags:<...>, //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
+            //         startTime:<...>, //Number bewtween (1 and 24) زمان شروع به کار
+            //         endTime:<...>, //Number bewtween (1 and 24) زمان پایان کار
+            //     }
+            // })
+            return { response, result }
+        },
+        async add_restoran(restoran) {
+            //parameters
+            //restoran آبجکت رستوران برای افزودن
+            // این آبجکت به شکل زیر است
             // {
-            //     id:String, آی دی رستوران
             //     name:String, نام رستوران
             //     latitude:Number, موقعیت رستوران در راستای لتیتیود
             //     longitude:Number, موقعیت رستوران در راستای لانگیتیود
-            //     image:String, یو آر ال تصویر رستوران
-            //     logo:String, یو آر ال لوگوی رستوران
             //     address:String, آدرس رستوران
             //     phone:String, تلفن رستوران
-            //     ifRate:Number, امتیاز ایران فود به این رستوران
-            //     ifComment:String, کامنت ایران فود در مورد این رستوران
             //     deliveryTime:Number, مدت زمان ارسال به دقیقه
-            //     tags:ArrayOfObjects, تگ های رستوران
-            //     startTime:Number bewtween (0 and 23) زمان شروع به کار
-            //     endTime:Number bewtween (0 and 23) زمان پایان کار
+            //     tags:ArrayOfStrings,آرایه ای از آی دی تگ های رستوران
+            //     startTime:Number bewtween (1 and 24) زمان شروع به کار
+            //     endTime:Number bewtween (1 and 24) زمان پایان کار
             // }
 
-            return {mock:true} 
-        },
-        async add_restoran(restoran){
-            // پارامتر ورودی آبجکت رستوران برای افزودن است
-            
-            let url = `${baseUrl}/People/${registered?'UpdateProfile':'CreateProfile'}`
-            let body = {
-                "Title":restoran.name,
-                "LatinTitle":restoran.name,
-                "address": {          
+
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            method = "post";
+
+            //بادی متد پست (any | undefined)
+            let body;
+            body = {
+                "Title": restoran.name,
+                "LatinTitle": restoran.name,
+                "address": {
                     "fullAddress": restoran.address,
                     "latitude": restoran.latitude,
                     "longitude": restoran.longitude
-                  },
-                  "phoneNumbers": [
+                },
+                "phoneNumbers": [
                     {
-                        "Title":restoran.name,
+                        "Title": restoran.name,
                         "phoneNumber": restoran.phone,
-                    }] ,
-                    "workingTimes": [
-                        {
-                          "startTime":restoran.startTime,// "12:00",
-                          "endTime": restoran.endTime,
-                          "applyChangeTime": "12:00"
-                        }
-                      ],
-                      "types": [
-                        {
-                          "typeId": 0
-                        }
-                      ]
+                    }],
+                "workingTimes": [
+                    {
+                        "startTime": restoran.startTime,// "12:00",
+                        "endTime": restoran.endTime,
+                        "applyChangeTime": "12:00"
+                    }
+                ],
+                "types": [
+                    {
+                        "typeId": 0
+                    }
+                ]
             }
-            let response = await Axios.post(url,body);
-            return {response}
 
-            // این آبجکت به شکل زیر است
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+
+            //دریافت آی دی تگ اضافه شده از روی ریسپانس
+            let id;
+            //id = <...>
+
+            return { response, result: { id } }
+        },
+        async edit_restoran(restoran) {
+            //parameters
+            //restoran آبجکت رستوران ویرایش شده
+            //این آبجکت به شکل زیر است
             // {
             //     name:String, نام رستوران
             //     latitude:Number, موقعیت رستوران در راستای لتیتیود
@@ -128,62 +207,91 @@ export function getResponse({getState}){
             //     address:String, آدرس رستوران
             //     phone:String, تلفن رستوران
             //     deliveryTime:Number, مدت زمان ارسال به دقیقه
-            //     tags:ArrayOfObjects, تگ های رستوران
-            //     startTime:Number bewtween (0 and 23) زمان شروع به کار
-            //     endTime:Number bewtween (0 and 23) زمان پایان کار
+            //     tags:ArrayOfStrings,آرایه ای از آی دی تگ های رستوران
+            //     startTime:Number bewtween (1 and 24) زمان شروع به کار
+            //     endTime:Number bewtween (1 and 24) زمان پایان کار
             // }
 
-            //در صورت موفقیت در عملیات باید یک آبجکت شامل آی دی رستوران ریترن شود
-            //return {id:...}
-            
-            return {mock:true} 
+
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>;
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+            return { response, result: true }
         },
-        async edit_restoran(restoran){
-            // پارامتر ورودی آبجکت رستوران برای ویرایش است
-            // این آبجکت به شکل زیر است
+        async remove_restoran(restoranId) {
+            // parameters
+            //restoranId آی دی رستورانی که باید حذف بشود
             
-            // {
-            //     name:String, نام رستوران
-            //     latitude:Number, موقعیت رستوران در راستای لتیتیود
-            //     longitude:Number, موقعیت رستوران در راستای لانگیتیود
-            //     address:String, آدرس رستوران
-            //     phone:String, تلفن رستوران
-            // }
-            
-            //در صورت موفقیت در عملیات باید ترو ریترن شود
-            //return true
-            
-            return {mock:true} 
+
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>;
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+            return { response, result: true }
         },
-        async remove_restoran(restoranId){
-            // پارامتر ورودی آی دی رستورانی که قراره حذف بشه می باشد
-            
-            //در صورت موفقیت در عملیات باید ترو ریترن شود
-            //return true
-            
-            return {mock:true} 
+        async get_restoran_menu(restoranId) {
+            // parameters
+            // restoranId آی دی رستورانی که منوی اون رو می خواهیم
+
+
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`;
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+
+            //دریافت دیتا از روی ریسپانس
+            let data = [];
+            //data = <...>
+
+            //مپ کردن دیتای سرور به دیتای فرانت
+            let result = [];
+            // result = data.map((o)=>{
+            //     return {
+            //       id:<...>, //String آی دی غذا
+            //       name:<...>, //String نام غذا
+            //       image:<...>, //String یو آر ال تصویر غذا
+            //       price:<...>, //Number قیمت غذا
+            //       discountPercent:<...>, //Number درصد تخفیف غذا
+            //       description:<...>, //String توضیحات مختصر در مورد غذا
+            //       review:<...>, //String توضیحات مفصل در مورد غذا
+            //     }
+            // })
+            return { response, result }
         },
-        async get_restoran_menu(restoranId){
-            // پارامتر ورودی آی دی رستوران می باشد
-            
-            //ریترن آرایه ای از آبجکت های منوی رستوران
-            
-            //هر آبجکت مانند زیر است
-            // {
-            //     id:String, آی دی غذا
-            //     name:String, نام غذا
-            //     image:String, یو آر ال تصویر غذا
-            //     price:Number قیمت غذا
-            //     discountPercent:درصد تخفیف غذا
-            //     description:String توضیحات مختصر در مورد غذا
-            //     review:String توضیحات مفصل در مورد غذا
-            // }
-            return {mock:true} 
-        },
-        async add_food({restoranId,food}){
+        async add_food({ restoranId, food }) {
             //restoranId => آی دی رستوران
             //food => آبجکت غذا برای افزودن
-
             //آبجکت غذا مانند زیر است
             // {
             //     name:String, نام غذا
@@ -194,15 +302,31 @@ export function getResponse({getState}){
             //     review:String توضیحات مفصل در مورد غذا
             // }
 
-            //در صورت موفقیت در عملیات باید یک آبجکت شامل آی دی غذا ریترن شود
-            //return {id:...}
-            
-            return {mock:true}
+
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`;
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+
+            //دریافت آی دی غذای اضافه شده از روی ریسپانس
+            let id;
+            //id = <...>
+
+            return { response, result:{id} }
         },
-        async edit_food({restoranId,food}){
+        async edit_food({ restoranId, food }) {
             //restoranId => آی دی رستوران
             //food => آبجکت غذا برای ویرایش
-
             //آبجکت غذا مانند زیر است
             // {
             //     id:String, آی دی غذا
@@ -214,122 +338,210 @@ export function getResponse({getState}){
             //     review:String توضیحات مفصل در مورد غذا
             // }
 
-            //در صورت موفقیت در عملیات باید ترو ریترن شود
-            //return true
-            
-            return {mock:true}
-        },
-        async remove_food({restoranId,foodId}){
-            //restoranId => آی در رستوران
-            //foodId => آی دی غذا برای حذف
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`;
 
-            //در صورت موفقیت در عملیات باید ترو ریترن شود
-            //return true
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
             
-            return {mock:true}
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+            return { response, result: true }
         },
-        async edit_food_image({restoranId,foodId,imageFile}){
-            //ویرایش تصویر غذا
-            return {mock:true}
+        async remove_food({ restoranId, foodId }) {
+            // parameters
+            //restoranId آی دی رستورانی که یک غذا از آن باید حذف بشود
+            //foodId آی دی غذایی که باید حذف شود
+
+
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>;
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+            return { response, result: true }
         },
-        async edit_restoran_image({restoranId,imageFile}){
-            //ویرایش تصویر رستوران
+        //ویرایش تصویر غذا
+        async edit_food_image({ restoranId, foodId, imageFile }) {
+            //parameters
+            //restoranId  آی دی رستوران
+            //foodId آی دی غذا
+            //imageFile فایل انتخاب شده ی کاربر ادمین برای این غذا
             
-            return {mock:true}
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>;
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+            return { response, result: true }
         },
-        async edit_restoran_logo({restoranId,imageFile}){
-            //ویرایش لوگوی رستوران
+        //ویرایش تصویر رستوران
+        async edit_restoran_image({ restoranId, imageFile }) {
+            //parameters
+            //restoranId  آی دی رستوران
+            //imageFile فایل انتخاب شده ی کاربر ادمین برای تصویر این رستوران
             
-            return {mock:true}
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>;
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+            return { response, result: true }
+        },
+        //ویرایش لوگوی رستوران
+        async edit_restoran_logo({ restoranId, imageFile }) {
+            //parameters
+            //restoranId  آی دی رستوران
+            //imageFile فایل انتخاب شده ی کاربر ادمین برای لوگوی این رستوران
+            
+            //آدرس درخواست 
+            let url;
+            //url = `${baseUrl}/<...>`
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>;
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+            return { response, result: true }
         }
 
     }
 }
 
-export function getMock({helper}){
+export function getMock({ helper }) {
     let Storage = AIOStorage('iranfoodbackoffice')
     return {
-        get_restoran_tags(){
-            let res = Storage.load({name:'restoranTags',def:[]})
+        get_tags({ type }) {
+            let res = Storage.load({ name: `${type}Tags`, def: [] })
             return res
         },
-        set_restoran_tags(restoranTags){
-            Storage.save({name:'restoranTags',value:restoranTags})
+        add_tag({ type, tagName }) {
+            let tags = Storage.load({ name: `${type}Tags`, def: [] })
+            let id = Math.round(Math.random() * 1000000)
+            tags.push({ name: tagName, id });
+            Storage.save({ name: `${type}Tags`, value: tags })
+            return { id }
+        },
+        edit_tag({ type, tagId, tagName }) {
+            let tags = Storage.load({ name: `${type}Tags`, def: [] })
+            tags = tags.map((o) => {
+                return o.id === tagId ? { id: tagId, name: tagName } : o;
+            })
+            Storage.save({ name: `${type}Tags`, value: tags })
             return true
         },
-        get_food_tags(){
-            let res = Storage.load({name:'foodTags',def:[]})
-            return res
-        },
-        set_food_tags(foodTags){
-            Storage.save({name:'foodTags',value:foodTags})
+        remove_tag({ type, tagId }) {
+            let tags = Storage.load({ name: `${type}Tags`, def: [] })
+            tags = tags.filter((o) => {
+                return o.id !== tagId;
+            })
+            Storage.save({ name: `${type}Tags`, value: tags })
             return true
         },
-        get_restorans(){
-            let res = Storage.load({name:'restorans',def:[]})
+        get_restorans() {
+            let res = Storage.load({ name: 'restorans', def: [] })
             return res;
         },
-        add_restoran(newRestoran){
-            let restorans = Storage.load({name:'restorans',def:[]});
+        add_restoran(newRestoran) {
+            let restorans = Storage.load({ name: 'restorans', def: [] });
             let id = 'res' + Math.round(Math.random() * 1000000);
-            newRestoran = {...newRestoran,id}
-            let newRestorans = [newRestoran,...restorans];
-            Storage.save({name:'restorans',value:newRestorans})
-            return {id};
+            newRestoran = { ...newRestoran, id }
+            let newRestorans = [newRestoran, ...restorans];
+            Storage.save({ name: 'restorans', value: newRestorans })
+            return { id };
         },
-        edit_restoran(restoran){
-            let restorans = Storage.load({name:'restorans',def:[]});
-            restorans = restorans.map((o)=>{
-                if(o.id === restoran.id){return restoran}
+        edit_restoran(restoran) {
+            let restorans = Storage.load({ name: 'restorans', def: [] });
+            restorans = restorans.map((o) => {
+                if (o.id === restoran.id) { return restoran }
                 return o
             })
-            Storage.save({name:'restorans',value:restorans})
+            Storage.save({ name: 'restorans', value: restorans })
             return true;
         },
-        remove_restoran(restoranId){
-            let restorans = Storage.load({name:'restorans',def:[]});
-            restorans = restorans.filter((o)=>{
-                if(o.id === restoranId){return false}
+        remove_restoran(restoranId) {
+            let restorans = Storage.load({ name: 'restorans', def: [] });
+            restorans = restorans.filter((o) => {
+                if (o.id === restoranId) { return false }
                 return o
             })
-            Storage.save({name:'restorans',value:restorans})
+            Storage.save({ name: 'restorans', value: restorans })
             return true;
         },
-        get_restoran_menu(restoranId){
-            let foods = Storage.load({name:`restoran_${restoranId}_menu`,def:[]});
+        get_restoran_menu(restoranId) {
+            let foods = Storage.load({ name: `restoran_${restoranId}_menu`, def: [] });
             return foods
         },
-        add_food({restoranId,food}){
-            let foods = Storage.load({name:`restoran_${restoranId}_menu`,def:[]});
+        add_food({ restoranId, food }) {
+            let foods = Storage.load({ name: `restoran_${restoranId}_menu`, def: [] });
             let id = 'food' + Math.round(Math.random() * 1000000);
-            let newFood = {...food,id}
-            let newFoods = [newFood,...foods];
-            Storage.save({name:`restoran_${restoranId}_menu`,value:newFoods});
-            return {id};
+            let newFood = { ...food, id }
+            let newFoods = [newFood, ...foods];
+            Storage.save({ name: `restoran_${restoranId}_menu`, value: newFoods });
+            return { id };
         },
-        edit_food({restoranId,food}){
-            let foods = Storage.load({name:`restoran_${restoranId}_menu`,def:[]});
-            let newFood = {...food}
-            let newFoods = foods.map((o)=>o.id === newFood.id?newFood:o);
-            Storage.save({name:`restoran_${restoranId}_menu`,value:newFoods});
+        edit_food({ restoranId, food }) {
+            let foods = Storage.load({ name: `restoran_${restoranId}_menu`, def: [] });
+            let newFood = { ...food }
+            let newFoods = foods.map((o) => o.id === newFood.id ? newFood : o);
+            Storage.save({ name: `restoran_${restoranId}_menu`, value: newFoods });
             return true;
         },
-        remove_food({restoranId,foodId}){
-            let foods = Storage.load({name:`restoran_${restoranId}_menu`,def:[]});
-            let newFoods = foods.filter((o)=>o.id !== foodId);
-            Storage.save({name:`restoran_${restoranId}_menu`,value:newFoods});
+        remove_food({ restoranId, foodId }) {
+            let foods = Storage.load({ name: `restoran_${restoranId}_menu`, def: [] });
+            let newFoods = foods.filter((o) => o.id !== foodId);
+            Storage.save({ name: `restoran_${restoranId}_menu`, value: newFoods });
             return true;
         },
-        edit_food_image({foodId,imageUrl}){
-            Storage.save({name:`food_${foodId}_image`,value:imageUrl});
+        edit_food_image({ foodId, imageUrl }) {
+            Storage.save({ name: `food_${foodId}_image`, value: imageUrl });
             return true;
         },
-        edit_restoran_image({restoranId,imageUrl}){
-            Storage.save({name:`restoran_${restoranId}_image`,value:imageUrl});
+        edit_restoran_image({ restoranId, imageUrl }) {
+            Storage.save({ name: `restoran_${restoranId}_image`, value: imageUrl });
             return true;
         },
-        edit_restoran_logo({restoranId,imageUrl}){
-            Storage.save({name:`restoran_${restoranId}_logo`,value:imageUrl});
+        edit_restoran_logo({ restoranId, imageUrl }) {
+            Storage.save({ name: `restoran_${restoranId}_logo`, value: imageUrl });
             return true;
         }
     }
