@@ -626,52 +626,73 @@ class Tags extends Component{
     static contextType = BOContext;
     constructor(props){
         super(props);
-        this.state = {tags:[],isSubmited:true}
+        this.state = {tags:[]}
     }
     async componentDidMount(){
         let {apis} = this.context;
         let {type,trans} = this.props;
         apis({
-            api:`get_${type}_tags`,
+            api:`get_tags`,
             name:`دریافت لیست تگ های ${trans} ها`,
+            parameter:{type},
             callback:(tags)=>this.setState({tags,error:this.getError(tags)})
         })
     }
-    submit(){
+    add(){
         let {apis} = this.context;
         let {type,trans} = this.props;
-        let {tags} = this.state;
+        let {input} = this.state;
         apis({
-            api:`set_${type}_tags`,
-            name:`ثبت لیست تگ های ${trans} ها`,
-            parameter:tags,
-            callback:()=>this.setState({isSubmited:true})
+            api:`add_tag`,
+            name:`ثبت تگ ${trans}`,
+            parameter:{type,tagName:input},
+            callback:({id})=>{
+                let {tags,input} = this.state;
+                tags.push({name:input,id});
+                this.setState({tags,input:''})
+            }
         })
     }
-    getError(tags){
-        let ids = [];
-        let names = []
+    remove(obj){
+        let {apis} = this.context;
+        let {type,trans} = this.props;
+        let {input} = this.state;
+        apis({
+            api:`remove_tag`,
+            name:`حذف تگ ${trans}`,
+            parameter:{type,tagId:obj.id},
+            callback:()=>{
+                let {tags} = this.state;
+                this.setState({tags:tags.filter((o)=>o.id !== obj.id),input:''})
+            }
+        })
+    }
+    getError(){
+        let {tags,input} = this.state;
         for(let i = 0; i < tags.length; i++){
-            let {text,value} = tags[i];
-            if(!text){return 'وارد کردن نام تگ ضروری است'}
-            if(names.indexOf(text) !== -1){return 'وجود نام تکراری در تگ ها'}            
-            if(!value){return 'وارد کردن آی دی تگ ضروری است'}
-            if(ids.indexOf(value) !== -1){return 'وجود آی دی تکراری در تگ ها'}            
-            ids.push(value);
-            names.push(text)
+            let {name} = tags[i];
+            if(name === input){return 'نام تکراری'}            
         }
         return '';
     }
-    change(tags){
-        this.setState({tags,isSubmited:false,error:this.getError(tags)})
-    }
     header(){
-        let {isSubmited,error} = this.state;
+        let {input} = this.state;
+        let error = this.getError();
         return (
             <RVD
                 layout={{
                     row:[
-                        {html:<button disabled={isSubmited || !!error} className='bo-submit-button' onClick={()=>this.submit()}>ثبت</button>,align:'v'},
+                        {
+                            html:(
+                                <input
+                                    type='text'
+                                    value={input}
+                                    onChange={(e)=>this.setState({input:e.target.value})}
+                                />
+                            )
+                        },
+                        {size:6},
+                        {html:<button disabled={!input || !!error} className='bo-submit-button' onClick={()=>this.add()}>ثبت</button>,align:'v'},
                         {size:6},
                         {html:error,align:'v',className:'fs-10',style:{color:'red'}}
                     ]
@@ -687,12 +708,11 @@ class Tags extends Component{
                     type='table'
                     header={this.header()}
                     rows={tags}
-                    add={{text:'',value:''}}
+                    remove={this.remove.bind(this)}
                     columns={[
-                        {title:'نام',value:'row.text',type:'text'},
-                        {title:'آی دی',value:'row.value',type:'text'},  
+                        {title:'نام',value:'row.name',type:'text',disabled:true},
+                        {title:'آی دی',value:'row.id',type:'text',disabled:true},  
                     ]}
-                    onChange={(tags)=>this.change(tags)}
                 />
             )
         }
@@ -934,8 +954,9 @@ class RestoranCard extends Component {
     componentDidMount(){
         let { apis } = this.context;
         apis({
-            api:'get_restoran_tags',
+            api:'get_tags',
             name:'دریافت لیست تگ های رستوران ها',
+            parameter:{type:'restoran'},
             callback:(tagOptions)=>this.setState({tagOptions})
         })
         this.updateMenu()    
@@ -1105,7 +1126,7 @@ class RestoranCard extends Component {
                         { type: 'select', field: 'model.endTime', label: 'ساعت پایان', validations: [['required']],options:this.timeOptions },
                         { type: 'number', field: 'model.tax', label: 'درصد مالیات' ,validations:[['>=',0],['<=',100]]},
                         { type: 'number', field: 'model.deliveryTime', label: 'زمان ارسال(دقیقه)' },
-                        { type: 'multiselect', field: 'model.tags', label: 'تگ ها',options:tagOptions },
+                        { type: 'multiselect',text:'انتخاب تگ', field: 'model.tags', label: 'تگ ها',options:tagOptions,optionText:'option.name',optionValue:'option.id' },
                         
 
                     ]}

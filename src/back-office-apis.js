@@ -6,6 +6,7 @@ export function getResponse({ getState }) {
     return {
         //در یافت لیست تگ های رستوران و تگ های غذا بسته به تایپ ورودی
         async get_tags({ type }) {
+            return {mock:true}
             //parameters
             // type => 'restoran' | 'food'
 
@@ -42,6 +43,7 @@ export function getResponse({ getState }) {
             return { response, result };
         },
         async add_tag({ type, tagName }) {
+            return {mock:true}
             //parameters
             // type => 'restoran' | 'food'
             // tagName => نام تگ
@@ -69,6 +71,7 @@ export function getResponse({ getState }) {
             return { response, result: { id } }
         },
         async remove_tag({ type, tagId }) {
+            return {mock:true}
             //parameters
             // type => 'restoran' | 'food'
             // tagId => آی دی تگ
@@ -92,6 +95,7 @@ export function getResponse({ getState }) {
             return { response, result: true }
         },
         async get_restorans() {
+            return {mock:true}
             //آدرس درخواست 
             let url;
             //url = `${baseUrl}/<...>`;
@@ -134,6 +138,7 @@ export function getResponse({ getState }) {
             return { response, result }
         },
         async add_restoran(restoran) {
+            return {mock:true}
             //parameters
             //restoran آبجکت رستوران برای افزودن
             // این آبجکت به شکل زیر است
@@ -197,6 +202,7 @@ export function getResponse({ getState }) {
             return { response, result: { id } }
         },
         async edit_restoran(restoran) {
+            return {mock:true}
             //parameters
             //restoran آبجکت رستوران ویرایش شده
             //این آبجکت به شکل زیر است
@@ -230,6 +236,7 @@ export function getResponse({ getState }) {
             return { response, result: true }
         },
         async remove_restoran(restoranId) {
+            return {mock:true}
             // parameters
             //restoranId آی دی رستورانی که باید حذف بشود
             
@@ -251,6 +258,7 @@ export function getResponse({ getState }) {
             return { response, result: true }
         },
         async get_restoran_menu(restoranId) {
+            return {mock:true}
             // parameters
             // restoranId آی دی رستورانی که منوی اون رو می خواهیم
 
@@ -290,6 +298,7 @@ export function getResponse({ getState }) {
             return { response, result }
         },
         async add_food({ restoranId, food }) {
+            return {mock:true}
             //restoranId => آی دی رستوران
             //food => آبجکت غذا برای افزودن
             //آبجکت غذا مانند زیر است
@@ -325,6 +334,7 @@ export function getResponse({ getState }) {
             return { response, result:{id} }
         },
         async edit_food({ restoranId, food }) {
+            return {mock:true}
             //restoranId => آی دی رستوران
             //food => آبجکت غذا برای ویرایش
             //آبجکت غذا مانند زیر است
@@ -355,6 +365,7 @@ export function getResponse({ getState }) {
             return { response, result: true }
         },
         async remove_food({ restoranId, foodId }) {
+            return {mock:true}
             // parameters
             //restoranId آی دی رستورانی که یک غذا از آن باید حذف بشود
             //foodId آی دی غذایی که باید حذف شود
@@ -378,6 +389,7 @@ export function getResponse({ getState }) {
         },
         //ویرایش تصویر غذا
         async edit_food_image({ restoranId, foodId, imageFile }) {
+            return {mock:true}
             //parameters
             //restoranId  آی دی رستوران
             //foodId آی دی غذا
@@ -401,6 +413,7 @@ export function getResponse({ getState }) {
         },
         //ویرایش تصویر رستوران
         async edit_restoran_image({ restoranId, imageFile }) {
+            return {mock:true}
             //parameters
             //restoranId  آی دی رستوران
             //imageFile فایل انتخاب شده ی کاربر ادمین برای تصویر این رستوران
@@ -423,6 +436,7 @@ export function getResponse({ getState }) {
         },
         //ویرایش لوگوی رستوران
         async edit_restoran_logo({ restoranId, imageFile }) {
+            return {mock:true}
             //parameters
             //restoranId  آی دی رستوران
             //imageFile فایل انتخاب شده ی کاربر ادمین برای لوگوی این رستوران
