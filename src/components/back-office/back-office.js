@@ -742,8 +742,19 @@ class Restorans extends Component {
             name: 'دریافت لیست رستوزان ها',
             def: []
         });
+        let tagOptions = await apis({
+            api: 'get_tags',
+            parameter:{type:'restoran'},
+            name: 'دریافت لیست تگ های رستوران ها',
+            def: []
+        });
         this.mounted = true;
-        this.setState({ restorans })
+        let tag_dic = {}
+        for(let i = 0; i < tagOptions.length; i++){
+            let {id,name} = tagOptions[i];
+            tag_dic[id] = name;
+        }
+        this.setState({ restorans,tag_dic })
     }
     getRestoranById(id) {
         let { restorans } = this.state;
@@ -844,7 +855,8 @@ class Restorans extends Component {
         }
     }
     restoranCard_layout(restoran) {
-        let { name, id } = restoran;
+        let { name, id,tags } = restoran;
+        let {tag_dic} = this.state;
         return {
             onClick: () => this.openPopup('edit', restoran),
             className: 'p-12 m-h-12 fs-12 br-12',
@@ -859,6 +871,11 @@ class Restorans extends Component {
                             row: [
                                 { flex: 1, html: `نام رستوران : ${name}` },
                                 { html: `کد : ${id}` }
+                            ]
+                        },
+                        {
+                            row: [
+                                { flex: 1, html:tags.map((o)=>tag_dic[o]).join(' , '),className:'fs-10'  },
                             ]
                         }
                     ]
@@ -945,7 +962,7 @@ class RestoranCard extends Component {
     }
     getTimeOptions(){
         return new Array(24).fill(0).map((o,i)=>{
-            let hour = i.toString();
+            let hour = (i+1).toString();
             hour = hour.length === 1?`0${hour}`:hour;
             return {text:<div style={{direction:'ltr'}}>{`${hour} : 00`}</div>,value:i}
         })
