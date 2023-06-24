@@ -214,11 +214,7 @@ debugger
                         "applyChangeTime": "12:00"
                     }
                 ],
-                "types": [
-                    {
-                        "Id": restoran.tags
-                    }
-                ]
+                "types": restoran.tags
             }
 
             //دریافت ریسپانس
