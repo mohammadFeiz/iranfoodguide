@@ -1,12 +1,11 @@
 import Axios from 'axios';
 import AIOStorage from './npm/aio-storage/aio-storage';
 export function getResponse({ getState }) {
-    //let baseUrl = 'https://localhost:7203/api/v1'
-    let baseUrl = 'https://iranfoodguide.ir/api'
+    let baseUrl = 'https://localhost:7203/api'
+    //let baseUrl = 'https://iranfoodguide.ir/api'
     return {
         //در یافت لیست تگ های رستوران و تگ های غذا بسته به تایپ ورودی
         async get_tags({ type }) {
-            return {mock:true}
             //parameters
             // type => 'restoran' | 'food'
 
@@ -33,14 +32,16 @@ export function getResponse({ getState }) {
 
             //مپ کردن دیتای سرور به دیتای فرانت
             let result;
-            //result = data.map((o)=>{
-            //    return {
-            //        name:<...>, //String نام تگ
-            //        id:<...>, //String آی دی تگ
-            //    }
-            //});
+            result = data.map((o)=>{
+               return {
+                   name:o.title, //String نام تگ
+                   id:o.id, //String آی دی تگ
+               }
+            });
 
             return { response, result };
+            return {mock:true}
+
         },
         async add_tag({ type, tagName }) {
             
@@ -94,15 +95,16 @@ export function getResponse({ getState }) {
             //parameters
             // type => 'restoran' | 'food'
             // tagId => آی دی تگ
-
-            if (type === 'restoran') { url = `${baseUrl}/ResType/delete`; }
-            else if (type === 'food') { url = `${baseUrl}/FoodType/delete` }
+                let url;
+            if (type === 'restoran') { url = `${baseUrl}/ResType?Id=${tagId.toString()}`; }
+            else if (type === 'food') { url = `${baseUrl}/FoodType?Id=${tagId.toString()}` }
 
             //نوع درخواست ("get" | "post")
             let method;
             //method = <...>
-            method = "post"
+            method = "delete"
             //بادی متد پست (any | undefined)
+            debugger
             let body;
             if (type === 'restoran') { body = {
 
@@ -113,7 +115,7 @@ export function getResponse({ getState }) {
             }; }
 
             //دریافت ریسپانس
-            let response = await Axios[method](url, body);
+            let response = await Axios[method](url);
 
             return { response, result: true }
 
@@ -164,7 +166,6 @@ export function getResponse({ getState }) {
             return { response, result }
         },
         async add_restoran(restoran) {
-            return {mock:true}
 
             //parameters
             //restoran آبجکت رستوران برای افزودن
@@ -190,7 +191,7 @@ export function getResponse({ getState }) {
             //نوع درخواست ("get" | "post")
             let method;
             method = "post";
-
+debugger
             //بادی متد پست (any | undefined)
             let body;
             body = {
@@ -215,7 +216,7 @@ export function getResponse({ getState }) {
                 ],
                 "types": [
                     {
-                        "typeId": restoran.tags
+                        "Id": restoran.tags
                     }
                 ]
             }
@@ -228,13 +229,15 @@ export function getResponse({ getState }) {
             //id = <...>
 
             return { response, result: { id } }
+            return {mock:true}
+
 
         },
         async edit_restoran(restoran) {
             return {mock:true}
             let method;
             method = "put";
-            url = `${baseUrl}/Restaurant/Edit`; 
+            let url = `${baseUrl}/Restaurant/Edit`; 
             //بادی متد پست (any | undefined)
             let body;
             body = {
@@ -275,21 +278,17 @@ export function getResponse({ getState }) {
             //restoranId آی دی رستورانی که باید حذف بشود
             
 
-           let url = `${baseUrl}/ResType/delete`; 
+           let url = `${baseUrl}/Restaurant/delete`; 
 
             //نوع درخواست ("get" | "post")
             let method;
             //method = <...>
             method = "post"
             //بادی متد پست (any | undefined)
-            let body;
-            if (type === 'restoran') { body = {
+            let body={
 
-                    "id": restoranId
-            }; }
-            else if (type === 'food') { body = {
                 "id": restoranId
-            }; }
+        };
 
             //دریافت ریسپانس
             let response = await Axios[method](url, body);

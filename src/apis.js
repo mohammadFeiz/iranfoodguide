@@ -17,8 +17,8 @@ import kabab_src from './images/kabab.jpg';
 import rice_src from './images/rice.png';
 import fish_src from './images/fish.jpg';
 export function getResponse({getState}){
-    //let baseUrl = 'https://localhost:7203/api/v1'
-   let baseUrl = 'https://iranfoodguide.ir/api'
+    let baseUrl = 'https://localhost:7203/api'
+   //let baseUrl = 'https://iranfoodguide.ir/api'
     return {
         async sabte_shomare_tamas(shomare_tamas) {
             let url = `${baseUrl}/People/AddMobileNumber`;
