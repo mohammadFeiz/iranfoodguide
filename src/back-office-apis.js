@@ -43,7 +43,7 @@ export function getResponse({ getState }) {
             return { response, result };
         },
         async add_tag({ type, tagName }) {
-            return {mock:true}
+            
             //parameters
             // type => 'restoran' | 'food'
             // tagName => نام تگ
@@ -53,46 +53,72 @@ export function getResponse({ getState }) {
             let url;
             //url = `${baseUrl}/<...>`;
 
+            if (type === 'restoran') { url = `${baseUrl}/ResType/Create`; }
+            else if (type === 'food') { url = `${baseUrl}/FoodType/Create` }
+
             //نوع درخواست ("get" | "post")
             let method;
             //method = <...>
-
+            method = "post"
             //بادی متد پست (any | undefined)
             let body;
-            //body = <...>
+            if (type === 'restoran') { body = {
 
-            //دریافت ریسپانس
+                    "title": tagName,
+                    "latinTitle": tagName
+            }; }
+            else if (type === 'food') { body = {
+                "title": tagName,
+                "latinTitle": tagName
+            }; }
+
             let response = await Axios[method](url, body);
 
-            //دریافت آی دی تگ اضافه شده از روی ریسپانس
-            let id;
-            //id = <...>
+            //دریافت دیتا از روی ریسپانس
+            let data;
+            data = response.data.data.items
 
-            return { response, result: { id } }
+            //مپ کردن دیتای سرور به دیتای فرانت
+            let result;
+            //result = data.map((o)=>{
+            //    return {
+            //        name:<...>, //String نام تگ
+            //        id:<...>, //String آی دی تگ
+            //    }
+            //});
+
+            return { response, result };
+            return {mock:true}
         },
         async remove_tag({ type, tagId }) {
-            return {mock:true}
             //parameters
             // type => 'restoran' | 'food'
             // tagId => آی دی تگ
 
-
-            //آدرس درخواست 
-            let url;
-            //url = `${baseUrl}/<...>`;
+            if (type === 'restoran') { url = `${baseUrl}/ResType/delete`; }
+            else if (type === 'food') { url = `${baseUrl}/FoodType/delete` }
 
             //نوع درخواست ("get" | "post")
             let method;
             //method = <...>
-
+            method = "post"
             //بادی متد پست (any | undefined)
             let body;
-            //body = <...>
+            if (type === 'restoran') { body = {
+
+                    "id": tagId
+            }; }
+            else if (type === 'food') { body = {
+                "id": tagId
+            }; }
 
             //دریافت ریسپانس
             let response = await Axios[method](url, body);
 
             return { response, result: true }
+
+            return {mock:true}
+
         },
         async get_restorans() {
             return {mock:true}
@@ -139,6 +165,7 @@ export function getResponse({ getState }) {
         },
         async add_restoran(restoran) {
             return {mock:true}
+
             //parameters
             //restoran آبجکت رستوران برای افزودن
             // این آبجکت به شکل زیر است
@@ -157,6 +184,7 @@ export function getResponse({ getState }) {
 
             //آدرس درخواست 
             let url;
+            url = `${baseUrl}/Restaurant/Create`; 
             //url = `${baseUrl}/<...>`
 
             //نوع درخواست ("get" | "post")
@@ -187,7 +215,7 @@ export function getResponse({ getState }) {
                 ],
                 "types": [
                     {
-                        "typeId": 0
+                        "typeId": restoran.tags
                     }
                 ]
             }
@@ -200,62 +228,75 @@ export function getResponse({ getState }) {
             //id = <...>
 
             return { response, result: { id } }
+
         },
         async edit_restoran(restoran) {
             return {mock:true}
-            //parameters
-            //restoran آبجکت رستوران ویرایش شده
-            //این آبجکت به شکل زیر است
-            // {
-            //     name:String, نام رستوران
-            //     latitude:Number, موقعیت رستوران در راستای لتیتیود
-            //     longitude:Number, موقعیت رستوران در راستای لانگیتیود
-            //     address:String, آدرس رستوران
-            //     phone:String, تلفن رستوران
-            //     deliveryTime:Number, مدت زمان ارسال به دقیقه
-            //     tags:ArrayOfStrings,آرایه ای از آی دی تگ های رستوران
-            //     startTime:Number bewtween (1 and 24) زمان شروع به کار
-            //     endTime:Number bewtween (1 and 24) زمان پایان کار
-            // }
-
-
-            //آدرس درخواست 
-            let url;
-            //url = `${baseUrl}/<...>`
-
-            //نوع درخواست ("get" | "post")
             let method;
-            //method = <...>;
-
+            method = "put";
+            url = `${baseUrl}/Restaurant/Edit`; 
             //بادی متد پست (any | undefined)
             let body;
-            //body = <...>
+            body = {
+                "Title": restoran.name,
+                "LatinTitle": restoran.name,
+                "address": {
+                    "fullAddress": restoran.address,
+                    "latitude": restoran.latitude,
+                    "longitude": restoran.longitude
+                },
+                "phoneNumbers": [
+                    {
+                        "Title": restoran.name,
+                        "phoneNumber": restoran.phone,
+                    }],
+                "workingTimes": [
+                    {
+                        "startTime": restoran.startTime,// "12:00",
+                        "endTime": restoran.endTime,
+                        "applyChangeTime": "12:00"
+                    }
+                ],
+                "types": [
+                    {
+                        "typeId": restoran.tags
+                    }
+                ]
+            }
 
             //دریافت ریسپانس
             let response = await Axios[method](url, body);
+
+            //دریافت ریسپانس
             return { response, result: true }
         },
         async remove_restoran(restoranId) {
-            return {mock:true}
             // parameters
             //restoranId آی دی رستورانی که باید حذف بشود
             
 
-            //آدرس درخواست 
-            let url;
-            //url = `${baseUrl}/<...>`
+           let url = `${baseUrl}/ResType/delete`; 
 
             //نوع درخواست ("get" | "post")
             let method;
-            //method = <...>;
-
+            //method = <...>
+            method = "post"
             //بادی متد پست (any | undefined)
             let body;
-            //body = <...>
+            if (type === 'restoran') { body = {
+
+                    "id": restoranId
+            }; }
+            else if (type === 'food') { body = {
+                "id": restoranId
+            }; }
 
             //دریافت ریسپانس
             let response = await Axios[method](url, body);
+
             return { response, result: true }
+            return {mock:true}
+
         },
         async get_restoran_menu(restoranId) {
             return {mock:true}
