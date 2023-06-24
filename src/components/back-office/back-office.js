@@ -964,7 +964,7 @@ class RestoranCard extends Component {
         return new Array(24).fill(0).map((o,i)=>{
             let hour = (i+1).toString();
             hour = hour.length === 1?`0${hour}`:hour;
-            return {text:<div style={{direction:'ltr'}}>{`${hour} : 00`}</div>,value:i}
+            return {text:<div style={{direction:'ltr'}}>{`${hour} : 00`}</div>,value:`${i + 1}:0`}
         })
     }
     
