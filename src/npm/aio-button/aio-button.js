@@ -303,11 +303,12 @@ export default class AIOButton extends Component {
           }
         }
         else if (type === 'multiselect') {
-          if (this.props.value.indexOf(value) === -1) {
-            this.props.onChange(this.props.value.concat(value), value, 'add')
+          let {value:propsValue=[]} = this.props;
+          if (propsValue.indexOf(value) === -1) {
+            this.props.onChange(propsValue.concat(value), value, 'add')
           }
           else {
-            this.props.onChange(this.props.value.filter((o) => o !== value), value, 'remove')
+            this.props.onChange(propsValue.filter((o) => o !== value), value, 'remove')
           }
         }
         if (close && checked === undefined) { this.toggle() }

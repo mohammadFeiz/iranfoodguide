@@ -1269,6 +1269,20 @@ class RestoranCard extends Component {
 
 class Menu extends Component {
     static contextType = BOContext;
+    constructor(props){
+        super(props);
+        this.state = {categoryOptions:[]}
+    }
+    componentDidMount(){
+        let { apis } = this.context;
+        apis({
+            api:'get_tags',
+            name:'دریافت لیست تگ های غذا ها',
+            parameter:{type:'food'},
+            callback:(categoryOptions)=>this.setState({categoryOptions})
+        })
+    }
+    
     async add(newFood) {
         let { apis } = this.context;
         let { restoranId } = this.props;
@@ -1322,8 +1336,10 @@ class Menu extends Component {
     }
     render() {
         let {menu} = this.props;
+        let {categoryOptions} = this.state
         return (
             <ProductManager
+                categoryOptions={categoryOptions.map((o)=>{return {text:o.name,value:o.id}})}
                 products={menu}
                 onAdd={async (newFood) => await this.add(newFood)}
                 onEdit={async (newFood) => await this.edit(newFood)}

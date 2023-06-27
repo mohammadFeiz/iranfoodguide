@@ -124,7 +124,8 @@ export default class ProductManager extends Component {
     }
     productFormPopup(o) {
         let { popup } = this.state;
-        let product = o || { name: '', image: false, review: '', description: '', details: [], tags: [], price: 0 }
+        let {categoryOptions} = this.props;
+        let product = o || { name: '', image: false, review: '', description: '', details: [], tags: [], price: 0 ,categories:[]}
         let type = !!o ? 'edit' : 'add';
         let title = !!o ? 'ویرایش محصول' : 'افزودن محصول'
         popup.addPopup({
@@ -138,6 +139,7 @@ export default class ProductManager extends Component {
                                 flex: 1,
                                 html: (
                                     <ProductCard
+                                        categoryOptions={categoryOptions}
                                         product={product}
                                         onAdd={type === 'edit' ? undefined : (newProduct) => this.add(newProduct)}
                                         onEdit={type === 'add' ? undefined : (newProduct) => this.edit(newProduct)}
@@ -229,6 +231,7 @@ class ProductCard extends Component {
     }
     form() {
         let { model } = this.state;
+        let {categoryOptions = []} = this.props;
         let { optionTypes = [] } = model;
         return (
             <Form
@@ -248,19 +251,22 @@ class ProductCard extends Component {
                 inputs={[
                     { type: 'text', field: 'model.id', label: 'آی دی', disabled: true, show: model.id !== undefined },
                     { type: 'text', field: 'model.name', label: 'نام', validations: [['required']] },
+                    { type: 'number', field: 'model.price', label: 'قیمت', validations: [['required']] },
+                    { type: 'number', field: 'model.discountPercent', label: 'درصد تخفیف' },
                     { type: 'textarea', field: 'model.description', label: 'توضیحات', validations: [['required']] },
                     { type: 'textarea', field: 'model.review', label: 'شرح', validations: [['required']], theme: { inputStyle: { height: 96 } } },
-                    { type: 'html', label: 'آپشن ها', html: () => this.optionTypes_layout() },
-                    {
-                        type: 'group', inputs: optionTypes.map((o) => {
-                            return {
-                                type: 'html', label: `${o.name} ها`, html: () => this.optionValues_layout(o)
-                            }
-                        })
-                    },
-                    {
-                        type: 'html', label: 'واریانت ها', html: () => this.variants_layout()
-                    },
+                    { show:!!categoryOptions.length,type: 'multiselect', field: 'model.categories', label: 'دسته بندی ها',options:categoryOptions },
+                    // { type: 'html', label: 'آپشن ها', html: () => this.optionTypes_layout() },
+                    // {
+                    //     type: 'group', inputs: optionTypes.map((o) => {
+                    //         return {
+                    //             type: 'html', label: `${o.name} ها`, html: () => this.optionValues_layout(o)
+                    //         }
+                    //     })
+                    // },
+                    // {
+                    //     type: 'html', label: 'واریانت ها', html: () => this.variants_layout()
+                    // },
                     { type: 'html', label: 'تصویر', html: () => this.image_layout() },
 
 
@@ -336,7 +342,7 @@ class ProductCard extends Component {
         let { model } = this.state;
         let firstError = errorKeys[0] ? errors[errorKeys[0]] : false;
         if (firstError) { return firstError }
-        if (!model.image) { return 'ثبت تصویر رستوران ضروری است' }
+        if (!model.image) { return 'ثبت تصویر محصول ضروری است' }
     }
     formFooter_layout({ errors, isModelChanged, onReset }) {
         let { model } = this.state;
