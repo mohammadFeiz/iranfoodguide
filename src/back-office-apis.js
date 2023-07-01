@@ -161,6 +161,7 @@ export function getResponse({ getState }) {
             //         tags:<...>, //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
             //         startTime:<...>, //Number bewtween (1 and 24) زمان شروع به کار
             //         endTime:<...>, //Number bewtween (1 and 24) زمان پایان کار
+            //         tags: Array of ids آرایه ای از تگ های رستوران
             //     }
             // })
             return { response, result }
@@ -180,6 +181,7 @@ export function getResponse({ getState }) {
             //     tags:ArrayOfStrings,آرایه ای از آی دی تگ های رستوران
             //     startTime:Number bewtween (1 and 24) زمان شروع به کار
             //     endTime:Number bewtween (1 and 24) زمان پایان کار
+            //     tags:Array of ids آرایه ای از تگ های رستوران
             // }
 
 
@@ -329,6 +331,7 @@ debugger
             //       discountPercent:<...>, //Number درصد تخفیف غذا
             //       description:<...>, //String توضیحات مختصر در مورد غذا
             //       review:<...>, //String توضیحات مفصل در مورد غذا
+            //       categories:<...> //Array آرایه ای از آی دی های دسته بندی
             //     }
             // })
             return { response, result }
@@ -345,6 +348,7 @@ debugger
             //     discountPercent:درصد تخفیف غذا
             //     description:String توضیحات مختصر در مورد غذا
             //     review:String توضیحات مفصل در مورد غذا
+            //     categories:Array آرایه ای از آی دی های دسته بندی
             // }
 
 
