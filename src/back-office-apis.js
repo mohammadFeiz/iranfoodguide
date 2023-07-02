@@ -123,28 +123,33 @@ export function getResponse({ getState }) {
 
         },
         async get_restorans() {
-            return {mock:true}
+          //  return {mock:true}
             //آدرس درخواست 
-            let url;
             //url = `${baseUrl}/<...>`;
 
             //نوع درخواست ("get" | "post")
-            let method;
             //method = <...>
 
             //بادی متد پست (any | undefined)
-            let body;
             //body = <...>
 
             //دریافت ریسپانس
-            let response = await Axios[method](url, body);
 
             //دریافت دیتا از روی ریسپانس
-            let data = [];
             //data = <...>
 
             //مپ کردن دیتای سرور به دیتای فرانت
-            let result = [];
+            let method;
+            method = "post"
+            let url = `${baseUrl}/Restaurant/Search`;
+            let body = {
+                           // "PageNumber":pageSize,
+                            //"RecordsPerPage":pageNumber
+                        }
+            let response = await Axios[method].post(url,body);
+            let data = response.data.data.items
+            let result=data;
+
             // result = data.map((o)=>{
             //     return {
             //         id:<...>, //String آی دی رستوران
@@ -275,23 +280,26 @@ debugger
             // parameters
             //restoranId آی دی رستورانی که باید حذف بشود
             
-
-           let url = `${baseUrl}/Restaurant/delete`; 
+             let url = `${baseUrl}/Restaurant?Id=${restoranId.toString()}`; 
+  
 
             //نوع درخواست ("get" | "post")
             let method;
             //method = <...>
-            method = "post"
+            method = "delete"
             //بادی متد پست (any | undefined)
-            let body={
-
+            debugger
+            let body;
+            
+             body = {
                 "id": restoranId
-        };
+            }; 
 
             //دریافت ریسپانس
-            let response = await Axios[method](url, body);
+            let response = await Axios[method](url);
 
             return { response, result: true }
+
             return {mock:true}
 
         },
@@ -301,27 +309,14 @@ debugger
             // restoranId آی دی رستورانی که منوی اون رو می خواهیم
 
 
-            //آدرس درخواست 
-            let url;
-            //url = `${baseUrl}/<...>`;
-
-            //نوع درخواست ("get" | "post")
-            let method;
-            //method = <...>
-
-            //بادی متد پست (any | undefined)
-            let body;
-            //body = <...>
-
-            //دریافت ریسپانس
-            let response = await Axios[method](url, body);
-
-            //دریافت دیتا از روی ریسپانس
-            let data = [];
-            //data = <...>
+            let url = `${baseUrl}/Menu/Search`;
+            let body = {"RestaurantId": restaurantId}
+            let response = await Axios.post(url,body);
+            let result = response.data.data.items.FoodCategories;
+            return {response,result};
 
             //مپ کردن دیتای سرور به دیتای فرانت
-            let result = [];
+            //let result = [];
             // result = data.map((o)=>{
             //     return {
             //       id:<...>, //String آی دی غذا
@@ -337,7 +332,7 @@ debugger
             return { response, result }
         },
         async add_food({ restoranId, food }) {
-            return {mock:true}
+          //  return {mock:true}
             //restoranId => آی دی رستوران
             //food => آبجکت غذا برای افزودن
             //آبجکت غذا مانند زیر است
@@ -352,29 +347,43 @@ debugger
             // }
 
 
-            //آدرس درخواست 
-            let url;
-            //url = `${baseUrl}/<...>`;
+            let url = `${baseUrl}/RestaurantFood/Create`;
 
+            let body = {
+               // "id": 0,
+                "title": food.name,
+                "food": {
+                  //"id": 0,
+                  "types":food.categories,
+                  "title":  food.name,
+                  "latinTitle":  food.name,
+                  "description":food.description
+                },
+                "restaurantId": restoranId,
+                "price": food.price,
+                "description": food.description,
+                //"inventoryCount": 0,
+                "isFavorite": true,
+                "discount":food.discountPercent
+              }
+           
             //نوع درخواست ("get" | "post")
             let method;
-            //method = <...>
-
+            method ="post"
             //بادی متد پست (any | undefined)
-            let body;
             //body = <...>
 
             //دریافت ریسپانس
             let response = await Axios[method](url, body);
-
+            let result = response.data.data.items.FoodCategories;
             //دریافت آی دی غذای اضافه شده از روی ریسپانس
-            let id;
+            let id = response.data;
             //id = <...>
 
             return { response, result:{id} }
         },
         async edit_food({ restoranId, food }) {
-            return {mock:true}
+           // return {mock:true}
             //restoranId => آی دی رستوران
             //food => آبجکت غذا برای ویرایش
             //آبجکت غذا مانند زیر است
@@ -388,55 +397,72 @@ debugger
             //     review:String توضیحات مفصل در مورد غذا
             // }
 
-            //آدرس درخواست 
-            let url;
-            //url = `${baseUrl}/<...>`;
+            method = "put";
+            let url = `${baseUrl}/RestaurantFood/Edit`; 
+                  //method = <...>
 
-            //نوع درخواست ("get" | "post")
-            let method;
-            //method = <...>
+                  let body = {
+                     "id": food.id,
+                     "title": food.name,
+                     "food": {
+                       //"id": 0,
+                       "types":food.categories,
+                       "title":  food.name,
+                       "latinTitle":  food.name,
+                       "description":food.description
+                     },
+                     "restaurantId": restoranId,
+                     "price": food.price,
+                     "description": food.description,
+                     //"inventoryCount": 0,
+                     "isFavorite": true,
+                     "discount":food.discountPercent
+                   }
+                
+                 //نوع درخواست ("get" | "post")
+                 let method;
+                 method ="post"       
 
-            //بادی متد پست (any | undefined)
-            let body;
-            //body = <...>
-            
+
             //دریافت ریسپانس
             let response = await Axios[method](url, body);
             return { response, result: true }
         },
         async remove_food({ restoranId, foodId }) {
-            return {mock:true}
-            // parameters
-            //restoranId آی دی رستورانی که یک غذا از آن باید حذف بشود
-            //foodId آی دی غذایی که باید حذف شود
-
-
-            //آدرس درخواست 
-            let url;
-            //url = `${baseUrl}/<...>`
+          //  return {mock:true}
+            
+            let url = `${baseUrl}/RestaurantFood?Id=${foodId.toString()}`; 
+  
 
             //نوع درخواست ("get" | "post")
             let method;
-            //method = <...>;
-
+            //method = <...>
+            method = "delete"
             //بادی متد پست (any | undefined)
+            debugger
             let body;
-            //body = <...>
+            
+             body = {
+                "id": foodId
+            }; 
 
             //دریافت ریسپانس
-            let response = await Axios[method](url, body);
+            let response = await Axios[method](url);
+
             return { response, result: true }
+
+          //  return {mock:true}
         },
         //ویرایش تصویر غذا
         async edit_food_image({ restoranId, foodId, imageFile }) {
-            return {mock:true}
+            //return {mock:true}
             //parameters
             //restoranId  آی دی رستوران
             //foodId آی دی غذا
             //imageFile فایل انتخاب شده ی کاربر ادمین برای این غذا
             
             //آدرس درخواست 
-            let url;
+            let url=`${baseUrl}/RestaurantFood/AddLogoImage`; 
             //url = `${baseUrl}/<...>`
 
             //نوع درخواست ("get" | "post")
@@ -459,7 +485,7 @@ debugger
             //imageFile فایل انتخاب شده ی کاربر ادمین برای تصویر این رستوران
             
             //آدرس درخواست 
-            let url;
+            let url=`${baseUrl}/RestaurantImage/AdImageOfRestaurant`; 
             //url = `${baseUrl}/<...>`
 
             //نوع درخواست ("get" | "post")
@@ -480,9 +506,9 @@ debugger
             //parameters
             //restoranId  آی دی رستوران
             //imageFile فایل انتخاب شده ی کاربر ادمین برای لوگوی این رستوران
-            
+            let url=`${baseUrl}/RestaurantImage/AddLogoImage`; 
             //آدرس درخواست 
-            let url;
+            //let url;
             //url = `${baseUrl}/<...>`
 
             //نوع درخواست ("get" | "post")
