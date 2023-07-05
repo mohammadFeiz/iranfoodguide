@@ -28,9 +28,9 @@ export default class RestoranPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      category: false,
+      activeMenu: false,
+      menuLength:0,
       menu: [],
-      categories:[],
       activeTabId:'menu',
       tabMode:true,
       coupons:[],
@@ -102,12 +102,32 @@ export default class RestoranPage extends Component {
     let { apis } = this.context;
     let { id } = this.props;
     apis({
-      api: 'restoran_menu',
-      parameter: id,
-      callback: (menu) => {
-        let categories = menu;
-        let category = categories[0].name; 
-        this.setState({ menu,categories,category })
+      api: 'get_restoran_foods',
+      parameter: id,def:[],
+      callback: (foods) => {
+        let menu = {}
+        let food_dic = {};
+        let subFoods = {};
+        let activeMenu;
+        for(let i = 0; i < foods.length; i++){
+          let food = foods[i];
+          let {menuCategory,parentId,id} = food;
+          food_dic[id] = food;
+          if(!activeMenu){activeMenu = menuCategory;}
+          if(parentId){
+            subFoods[parentId] = subFoods[parentId] || [];
+            subFoods[parentId].push(food);
+            continue;
+          }
+          menu[menuCategory] = menu[menuCategory] || [];
+          menu[menuCategory].push(food);
+        }
+        let keys = Object.keys(subFoods);
+        for(let i = 0; i < keys.length; i++){
+          let key = keys[i];
+          food_dic[key].items = subFoods[key];
+        }
+        this.setState({ menu,activeMenu,menuLength:Object.keys(menu).length,subFoods })
       }
     })
     apis({
@@ -209,23 +229,23 @@ export default class RestoranPage extends Component {
     }
   }
   category_layout() {
-    let { category,categories } = this.state;
-    if(categories.length <= 1){return false}
+    let { activeMenu,menu,menuLength } = this.state;
+    if(!menuLength){return false}
     return {
       className: 'p-h-12 m-b-12',
       html: (
         <GroupButton
           type='menu'
-          value={[category]} className='outline'
-          options={categories.map(({name,image}) => { return { text: name, value: name,image } })}
-          onChange={(values, value) => this.setState({ category: value })}
+          value={[activeMenu]} className='outline'
+          options={Object.keys(menu).map((o) => { return { text: o, value: o } })}
+          onChange={(values, activeMenu) => this.setState({ activeMenu })}
         />
       )
     }
   }
   filter_layout() {
     let { tags } = this.props;
-    let { category } = this.state;
+    let { activeMenu } = this.state;
     return {
       className: 'p-h-12 m-b-12',
       row: [
@@ -234,8 +254,8 @@ export default class RestoranPage extends Component {
         {
           html: (
             <AIOButton
-              className='select-2' type='select' value={category} options={tags} optionText='option' optionValue='option'
-              onChange={(category) => this.setState({ category })} style={{ width: 90 }}
+              className='select-2' type='select' value={activeMenu} options={tags} optionText='option' optionValue='option'
+              onChange={(activeMenu) => this.setState({ activeMenu })} style={{ width: 90 }}
             />
           )
         }
@@ -243,11 +263,10 @@ export default class RestoranPage extends Component {
     }
   }
   foods_layout() {
-    let { menu,category,Shop } = this.state;
+    let { menu,activeMenu,Shop } = this.state;
     if(!Shop){return false}
-    let activeMenu = menu.find(({name})=>name === category);
     if(!activeMenu){return false}
-    let foods = activeMenu.items;
+    let foods = menu[activeMenu];
     return {
       gap: 12, flex: 1, className: 'ofy-auto',
       column: foods.map((o) => {
@@ -255,7 +274,7 @@ export default class RestoranPage extends Component {
         let html;
         if(items.length){
           html = (
-            <button className='joziate-ghaza button-2'>جزییات</button>
+            <button className='joziate-ghaza button-2' onClick={()=>this.openPopup('subFoods',o)}>جزییات</button>
           )
         }
         return { className: 'p-h-12 of-visible', html: Shop.renderProductCard({product:o,config:{changeCart:true,html}}) }
@@ -263,22 +282,16 @@ export default class RestoranPage extends Component {
     }
   }
   openPopup(key,parameter){
-    let {Shop} = this.state;
+    let {Shop,subFoods} = this.state;
     let {rsa_actions} = this.context;
     let {addPopup} = rsa_actions;
-    if(key === 'info'){
+    if(key === 'subFoods'){
       addPopup({
-        type:'fullscreen',header:false,
+        type:'fullscreen',title:`انواع ${parameter.name}`,
         body:()=>{
-          return <RestoranInfo {...this.props} onClose={()=>rsa_actions.removePopup()}/>
-        }
-      })
-    }
-    else if(key === 'food details'){
-      addPopup({
-        type:'fullscreen',header:false,
-        body:()=>{
-          return ''
+          return (
+            <SubFoods food={parameter} subFoods={subFoods} Shop={Shop}/>
+          )
         }
       })
     }
@@ -307,7 +320,7 @@ export default class RestoranPage extends Component {
       <>
         <RVD
           layout={{
-            style:{height:'100%',background:'#fff'},
+            style:{height:'100%',background:'#f8f8f8'},
             column: [
               this.header_layout(cartLength),
               this.title_layout(),
@@ -328,6 +341,32 @@ export default class RestoranPage extends Component {
         />
         {Shop && Shop.renderPopups()}
       </>
+    )
+  }
+}
+class SubFoods extends Component{
+  foods_layout(foods){
+    let {Shop} = this.props;
+    return {
+      flex:1,className:'ofy-auto',
+      column:foods.map((o)=>{
+        return { className: 'p-h-12 of-visible', html: Shop.renderProductCard({product:o,config:{changeCart:true}}) }
+      })
+    }
+  }
+  render(){
+    let {food,subFoods} = this.props;
+    let foods = subFoods[food.id];
+    return (
+      <RVD
+        layout={{
+          style:{background:'#f8f8f8',height:'100%'},
+          column:[
+            {size:12},
+            this.foods_layout(foods)
+          ]
+        }}
+      />
     )
   }
 }
@@ -429,10 +468,10 @@ class RestoranInfo extends Component {
       ]
     }
   }
-  parts_layout(time) {
+  parts_layout(deliveryTime) {
     let {comments} = this.state;
     let parts = [
-      { text: `${time} دقیقه`, subtext: 'زمان ارسال', icon: mdiClock },
+      { text: `${deliveryTime} دقیقه`, subtext: 'زمان ارسال', icon: mdiClock },
       //{text:`${shippingPrice} ریال`,subtext:'هزینه ارسال',icon:mdiWallet},
       { text: `${comments.length} نظر`, subtext: 'نظرات کاربران', icon: mdiComment },
       { text: `رزرو میز`, subtext: 'مشاهده میزها', icon: mdiTable, color: '#92C020' },
@@ -475,7 +514,7 @@ class RestoranInfo extends Component {
     return {html:<RestoranComments comments={comments}/>}
   }
   render() {
-    let {latitude,longitude,address,time,logo,name,rate,ifRate,ifComment} = this.props;
+    let {latitude,longitude,address,deliveryTime,logo,name,rate,ifRate,ifComment} = this.props;
     let {comments} = this.state;
     return (
       <RVD
@@ -486,7 +525,7 @@ class RestoranInfo extends Component {
             {
               flex:1,className:'ofy-auto',
               column:[
-                this.parts_layout(time,comments),
+                this.parts_layout(deliveryTime,comments),
                 this.address_layout(latitude,longitude,address),
                 this.downloadMenu_layout(),
                 {size:12},

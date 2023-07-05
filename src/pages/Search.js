@@ -5,6 +5,7 @@ import GroupButton from "../components/group-button";
 import AIOButton from '../npm/aio-button/aio-button';
 import Card from "../card/card";
 import ListHeader from "../components/list-header";
+import calculateDistance from './../npm/aio-functions/calculate-distance';
 import AppContext from "../app-context";
 import {Icon} from '@mdi/react';
 import { mdiSort } from "@mdi/js";
@@ -15,27 +16,21 @@ export default class Search extends Component{
     constructor(props){
         super(props);
         this.state = {
-            searchType:'0',
-            selectedCategories:[],
-            selectedSort:false,
-            restoran_ha:[],
-            pageSize:1000,
-            pageNumber:1
+            searchType:'0',selected_tags:[],selectedSort:false,restorans:[],pageSize:1000,pageNumber:1
         }
     }
     async componentDidMount(){
-        let {restoran_category_options} = this.context;
-        this.setState({selectedCategories:[restoran_category_options[0].value]})
+        let {restoran_tags} = this.context;
+        this.setState({selected_tags:[restoran_tags[0].value]})
         this.fetchData()
     }
     async fetchData(){
         let {apis} = this.context;
-        let {pageSize,pageNumber,selectedCategories,selectedSort,searchValue} = this.state;
+        let {pageSize,pageNumber,selected_tags,selectedSort,searchValue} = this.state;
         apis({
-            api:'jostojooye_restoran',
-            name:'دریافت لیست رستوران ها',
-            parameter:{pageSize,pageNumber,selectedCategories,selectedSort,searchValue},
-            callback:(restoran_ha)=>this.setState({restoran_ha})
+            api:'jostojooye_restoran',name:'دریافت لیست رستوران ها',
+            parameter:{pageSize,pageNumber,selected_tags,selectedSort,searchValue},
+            callback:(restorans)=>this.setState({restorans})
         })
     }
     search(searchValue){
@@ -46,49 +41,26 @@ export default class Search extends Component{
         return {
             className:'bgFF5900',size:36,align:'vh',html:(
                 <AIOButton
-                    type='tabs'
-                    className='restoran-search-type'
-                    options={[
-                        {text:'رستوران',value:'0'},
-                        {text:'غذا',value:'1'}
-                    ]}
-                    value={searchType}
+                    type='tabs' className='restoran-search-type' value={searchType}
+                    options={[{text:'رستوران',value:'0'},{text:'غذا',value:'1'}]}
                     onChange={(searchType)=>this.setState({searchType},()=>this.fetchData())}
                 />
             )
-
         }
     }
-    daste_bandi_layout(){
-        let {restoran_category_options} = this.context;
-        let {selectedCategories} = this.state;
+    restoran_tags_layout(restoran_tags,selected_tags){
         return {
             className:'p-h-12',
             html:(
                 <GroupButton
-                    options={restoran_category_options}
-                    value={selectedCategories}
-                    onChange={(selectedCategories)=>{
-                        this.setState({selectedCategories})
-                    }}
+                    options={restoran_tags.map((o)=>{return {text:o.name,value:o.id}})} value={selected_tags}
+                    onChange={(selected_tags)=>this.setState({selected_tags})}
                 />
             )
         }
     }
     search_layout(){
-        let {apis} = this.context;
-        return {
-            flex:1,
-            html:(
-                <SearchBox 
-                    onChange={(value)=>this.search(value)}
-                    history={{
-                        get:async ()=>await apis({api:'tarikhche_ye_jostojoo'}),
-                        remove:async (text)=>await apis({api:'hazfe_tarikhche_ye_jostojoo',parameter:text})
-                    }}
-                />
-            )
-        }
+        return {flex:1,html:(<SearchBox onChange={(value)=>this.search(value)}/>)}
     }
     sort_layout(){
         let {restoran_sort_options} = this.context;
@@ -120,18 +92,18 @@ export default class Search extends Component{
         })
     }
     items_layout(){
-        let {restoran_ha} = this.state;
+        let {restorans} = this.state;
         return {
             flex:1,
-            className:'ofy-auto',
             column:[
-                {html:<ListHeader title='لیست رستوران' length={restoran_ha.length}/>},
+                {html:<ListHeader title='لیست رستوران' length={restorans.length}/>},
                 {size:12},
                 {
                     flex:1,className:'ofy-auto',gap:12,
-                    column:restoran_ha.map((o)=>{
+                    column:restorans.map((o)=>{
                         return {
-                            className:'p-h-12 of-visible',html:<Card type='card2' {...o} onClick={()=>this.openRestoranPage(o)}/>
+                            className:'p-h-12 of-visible',
+                            html:(<Card type='restoran_card' {...o} onClick={()=>this.openRestoranPage(o)}/>)
                         }
                     })
                 }
@@ -139,6 +111,9 @@ export default class Search extends Component{
         }
     }
     render(){
+        let {restoran_tags} = this.context;
+        let {selected_tags} = this.state;
+        
         return (
             <RVD
                 layout={{
@@ -148,15 +123,9 @@ export default class Search extends Component{
                         {
                             className:'p-12',
                             column:[
-                                {
-                                    gap:12,
-                                    row:[
-                                        this.search_layout(),
-                                        this.sort_layout()
-                                    ]
-                                },
+                                {gap:12,row:[this.search_layout(),this.sort_layout()]},
                                 {size:12},
-                                this.daste_bandi_layout()
+                                this.restoran_tags_layout(restoran_tags,selected_tags)
                             ]
                         },
                         {size:12},

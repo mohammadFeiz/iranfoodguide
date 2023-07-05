@@ -279,3 +279,7 @@ button,input{
   right:6px;
   width:60px;
 }
+
+.rsa-navigation{
+  background:orange;
+}

@@ -19,36 +19,7 @@ export default class Sefareshe_ghaza extends Component {
         let content = await apis({
             api:'safheye_sefaresh',
             name:'دریافت اطلاعات صفحه سفارش غذا',
-            // validation:[
-            //     (o)=>{
-            //         if(o.type === 'Categories'){
-            //             return {
-            //                 items:[
-            //                     {name:'string',src:'string',id:'string,number'}
-            //                 ]
-            //             }
-            //         }
-            //         if(o.type === 'Billboard'){
-            //             return {items:[{src:'string'}]}
-            //         }
-            //         if(o.type === 'Slider'){
-            //             return {
-            //                 name:'string',
-            //                 items:[
-            //                     {
-            //                         name:'string',
-            //                         image:'string',
-            //                         logo:'string,undefined',
-            //                         rate:'number',
-            //                         distance:'number,undefined',
-            //                         time:'number,undefined',
-            //                         tags:['string']
-            //                     }
-            //                 ]
-            //             }
-            //         }
-            //     }
-            // ]
+            def:[]
         })
         this.setState({content})
     }
@@ -97,7 +68,7 @@ export default class Sefareshe_ghaza extends Component {
                                     gap:12,
                                     row:o.items.map((o)=>{
                                         return {
-                                            html:<Card type='card2' {...o} width={cardSize.width} height={cardSize.height}/> 
+                                            html:<Card type='restoran_card' {...o} width={cardSize.width} height={cardSize.height}/> 
                                         }
                                     })
                                 }

@@ -124,8 +124,8 @@ export default class ProductManager extends Component {
     }
     productFormPopup(o) {
         let { popup } = this.state;
-        let {categoryOptions} = this.props;
-        let product = o || { name: '', image: false, review: '', description: '', details: [], tags: [], price: 0 ,categories:[]}
+        let {variantMode,extraOptions} = this.props;
+        let product = o || { name: '', image: false, review: '', description: '', details: [], tags: [], price: 0 ,discountPercent:0,categories:[]}
         let type = !!o ? 'edit' : 'add';
         let title = !!o ? 'ویرایش محصول' : 'افزودن محصول'
         popup.addPopup({
@@ -139,11 +139,13 @@ export default class ProductManager extends Component {
                                 flex: 1,
                                 html: (
                                     <ProductCard
-                                        categoryOptions={categoryOptions}
+                                        variantMode={variantMode}
+                                        extraOptions={extraOptions}
                                         product={product}
-                                        onAdd={type === 'edit' ? undefined : (newProduct) => this.add(newProduct)}
-                                        onEdit={type === 'add' ? undefined : (newProduct) => this.edit(newProduct)}
-                                        onRemove={type === 'add' ? undefined : () => this.remove(o.id)}
+                                        type={type}
+                                        onAdd={(newProduct) => this.add(newProduct)}
+                                        onEdit={(newProduct) => this.edit(newProduct)}
+                                        onRemove={() => this.remove(o.id)}
                                     />
                                 )
                             }
@@ -231,7 +233,7 @@ class ProductCard extends Component {
     }
     form() {
         let { model } = this.state;
-        let {categoryOptions = []} = this.props;
+        let {variantMode,extraOptions = []} = this.props;
         let { optionTypes = [] } = model;
         return (
             <Form
@@ -255,21 +257,17 @@ class ProductCard extends Component {
                     { type: 'number', field: 'model.discountPercent', label: 'درصد تخفیف' },
                     { type: 'textarea', field: 'model.description', label: 'توضیحات', validations: [['required']] },
                     { type: 'textarea', field: 'model.review', label: 'شرح', validations: [['required']], theme: { inputStyle: { height: 96 } } },
-                    { show:!!categoryOptions.length,type: 'multiselect', field: 'model.categories', label: 'دسته بندی ها',options:categoryOptions },
-                    // { type: 'html', label: 'آپشن ها', html: () => this.optionTypes_layout() },
-                    // {
-                    //     type: 'group', inputs: optionTypes.map((o) => {
-                    //         return {
-                    //             type: 'html', label: `${o.name} ها`, html: () => this.optionValues_layout(o)
-                    //         }
-                    //     })
-                    // },
-                    // {
-                    //     type: 'html', label: 'واریانت ها', html: () => this.variants_layout()
-                    // },
-                    { type: 'html', label: 'تصویر', html: () => this.image_layout() },
-
-
+                    { show:!!variantMode,type: 'html', label: 'آپشن ها', html: () => this.optionTypes_layout() },
+                    {
+                        show:!!variantMode,type: 'group', inputs: optionTypes.map((o) => {
+                            return {
+                                type: 'html', label: `${o.name} ها`, html: () => this.optionValues_layout(o)
+                            }
+                        })
+                    },
+                    {show:!!variantMode,type: 'html', label: 'واریانت ها', html: () => this.variants_layout()},
+                    {type: 'html', label: 'تصویر', html: () => this.image_layout() },
+                    ...extraOptions
                 ]}
             />
         )
@@ -346,7 +344,7 @@ class ProductCard extends Component {
     }
     formFooter_layout({ errors, isModelChanged, onReset }) {
         let { model } = this.state;
-        let { onAdd, onEdit, onRemove } = this.props;
+        let { onAdd, onEdit, onRemove,type } = this.props;
         let errorKeys = Object.keys(errors);
         let showSubmit = !!onAdd;
         let showEdit = !!onEdit && isModelChanged;
@@ -358,11 +356,11 @@ class ProductCard extends Component {
                     className: 'h-36 p-h-12 p-v-6',
                     row: [
                         {
-                            show: showSubmit,
+                            show: type === 'add',
                             html: (<button disabled={!!errorMessage} className='bo-button bo-submit-button' onClick={() => onAdd(model)}>ثبت</button>)
                         },
                         {
-                            show: showEdit,
+                            show: type === 'edit' && isModelChanged,
                             html: (<button className='bo-button bo-edit-button' onClick={() => onEdit(model)}>ویرایش</button>)
                         },
                         {
@@ -370,7 +368,7 @@ class ProductCard extends Component {
                             html: (<button className='bo-button bo-reset-button' onClick={() => onReset(model)}>بازنشانی تغییرات</button>)
                         },
                         {
-                            show: !!onRemove,
+                            show: type === 'edit',
                             html: (<button className='bo-button bo-remove-button' onClick={() => onRemove()}>حذف</button>)
                         },
                         { flex: 1 },

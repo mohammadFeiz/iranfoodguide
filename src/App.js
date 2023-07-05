@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import RSA from './npm/react-super-app/react-super-app';
-import CommingSoon from './components/comming-soon/commin-soon';
 import BackOffice from './components/back-office/back-office';
+import AIOStorage from './npm/aio-storage/aio-storage';
 import AIOService from './npm/aio-service/aio-service';
 import RVD from './npm/react-virtual-dom/react-virtual-dom';
 import AIOLogin from './npm/aio-login/aio-login';
@@ -23,9 +23,8 @@ import './App.css';
 export default class App extends Component {
   constructor(props) {
     super(props);
-    this.mockAdminPanel = false;
-    this.baseUrl = 'https://localhost:7203'
-    //this.baseUrl = 'https://iranfoodguide.ir'
+    //this.baseUrl = 'https://localhost:7203'
+    this.baseUrl = 'https://iranfoodguide.ir'
     this.state = {
       isLogin: false,
       registerFields: [
@@ -64,18 +63,14 @@ export default class App extends Component {
     let apis = getResponse({})
     let { firstName, lastName, email, sheba } = registerModel;
     let { response } = await apis.setProfile({
-      profile: { firstName, lastName, email, sheba },
-      mobileNumber: userId,
+      profile: { firstName, lastName, email, sheba,mobile:userId },
       registered: false
     })
     if (response.data.isSuccess) { return true }
     else { return response.data.message }
   }
   async onSubmitPassword({ mode, userId, password }) {//return string or true
-    let response = await Axios.post(`${this.baseUrl}/Users/TokenWithCode`, {
-      mobileNumber: userId,
-      code: password.toString()
-    });
+    let response = await Axios.post(`${this.baseUrl}/Users/TokenWithCode`, {mobileNumber: userId,code: password.toString()});
     if (response.data.isSuccess) {
       this.personId = response.data.data.personId
       return { token: response.data.data.access_token };
@@ -99,10 +94,10 @@ export default class App extends Component {
     )
   }
   render() {
-    if(this.mockAdminPanel){return <IranFoodGuide mockAdminPanel={true}/>}
+    //return <IranFoodGuide/>
     let { isLogin, token, logout, userId } = this.state;
     if (isLogin) {
-      return <IranFoodGuide token={token} personId={this.personId} logout={logout} mobileNumber={userId} roles={[]} />
+      return <IranFoodGuide token={token} personId={this.personId} logout={logout} mobile={userId} roles={[]} />
     }
     let renderLogin = this.renderLogin()
     return (
@@ -146,9 +141,11 @@ class IranFoodGuide extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      mockStorage:AIOStorage('ifMock'),
       comming_soon: false,
-      backOffice:!!props.mockAdminPanel,
-      mobileNumber: props.mobileNumber,
+      restoran_tags:[],
+      restoran_tags_dic:{},
+      mobile: props.mobile,
       personId: props.personId,
       logout: props.logout,
       profile: {},
@@ -156,7 +153,7 @@ class IranFoodGuide extends Component {
       addresses: [],
       ChangeState: this.ChangeState.bind(this),
       mojoodiye_kife_pool: 0,
-      restoran_category_options: [],
+      restoran_tags: [],
       restoran_sort_options: [],
     }
     this.state.apis = AIOService({
@@ -179,8 +176,6 @@ class IranFoodGuide extends Component {
     this.setState(obj);
   }
   componentDidMount() {
-    let {mockAdminPanel} = this.props;
-    if(mockAdminPanel){return}
     let { apis } = this.state;
     apis({
       api: 'getProfile',
@@ -208,9 +203,14 @@ class IranFoodGuide extends Component {
       name: 'دریافت آدرس ها'
     });
     apis({
-      api: 'restoran_category_options',
+      api: 'get_tags',
+      parameter:{type:'restoran'},
       name: 'دریافت دسته بندی های رستوران',
-      callback: (restoran_category_options) => this.setState({ restoran_category_options })
+      callback: (restoran_tags) => {
+        let restoran_tags_dic = {};
+        for(let i = 0; i < restoran_tags.length; i++){restoran_tags_dic[restoran_tags[i].id] = restoran_tags[i].name;}
+        this.setState({ restoran_tags,restoran_tags_dic })
+      }
     })
     apis({
       api: 'restoran_sort_options',
@@ -224,10 +224,6 @@ class IranFoodGuide extends Component {
     }
   }
   render() {
-    let {backOffice} = this.state;
-    if(backOffice){
-      return <BackOffice onClose={()=>this.setState({backOffice:false})}/>
-    }
     return (
       <AppContext.Provider value={this.getContext()}>
         <RSA
@@ -238,11 +234,14 @@ class IranFoodGuide extends Component {
             { id: 'sefaresh_ha', text: dictionary('سفارش ها'), icon: () => icons('sefaresh_ha') },
             { id: 'ertebate_online', text: dictionary('ارتباط آنلاین'), icon: () => icons('ertebate_online') },
             { id: 'profile', text: dictionary('پروفایل'), icon: () => icons('profile') },
+            { id: 'admin_panel', text: dictionary('پنل ادمین'), icon: () => icons('profile') },
+            
           ]}
           navId='sefareshe_ghaza'
           body={({ navId }) => {
             if (navId === 'sefareshe_ghaza') {return <Sefareshe_ghaza />}
             if (navId === 'profile') {return <Profile />}
+            if (navId === 'admin_panel') {return <BackOffice />}
           }}
           getActions={({ addPopup, removePopup }) => {
             let obj = { addPopup, removePopup }

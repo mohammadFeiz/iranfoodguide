@@ -13,24 +13,390 @@ import shandiz_image from './images/shandiz_image.png';
 import pasta_alferedo from './images/pasta_alferedo.png';
 import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
-import kabab_src from './images/kabab.jpg';
-import rice_src from './images/rice.png';
-import fish_src from './images/fish.jpg';
 export function getResponse({getState}){
-    let baseUrl = 'https://localhost:7203/api'
-   //let baseUrl = 'https://iranfoodguide.ir/api'
+    //let baseUrl = 'https://localhost:7203/api'
+   let baseUrl = 'https://iranfoodguide.ir/api'
+    let {mockStorage} = getState();
+    let mock = !!mockStorage;
+    /**********************restoran data model**************************************** */
+    //name: '',image: false,logo: false,latitude: 35.699739,longitude: 51.338097,startTime:0,endTime:0,
+    //address: '',ifRate: 0,ifComment: '',tags: [id,id,....],phone: '',
+    /************************************************************** */
+    /**********************restoran_tags data model**************************************** */
+    //name: '',id: ''
+    /************************************************************** */
+    
     return {
-        async sabte_shomare_tamas(shomare_tamas) {
-            let url = `${baseUrl}/People/AddMobileNumber`;
+        //در یافت لیست تگ های رستوران و تگ های غذا بسته به تایپ ورودی
+        async get_tags({ type }) {
+            //if (mock) { return { mock: true } }
+            let url;
+            if (type === 'restoran') { url = `${baseUrl}/ResType/Search`; }
+            else if (type === 'food') { url = `${baseUrl}/FoodType/Search` }
+            let body;
+            if (type === 'restoran') { body = {}; }
+            else if (type === 'food') { body = {}; }
+            let response = await Axios.post(url, body);
+            let data = response.data.data.items
+            let result = data.map((o) => {
+                return {
+                    name: o.title, //String نام تگ
+                    id: o.id, //String آی دی تگ
+                }
+            });
+            return { response, result };
+        },
+        async add_tag({ type, tagName }) {
+            //if (mock) { return { mock: true } }
+            let url;
+            if (type === 'restoran') { url = `${baseUrl}/ResType/Create`; }
+            else if (type === 'food') { url = `${baseUrl}/FoodType/Create` }
+            let body;
+            if (type === 'restoran') {
+                body = {
+                    "title": tagName,
+                    "latinTitle": tagName
+                };
+            }
+            else if (type === 'food') {
+                body = {
+                    "title": tagName,
+                    "latinTitle": tagName
+                };
+            }
+            let response = await Axios.post(url, body);
+            let newTagId = response.data.data
+            let result = {id:newTagId};
+            return { response, result };
+        },
+        async remove_tag({ type, tagId }) {
+            //if (mock) { return { mock: true } }
+            let url;
+            if (type === 'restoran') { url = `${baseUrl}/ResType?Id=${tagId.toString()}`; }
+            else if (type === 'food') { url = `${baseUrl}/FoodType?Id=${tagId.toString()}` }
+            let response = await Axios.delete(url);
+            return { response, result: true }
+        },
+        async get_restorans() {
+            if (mock) { return { mock: true } }
+            let url = `${baseUrl}/Restaurant/Search`;
             let body = {
-                "PersonId": 1,
-                "MobileNumber": shomare_tamas,
-                "IsDefault": true
+                // "PageNumber":pageSize,
+                //"RecordsPerPage":pageNumber
             }
             let response = await Axios.post(url,body);
-            return {response}
+            let data = response.data.data.items
+            let result=data;
+
+            // result = data.map((o)=>{
+            //     return {
+            //         id:<...>, //String آی دی رستوران
+            //         name:<...>, //String نام رستوران
+            //         latitude:<...>, //Number موقعیت رستوران در راستای لتیتیود
+            //         longitude:<...>, //Number موقعیت رستوران در راستای لانگیتیود
+            //         image:<...>, //String یو آر ال تصویر رستوران
+            //         logo:<...>, //String یو آر ال لوگوی رستوران
+            //         address:<...>, //String آدرس رستوران
+            //         phone:<...>, //String تلفن رستوران
+            //         ifRate:<...>, //Number امتیاز ایران فود به این رستوران
+            //         ifComment:<...>, //String کامنت ایران فود در مورد این رستوران
+            //         deliveryTime:<...>, //Number مدت زمان ارسال به دقیقه
+            //         tags:<...>, //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
+            //         startTime:<...>, //Number bewtween (1 and 24) زمان شروع به کار
+            //         endTime:<...>, //Number bewtween (1 and 24) زمان پایان کار
+            //         tags: Array of ids آرایه ای از تگ های رستوران
+            //     }
+            // })
+            return { response, result }
         },
-        async setProfile({ profile,mobileNumber, registered }) {
+        async add_restoran(restoran) {
+            if (mock) { return { mock: true } }
+            //parameters
+            //restoran آبجکت رستوران برای افزودن
+            // این آبجکت به شکل زیر است
+            // {
+            //     name:String, نام رستوران
+            //     latitude:Number, موقعیت رستوران در راستای لتیتیود
+            //     longitude:Number, موقعیت رستوران در راستای لانگیتیود
+            //     address:String, آدرس رستوران
+            //     phone:String, تلفن رستوران
+            //     deliveryTime:Number, مدت زمان ارسال به دقیقه
+            //     tags:ArrayOfStrings,آرایه ای از آی دی تگ های رستوران
+            //     startTime:Number bewtween (1 and 24) زمان شروع به کار
+            //     endTime:Number bewtween (1 and 24) زمان پایان کار
+            //     tags:Array of ids آرایه ای از تگ های رستوران
+            // }
+
+
+            //آدرس درخواست 
+            let url;
+            url = `${baseUrl}/Restaurant/Create`;
+            //url = `${baseUrl}/<...>`
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            method = "post";
+            //بادی متد پست (any | undefined)
+            let body;
+            body = {
+                "Title": restoran.name,
+                "LatinTitle": restoran.name,
+                "address": {
+                    "fullAddress": restoran.address,
+                    "latitude": restoran.latitude,
+                    "longitude": restoran.longitude
+                },
+                "phoneNumbers": [
+                    {
+                        "Title": restoran.name,
+                        "phoneNumber": restoran.phone,
+                    }],
+                "workingTimes": [
+                    {
+                        "startTime": restoran.startTime,// "12:00",
+                        "endTime": restoran.endTime,
+                        "applyChangeTime": "12:00"
+                    }
+                ],
+                "types": restoran.tags
+            }
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+
+            //دریافت آی دی تگ اضافه شده از روی ریسپانس
+            let id;
+            //id = <...>
+
+            return { response, result: { id } }
+        },
+        async edit_restoran(restoran) {
+            if (mock) { return { mock: true } }
+            let method;
+            method = "put";
+            let url = `${baseUrl}/Restaurant/Edit`;
+            //بادی متد پست (any | undefined)
+            let body;
+            body = {
+                "Title": restoran.name,
+                "LatinTitle": restoran.name,
+                "address": {
+                    "fullAddress": restoran.address,
+                    "latitude": restoran.latitude,
+                    "longitude": restoran.longitude
+                },
+                "phoneNumbers": [
+                    {
+                        "Title": restoran.name,
+                        "phoneNumber": restoran.phone,
+                    }],
+                "workingTimes": [
+                    {
+                        "startTime": restoran.startTime,// "12:00",
+                        "endTime": restoran.endTime,
+                        "applyChangeTime": "12:00"
+                    }
+                ],
+                "types": [
+                    {
+                        "typeId": restoran.tags
+                    }
+                ]
+            }
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+
+            //دریافت ریسپانس
+            return { response, result: true }
+        },
+        async remove_restoran(restoranId) {
+            if (mock) { return { mock: true } }
+            let url = `${baseUrl}/Restaurant?Id=${restoranId.toString()}`; 
+            let response = await Axios.delete(url);
+            return { response, result: true }
+        },
+        async get_restoran_foods(restoranId) {
+            if (mock) { return { mock: true } }
+            let url = `${baseUrl}/Menu/Search`;
+            let body = {"RestaurantId": restoranId}
+            let response = await Axios.post(url,body);
+            let result = response.data.data.items.FoodCategories;
+            //مپ کردن دیتای سرور به دیتای فرانت
+            //let result = [];
+            // result = data.map((o)=>{
+            //     return {
+            //       id:<...>, //String آی دی غذا
+            //       name:<...>, //String نام غذا
+            //       image:<...>, //String یو آر ال تصویر غذا
+            //       price:<...>, //Number قیمت غذا
+            //       discountPercent:<...>, //Number درصد تخفیف غذا
+            //       description:<...>, //String توضیحات مختصر در مورد غذا
+            //       review:<...>, //String توضیحات مفصل در مورد غذا
+            //       categories:<...> //Array آرایه ای از آی دی های دسته بندی
+            //     }
+            // })
+            return { response, result }
+        },
+        async add_food({ restoranId, food }) {
+            if (mock) { return { mock: true } }
+            //restoranId => آی دی رستوران
+            //food => آبجکت غذا برای افزودن
+            //آبجکت غذا مانند زیر است
+            // {
+            //     name:String, نام غذا
+            //     parentId:String, آی دی غذایی که این غذا زیر مجموعه ی آن است 
+            //     image:String, یو آر ال تصویر غذا
+            //     price:Number قیمت غذا
+            //     discountPercent:درصد تخفیف غذا
+            //     description:String توضیحات مختصر در مورد غذا
+            //     review:String توضیحات مفصل در مورد غذا
+            //     categories:Array آرایه ای از آی دی های دسته بندی
+            // }
+
+
+            let url = `${baseUrl}/RestaurantFood/Create`;
+
+            let body = {
+               // "id": 0,
+                "title": food.name,
+                "food": {
+                  //"id": 0,
+                  "types":food.categories,
+                  "title":  food.name,
+                  "latinTitle":  food.name,
+                  "description":food.description
+                },
+                "restaurantId": restoranId,
+                "price": food.price,
+                "description": food.description,
+                //"inventoryCount": 0,
+                "isFavorite": true,
+                "discount":food.discountPercent
+              }
+           
+            //نوع درخواست ("get" | "post")
+            let method;
+            method ="post"
+            //بادی متد پست (any | undefined)
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+            let result = response.data.data.items.FoodCategories;
+            //دریافت آی دی غذای اضافه شده از روی ریسپانس
+            let id = response.data;
+            //id = <...>
+
+            return { response, result:{id} }
+        },
+        async edit_food({ restoranId, food }) {
+            if (mock) { return { mock: true } }
+            //restoranId => آی دی رستوران
+            //food => آبجکت غذا برای ویرایش
+            //آبجکت غذا مانند زیر است
+            // {
+            //     id:String, آی دی غذا
+            //     parentId:String, آی دی غذایی که این غذا زیر مجموعه ی آن است 
+            //     name:String, نام غذا
+            //     image:String, یو آر ال تصویر غذا
+            //     price:Number قیمت غذا
+            //     discountPercent:درصد تخفیف غذا
+            //     description:String توضیحات مختصر در مورد غذا
+            //     review:String توضیحات مفصل در مورد غذا
+            // }
+
+            let url = `${baseUrl}/RestaurantFood/Edit`; 
+            let body = {
+                "id": food.id,
+                "title": food.name,
+                "food": {
+                //"id": 0,
+                "types":food.categories,
+                "title":  food.name,
+                "latinTitle":  food.name,
+                "description":food.description
+                },
+                "restaurantId": restoranId,
+                "price": food.price,
+                "description": food.description,
+                //"inventoryCount": 0,
+                "isFavorite": true,
+                "discount":food.discountPercent
+            }
+            let response = await Axios.post(url, body);
+            return { response, result: true }
+        },
+        async remove_food({ restoranId, foodId }) {
+            if (mock) { return { mock: true } }
+            // parameters
+            //restoranId آی دی رستورانی که یک غذا از آن باید حذف بشود
+            //foodId آی دی غذایی که باید حذف شود
+            let url = `${baseUrl}/RestaurantFood?Id=${foodId.toString()}`; 
+            let response = await Axios.delete(url);
+            return { response, result: true }
+        },
+        //ویرایش تصویر غذا
+        async edit_food_image({ restoranId, foodId, imageFile }) {
+            if (mock) { return { mock: true } }
+            //parameters
+            //restoranId  آی دی رستوران
+            //foodId آی دی غذا
+            //imageFile فایل انتخاب شده ی کاربر ادمین برای این غذا
+
+            let url=`${baseUrl}/RestaurantFood/AddLogoImage`; 
+            let method;
+            //method = <...>;
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+            return { response, result: true }
+        },
+        //ویرایش تصویر رستوران
+        async edit_restoran_image({ restoranId, imageFile }) {
+            if (mock) { return { mock: true } }
+            //parameters
+            //restoranId  آی دی رستوران
+            //imageFile فایل انتخاب شده ی کاربر ادمین برای تصویر این رستوران
+
+            //آدرس درخواست 
+            let url=`${baseUrl}/RestaurantImage/AdImageOfRestaurant`; 
+
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>;
+
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+            return { response, result: true }
+        },
+        //ویرایش لوگوی رستوران
+        async edit_restoran_logo({ restoranId, imageFile }) {
+            if (mock) { return { mock: true } }
+            //parameters
+            //restoranId  آی دی رستوران
+            //imageFile فایل انتخاب شده ی کاربر ادمین برای لوگوی این رستوران
+            //آدرس درخواست 
+            let url=`${baseUrl}/RestaurantImage/AddLogoImage`; 
+            //نوع درخواست ("get" | "post")
+            let method;
+            //method = <...>;
+            //بادی متد پست (any | undefined)
+            let body;
+            //body = <...>
+            //دریافت ریسپانس
+            let response = await Axios[method](url, body);
+            return { response, result: true }
+        },
+        async setProfile({ profile,mobile, registered }) {
             let url = `${baseUrl}/People/${registered?'UpdateProfile':'CreateProfile'}`
             let body = {
                 "Id":profile.id,
@@ -40,7 +406,7 @@ export function getResponse({getState}){
                 "sheba": profile.sheba,
                 "mobileNumbers": [
                     {
-                        "mobileNumber": mobileNumber,
+                        "mobileNumber": profile.mobile,
                         "isDefault": true
                     }
                 ]
@@ -49,6 +415,7 @@ export function getResponse({getState}){
             return {response}
         },
         async getProfile() {
+            return {mock:true}
             let {personId} = getState();
             let url = `${baseUrl}/People/search`
             let body = {"Id":personId}
@@ -57,7 +424,7 @@ export function getResponse({getState}){
             return {response,result}
         },
         async getAddresses(){//لیست آدرس ها
-            //return {mock:true}
+            return {mock:true}
             let {personId} = getState();
             let url = `${baseUrl}/People/GetPeopleAddress`
             let body = {
@@ -93,6 +460,7 @@ export function getResponse({getState}){
             return {response,result}
         },
         async takhfif_ha() {
+            return {mock:true}
             let {personId} = getState();
             let url = `${baseUrl}/PersonDiscount/Search`;
             let body = {"PersonId": personId}
@@ -122,7 +490,7 @@ export function getResponse({getState}){
             }
         },
         async safheye_sefaresh() {
-            //return {mock:true}
+            return {mock:true}
             let url = `${baseUrl}/PageLayout/GetListOfFoodDelivery`;
             let body = {};
             let response = await Axios.post(url,body);
@@ -143,9 +511,6 @@ export function getResponse({getState}){
         async tarikhcheye_kife_pool() {
            return {mock:true} 
         },
-        async restoran_category_options(){
-            return {mock:true}
-        },
         async restoran_sort_options(){
             return {mock:true}
         },
@@ -163,25 +528,26 @@ export function getResponse({getState}){
         async hazfe_tarikhche_ye_jostojoo(){
             return {mock:true} 
         },
-        async restoran_menu(restaurantId){
-            let url = `${baseUrl}/Menu/Search`;
-            let body = {"RestaurantId": restaurantId}
-            let response = await Axios.post(url,body);
-            let result = response.data.data.items.FoodCategories;
-            return {response,result};
+        // async restoran_menu(restaurantId){
+        //     let url = `${baseUrl}/Menu/Search`;
+        //     let body = {"RestaurantId": restaurantId}
+        //     let response = await Axios.post(url,body);
+        //     let result = response.data.data.items.FoodCategories;
+        //     return {response,result};
 
-            // return {mock:true}
-        },
+        //     // return {mock:true}
+        // },
         async restoran_comments({id,pageSize,pageNumber}){
             //id => آی دی رستوران
             //pageSize => تعداد کامنت صفحه
             //pageNumber => شماره صفحه کامنت
 
             let url = `${baseUrl}/FeedBack/GetRestaurantComments`;
-            let body = {"RestaurantId": id,
-                            "PageNumber":pageSize,
-                            "RecordsPerPage":pageNumber
-                        }
+            let body = {
+                "RestaurantId": id,
+                "PageNumber":pageSize,
+                "RecordsPerPage":pageNumber
+            }
             let response = await Axios.post(url,body);
             let result = response.data.data.items;
             return {response,result};
@@ -201,8 +567,103 @@ export function getResponse({getState}){
     }
 }
 
-export function getMock({helper}){
+export function getMock({helper,getState}){
+    let {mockStorage} = getState();
     return {
+        get_tags({ type }) {
+            let res = mockStorage.load({ name: `${type}Tags`, def: [] })
+            return res
+        },
+        add_tag({ type, tagName }) {
+            let tags = mockStorage.load({ name: `${type}Tags`, def: [] })
+            let id = Math.round(Math.random() * 1000000)
+            tags.push({ name: tagName, id });
+            mockStorage.save({ name: `${type}Tags`, value: tags })
+            return { id }
+        },
+        edit_tag({ type, tagId, tagName }) {
+            let tags = mockStorage.load({ name: `${type}Tags`, def: [] })
+            tags = tags.map((o) => {
+                return o.id === tagId ? { id: tagId, name: tagName } : o;
+            })
+            mockStorage.save({ name: `${type}Tags`, value: tags })
+            return true
+        },
+        remove_tag({ type, tagId }) {
+            let tags = mockStorage.load({ name: `${type}Tags`, def: [] })
+            tags = tags.filter((o) => {
+                return o.id !== tagId;
+            })
+            mockStorage.save({ name: `${type}Tags`, value: tags })
+            return true
+        },
+        get_restorans() {
+            let res = mockStorage.load({ name: 'restorans', def: [] })
+            return res;
+        },
+        add_restoran(newRestoran) {
+            let restorans = mockStorage.load({ name: 'restorans', def: [] });
+            let id = 'res' + Math.round(Math.random() * 1000000);
+            newRestoran = { ...newRestoran, id }
+            let newRestorans = [newRestoran, ...restorans];
+            mockStorage.save({ name: 'restorans', value: newRestorans })
+            return { id };
+        },
+        edit_restoran(restoran) {
+            let restorans = mockStorage.load({ name: 'restorans', def: [] });
+            restorans = restorans.map((o) => {
+                if (o.id === restoran.id) { return restoran }
+                return o
+            })
+            mockStorage.save({ name: 'restorans', value: restorans })
+            return true;
+        },
+        remove_restoran(restoranId) {
+            let restorans = mockStorage.load({ name: 'restorans', def: [] });
+            restorans = restorans.filter((o) => {
+                if (o.id === restoranId) { return false }
+                return o
+            })
+            mockStorage.save({ name: 'restorans', value: restorans })
+            return true;
+        },
+        get_restoran_foods(restoranId) {
+            let foods = mockStorage.load({ name: `restoran_${restoranId}_menu`, def: [] });
+            return foods
+        },
+        add_food({ restoranId, food }) {
+            let foods = mockStorage.load({ name: `restoran_${restoranId}_menu`, def: [] });
+            let id = 'food' + Math.round(Math.random() * 1000000);
+            let newFood = { ...food, id }
+            let newFoods = [newFood, ...foods];
+            mockStorage.save({ name: `restoran_${restoranId}_menu`, value: newFoods });
+            return { id };
+        },
+        edit_food({ restoranId, food }) {
+            let foods = mockStorage.load({ name: `restoran_${restoranId}_menu`, def: [] });
+            let newFood = { ...food }
+            let newFoods = foods.map((o) => o.id === newFood.id ? newFood : o);
+            mockStorage.save({ name: `restoran_${restoranId}_menu`, value: newFoods });
+            return true;
+        },
+        remove_food({ restoranId, foodId }) {
+            let foods = mockStorage.load({ name: `restoran_${restoranId}_menu`, def: [] });
+            let newFoods = foods.filter((o) => o.id !== foodId);
+            mockStorage.save({ name: `restoran_${restoranId}_menu`, value: newFoods });
+            return true;
+        },
+        edit_food_image({ foodId, imageUrl }) {
+            mockStorage.save({ name: `food_${foodId}_image`, value: imageUrl });
+            return true;
+        },
+        edit_restoran_image({ restoranId, imageUrl }) {
+            mockStorage.save({ name: `restoran_${restoranId}_image`, value: imageUrl });
+            return true;
+        },
+        edit_restoran_logo({ restoranId, imageUrl }) {
+            mockStorage.save({ name: `restoran_${restoranId}_logo`, value: imageUrl });
+            return true;
+        },
         getAddresses(){
             return [//لیست آدرس ها
                 {
@@ -213,7 +674,9 @@ export function getMock({helper}){
                     floor: 2,
                     id: '0',
                     description: '',
-                    phone: '02188050006'
+                    phone: '02188050006',
+                    latitude:35.760528,
+                    longitude:51.394777
                 }
             ]
         },
@@ -221,7 +684,7 @@ export function getMock({helper}){
             return {
                 firstName: 'احمد',//نام
                 lastName: 'بهرامی',//نام خانوادگی
-                mobileNumber: '09123534314',//شماره همراه
+                mobile: '09123534314',//شماره همراه
                 email: 'feiz.ms@gmail.com',//آدرس ایمیل
                 sheba: '1234567',//شماره شبا
             }
@@ -404,16 +867,6 @@ export function getMock({helper}){
                 return { ...o, date, time }
             })
         },
-        restoran_category_options(){
-            return [
-                {text:'فست فود',value:'0'},
-                {text:'ایرانی',value:'1'},
-                {text:'کبابی',value:'2'},
-                {text:'سالادبار',value:'3'},
-                {text:'خارجی',value:'4'},
-                {text:'عربی',value:'5'}
-            ]
-        },
         restoran_sort_options(){
             return [
                 {text:'رستوران اقتصادی',value:'0'},
@@ -425,47 +878,7 @@ export function getMock({helper}){
             ]
         },
         jostojooye_restoran({pageSize,pageNumber,selectedCategories,selectedSort,searchValue}){
-            let restorans = [
-                {
-                    id:'34',
-                    name: 'رستوران 1',
-                    image: shandiz_image,
-                    logo: shandiz_logo,
-                    rate: 3.4,
-                    distance: 3,
-                    time: 35,
-                    tags: ['ایرانی', 'کبابی', 'فست فود','خارجی','سالادبار','عربی','صبحانه'],
-                    address:'تهران خیابان شیخ بهایی خیابان نوربخش پلاک 30 واحد 4 طبقه دوم',
-                    ifRate:3.5,
-                    ifComment:'لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می‌باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می‌طلبد تا با نرم‌افزارها شناخت بیشتری را برای طراحان رایانه ای علی‌الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می‌توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساساً مورد استفاده قرار گیرد'
-                },
-                {
-                    id:'6453',
-                    name: 'رستوران 2',
-                    image: shandiz_image,
-                    logo: shandiz_logo,
-                    rate: 3.4,
-                    distance: 3,
-                    time: 35,
-                    tags: ['خارجی', 'سنتی', 'کبابی', 'سالادبار'],
-                    address:'تهران خیابان شیخ بهایی خیابان نوربخش پلاک 30 واحد 4 طبقه دوم',
-                    ifRate:3.5,
-                    ifComment:'لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می‌باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می‌طلبد تا با نرم‌افزارها شناخت بیشتری را برای طراحان رایانه ای علی‌الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می‌توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساساً مورد استفاده قرار گیرد'
-                },
-                {
-                    id:'7563',
-                    name: 'رستوران 3', 
-                    image: shandiz_image, 
-                    logo: shandiz_logo, 
-                    rate: 3.4, 
-                    distance: 3, 
-                    time: 35,
-                    tags: ['عربی', 'سنتی', 'سالادبار', 'ملل'],
-                    address:'تهران خیابان شیخ بهایی خیابان نوربخش پلاک 30 واحد 4 طبقه دوم',
-                    ifRate:3.5,
-                    ifComment:'لورم ایپسوم متن ساختگی با تولید سادگی نامفهوم از صنعت چاپ و با استفاده از طراحان گرافیک است. چاپگرها و متون بلکه روزنامه و مجله در ستون و سطرآنچنان که لازم است و برای شرایط فعلی تکنولوژی مورد نیاز و کاربردهای متنوع با هدف بهبود ابزارهای کاربردی می‌باشد. کتابهای زیادی در شصت و سه درصد گذشته، حال و آینده شناخت فراوان جامعه و متخصصان را می‌طلبد تا با نرم‌افزارها شناخت بیشتری را برای طراحان رایانه ای علی‌الخصوص طراحان خلاقی و فرهنگ پیشرو در زبان فارسی ایجاد کرد. در این صورت می‌توان امید داشت که تمام و دشواری موجود در ارائه راهکارها و شرایط سخت تایپ به پایان رسد و زمان مورد نیاز شامل حروفچینی دستاوردهای اصلی و جوابگوی سوالات پیوسته اهل دنیای موجود طراحی اساساً مورد استفاده قرار گیرد'
-                },
-            ]
+            let restorans = mockStorage.load({name:'restorans',def:[]})
             return restorans
 
         },
@@ -475,385 +888,385 @@ export function getMock({helper}){
         hazfe_tarikhche_ye_jostojoo(){
             return true 
         },
-        restoran_menu(){
-            return [
-                {
-                    name:'کباب',
-                    image:undefined,
-                    items:[
-                        {
-                            id:'534534',
-                            name: 'کباب کوبیده یک سیخ', rate: 3.4,
-                            price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'150 گرم گوشت مخلوط گوسفندی و گوساله',
-                            items:[
-                                {
-                                    rates:[
-                                        {text:'کیفیت',value:4},
-                                        {text:'حجم',value:3},
-                                        {text:'سلامت',value:5}
-                                    ],
-                                    details:[
-                                        ['نوع برنج','ایرانی'],
-                                        ['نوع گوشت','گوساله']
-                                    ],
-                                    commentsLength:24,
-                                    review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                                    id:'456473456',
-                                    name: 'کباب لقمه زیر مجموعه 1', rate: 3.4,
-                                    price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                                    description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
-                                },
-                                {
-                                    rates:[
-                                        {text:'کیفیت',value:4},
-                                        {text:'حجم',value:3},
-                                        {text:'سلامت',value:5}
-                                    ],
-                                    details:[
-                                        ['نوع برنج','ایرانی'],
-                                        ['نوع گوشت','گوساله']
-                                    ],
-                                    commentsLength:24,
-                                    review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                                    id:'64557865654346',
-                                    name: 'کباب لقمه زیر مجموعه 2', rate: 3.4,
-                                    price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                                    description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
-                                },
-                                {
-                                    rates:[
-                                        {text:'کیفیت',value:4},
-                                        {text:'حجم',value:3},
-                                        {text:'سلامت',value:5}
-                                    ],
-                                    details:[
-                                        ['نوع برنج','ایرانی'],
-                                        ['نوع گوشت','گوساله']
-                                    ],
-                                    commentsLength:24,
-                                    review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                                    id:'6455458756878346',
-                                    name: 'کباب لقمه زیر مجموعه 3', rate: 3.4,
-                                    price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                                    description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
-                                },
-                                {
-                                    rates:[
-                                        {text:'کیفیت',value:4},
-                                        {text:'حجم',value:3},
-                                        {text:'سلامت',value:5}
-                                    ],
-                                    details:[
-                                        ['نوع برنج','ایرانی'],
-                                        ['نوع گوشت','گوساله']
-                                    ],
-                                    commentsLength:24,
-                                    review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                                    id:'75663464563',
-                                    name: 'کباب لقمه زیر مجموعه 4', rate: 3.4,
-                                    price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                                    description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
-                                },      
-                            ]
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'3453445',
-                            name: 'کباب لقمه یک سیخ', rate: 3.4,
-                            price: 70000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'200 گرم گوشت مخلوط گوسفندی و گوساله'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'123433',
-                            name: 'کباب کوبیده بناب یک سیخ', rate: 3.4,
-                            price: 85000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'250 گرم گوشت مخلوط گوسفندی و گوساله'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'647834',
-                            name: 'کباب بختیاری یک سیخ', rate: 3.4,
-                            price: 90000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'ترکیب 100 گرم کباب کوبیده مخلوط گوسفند و گوساله و 100 گرم جوجه کباب بدون استخوان در یک سیخ'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'5346743',
-                            name: 'کباب سلطانی دو سیخ', rate: 3.4,
-                            price: 140000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'یک سیخ 100 گرمی کباب کوبیده مخلوط گوسفند و گوساله و یک سیخ 100 گرمی کباب برگ مخصوص گوسفندی'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'6756343',
-                            name: 'جوجه کباب با استخوان ران یک سیخ', rate: 3.4,
-                            price: 90000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'یک سیخ 200 گرمی جوجه کباب ران'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'8674674',
-                            name: 'جوجه کباب بدون استخوان سینه یک سیخ', rate: 3.4,
-                            price: 90000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'یک سیخ 200 گرمی جوجه کباب سینه'
-                        },
+        // restoran_menu(){
+        //     return [
+        //         {
+        //             name:'کباب',
+        //             image:undefined,
+        //             items:[
+        //                 {
+        //                     id:'534534',
+        //                     name: 'کباب کوبیده یک سیخ', rate: 3.4,
+        //                     price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'150 گرم گوشت مخلوط گوسفندی و گوساله',
+        //                     items:[
+        //                         {
+        //                             rates:[
+        //                                 {text:'کیفیت',value:4},
+        //                                 {text:'حجم',value:3},
+        //                                 {text:'سلامت',value:5}
+        //                             ],
+        //                             details:[
+        //                                 ['نوع برنج','ایرانی'],
+        //                                 ['نوع گوشت','گوساله']
+        //                             ],
+        //                             commentsLength:24,
+        //                             review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                             id:'456473456',
+        //                             name: 'کباب لقمه زیر مجموعه 1', rate: 3.4,
+        //                             price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                             description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
+        //                         },
+        //                         {
+        //                             rates:[
+        //                                 {text:'کیفیت',value:4},
+        //                                 {text:'حجم',value:3},
+        //                                 {text:'سلامت',value:5}
+        //                             ],
+        //                             details:[
+        //                                 ['نوع برنج','ایرانی'],
+        //                                 ['نوع گوشت','گوساله']
+        //                             ],
+        //                             commentsLength:24,
+        //                             review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                             id:'64557865654346',
+        //                             name: 'کباب لقمه زیر مجموعه 2', rate: 3.4,
+        //                             price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                             description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
+        //                         },
+        //                         {
+        //                             rates:[
+        //                                 {text:'کیفیت',value:4},
+        //                                 {text:'حجم',value:3},
+        //                                 {text:'سلامت',value:5}
+        //                             ],
+        //                             details:[
+        //                                 ['نوع برنج','ایرانی'],
+        //                                 ['نوع گوشت','گوساله']
+        //                             ],
+        //                             commentsLength:24,
+        //                             review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                             id:'6455458756878346',
+        //                             name: 'کباب لقمه زیر مجموعه 3', rate: 3.4,
+        //                             price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                             description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
+        //                         },
+        //                         {
+        //                             rates:[
+        //                                 {text:'کیفیت',value:4},
+        //                                 {text:'حجم',value:3},
+        //                                 {text:'سلامت',value:5}
+        //                             ],
+        //                             details:[
+        //                                 ['نوع برنج','ایرانی'],
+        //                                 ['نوع گوشت','گوساله']
+        //                             ],
+        //                             commentsLength:24,
+        //                             review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                             id:'75663464563',
+        //                             name: 'کباب لقمه زیر مجموعه 4', rate: 3.4,
+        //                             price: 60000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                             description:'150 گرم گوشت مخلوط گوسفندی و گوساله'
+        //                         },      
+        //                     ]
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'3453445',
+        //                     name: 'کباب لقمه یک سیخ', rate: 3.4,
+        //                     price: 70000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'200 گرم گوشت مخلوط گوسفندی و گوساله'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'123433',
+        //                     name: 'کباب کوبیده بناب یک سیخ', rate: 3.4,
+        //                     price: 85000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'250 گرم گوشت مخلوط گوسفندی و گوساله'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'647834',
+        //                     name: 'کباب بختیاری یک سیخ', rate: 3.4,
+        //                     price: 90000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'ترکیب 100 گرم کباب کوبیده مخلوط گوسفند و گوساله و 100 گرم جوجه کباب بدون استخوان در یک سیخ'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'5346743',
+        //                     name: 'کباب سلطانی دو سیخ', rate: 3.4,
+        //                     price: 140000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'یک سیخ 100 گرمی کباب کوبیده مخلوط گوسفند و گوساله و یک سیخ 100 گرمی کباب برگ مخصوص گوسفندی'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'6756343',
+        //                     name: 'جوجه کباب با استخوان ران یک سیخ', rate: 3.4,
+        //                     price: 90000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'یک سیخ 200 گرمی جوجه کباب ران'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'8674674',
+        //                     name: 'جوجه کباب بدون استخوان سینه یک سیخ', rate: 3.4,
+        //                     price: 90000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'یک سیخ 200 گرمی جوجه کباب سینه'
+        //                 },
 
-                    ]
-                },
-                {
-                    name:'ماهی',
-                    image:undefined,
-                    items:[
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'7567467',
-                            name: 'ماهی قزل آلا', rate: 3.4,
-                            price: 160000, discountPercent: 10, image: pasta_alferedo, tags: [],
-                            description:'یک پرس ماهی قزل آلا 150 گرمی'
-                        },
-                        {
-                            rateItems:[
+        //             ]
+        //         },
+        //         {
+        //             name:'ماهی',
+        //             image:undefined,
+        //             items:[
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'7567467',
+        //                     name: 'ماهی قزل آلا', rate: 3.4,
+        //                     price: 160000, discountPercent: 10, image: pasta_alferedo, tags: [],
+        //                     description:'یک پرس ماهی قزل آلا 150 گرمی'
+        //                 },
+        //                 {
+        //                     rateItems:[
 
-                            ],id:'3453463',
-                            name: 'ماهی سفید', rate: 3.4,
-                            price: 140000, discountPercent: 10, image: pasta_alferedo, tags: [],
-                            description:'یک پرس ماهی سفید 100 گرمی'
-                        },
-                    ]
-                },
-                {
-                    name:'برنج ایرانی',
-                    image:undefined,
-                    items:[
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'63455344',
-                            name: 'چلو کره ای ساده تک نفره', rate: 3.4,
-                            price: 65000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'100 گرم چلو کره ساده'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'6467863',
-                            name: 'چلو کره ای ساده دو نفره', rate: 3.4,
-                            price: 120000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'200 گرم چلو کره ساده'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'645345',
-                            name: 'چلو کره ای ساده چهار نفره', rate: 3.4,
-                            price: 240000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'400 گرم چلو کره ساده'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'345345',
-                            name: 'چلو کره ای ته دیگی تک نفره', rate: 3.4,
-                            price: 75000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'150 گرم چلو کره ته دیگی'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'867674',
-                            name: 'چلو کره ای ته دیگی دو نفره', rate: 3.4,
-                            price: 140000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'300 گرم چلو کره ته دیگی'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'645585',
-                            name: 'چلو کره ای ته دیگی چهار نفره', rate: 3.4,
-                            price: 280000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'600 گرم چلو کره ته دیگی'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'6344534',
-                            name: 'سبزی پلو تک نفره', rate: 3.4,
-                            price: 65000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'100 گرم سبزی پلو'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'64678463',
-                            name: 'سبزی پلو دو نفره', rate: 3.4,
-                            price: 120000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'200 گرم سبزی پلو'
-                        },
-                        {
-                            rates:[
-                                {text:'کیفیت',value:4},
-                                {text:'حجم',value:3},
-                                {text:'سلامت',value:5}
-                            ],
-                            details:[
-                                ['نوع برنج','ایرانی'],
-                                ['نوع گوشت','گوساله']
-                            ],
-                            commentsLength:24,
-                            review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
-                            id:'6434565',
-                            name: 'سبزی پلو چهار نفره', rate: 3.4,
-                            price: 240000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
-                            description:'400 گرم سبزی پلو'
-                        }
-                    ]
-                }
-            ]
-        },
+        //                     ],id:'3453463',
+        //                     name: 'ماهی سفید', rate: 3.4,
+        //                     price: 140000, discountPercent: 10, image: pasta_alferedo, tags: [],
+        //                     description:'یک پرس ماهی سفید 100 گرمی'
+        //                 },
+        //             ]
+        //         },
+        //         {
+        //             name:'برنج ایرانی',
+        //             image:undefined,
+        //             items:[
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'63455344',
+        //                     name: 'چلو کره ای ساده تک نفره', rate: 3.4,
+        //                     price: 65000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'100 گرم چلو کره ساده'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'6467863',
+        //                     name: 'چلو کره ای ساده دو نفره', rate: 3.4,
+        //                     price: 120000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'200 گرم چلو کره ساده'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'645345',
+        //                     name: 'چلو کره ای ساده چهار نفره', rate: 3.4,
+        //                     price: 240000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'400 گرم چلو کره ساده'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'345345',
+        //                     name: 'چلو کره ای ته دیگی تک نفره', rate: 3.4,
+        //                     price: 75000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'150 گرم چلو کره ته دیگی'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'867674',
+        //                     name: 'چلو کره ای ته دیگی دو نفره', rate: 3.4,
+        //                     price: 140000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'300 گرم چلو کره ته دیگی'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'645585',
+        //                     name: 'چلو کره ای ته دیگی چهار نفره', rate: 3.4,
+        //                     price: 280000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'600 گرم چلو کره ته دیگی'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'6344534',
+        //                     name: 'سبزی پلو تک نفره', rate: 3.4,
+        //                     price: 65000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'100 گرم سبزی پلو'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'64678463',
+        //                     name: 'سبزی پلو دو نفره', rate: 3.4,
+        //                     price: 120000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'200 گرم سبزی پلو'
+        //                 },
+        //                 {
+        //                     rates:[
+        //                         {text:'کیفیت',value:4},
+        //                         {text:'حجم',value:3},
+        //                         {text:'سلامت',value:5}
+        //                     ],
+        //                     details:[
+        //                         ['نوع برنج','ایرانی'],
+        //                         ['نوع گوشت','گوساله']
+        //                     ],
+        //                     commentsLength:24,
+        //                     review:'این غذا خیلی غذای خوبی است . برای مشکل پسندان صو در صو پیشنهاد میشه . در این غذا ار مرغوب ترین متریال موجود در بازار استفاده شده است',
+        //                     id:'6434565',
+        //                     name: 'سبزی پلو چهار نفره', rate: 3.4,
+        //                     price: 240000, discountPercent: 10, image: pasta_alferedo, tags: ['کبابی','ایرانی'],
+        //                     description:'400 گرم سبزی پلو'
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        // },
         restoran_comments({id,pageSize,pageNumber}){
             return [
                 {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},

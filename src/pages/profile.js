@@ -72,7 +72,7 @@ export default class Profile extends Component {
         }
     }
     header_layout() {
-        let { profile,mobileNumber } = this.context;
+        let { profile,mobile } = this.context;
         return {
             className: 'p-6',
             row: [
@@ -85,7 +85,7 @@ export default class Profile extends Component {
                     column: [
                         { flex: 1 },
                         { html: `${profile.firstName} ${profile.lastName}`, className: 'fs-14 bold' },
-                        { html: mobileNumber, className: 'fs-12' },
+                        { html: mobile, className: 'fs-12' },
                         { flex: 1 }
                     ]
                 },
@@ -144,7 +144,7 @@ class Ettelaate_shakhsi extends Component {
                     column: [
                         { html: <Icon path={mdiAccountCircleOutline} size={2.8} />, style: { color: '#888' }, align: 'vh' },
                         { html: `${profile.firstName} ${profile.lastName}`, align: 'vh', className: 'fs-14 bold' },
-                        { html: profile.mobileNumber, align: 'vh', className: 'fs-12' }
+                        { html: profile.mobile, align: 'vh', className: 'fs-12' }
                     ]
                 },
                 {
@@ -155,7 +155,7 @@ class Ettelaate_shakhsi extends Component {
                             inputs={[
                                 { type: 'text', label: 'نام', field: 'model.firstName' },
                                 { type: 'text', label: 'نام خانوادگی', field: 'model.lastName' },
-                                //{ type: 'text', label: 'موبایل', field: 'model.mobileNumber' },
+                                //{ type: 'text', label: 'موبایل', field: 'model.mobile' },
                                 { type: 'text', label: 'ایمیل', field: 'model.email' },
                                 { type: 'text', label: 'شماره شبا', field: 'model.sheba' },
                             ]}
@@ -166,7 +166,7 @@ class Ettelaate_shakhsi extends Component {
         }
     }
     footer_layout() {
-        let {apis,rsa_actions,mobileNumber,profile,ChangeState} = this.context;
+        let {apis,rsa_actions,mobile,profile,ChangeState} = this.context;
         return {
             align: 'vh',
             className: 'p-24',
@@ -177,8 +177,7 @@ class Ettelaate_shakhsi extends Component {
                     apis({
                         api:'setProfile',
                         parameter:{
-                            profile:{firstName,lastName,sheba,email,id:profile.id},
-                            mobileNumber,
+                            profile:{firstName,lastName,sheba,email,id:profile.id,mobile},
                             registered:true
                         },
                         callback:()=>{
@@ -512,7 +511,7 @@ class Restoran_haye_mahboob extends Component{
                         {
                             flex:1,gap:24,className:'ofy-auto',
                             column:items.map((o)=>{
-                                return {className:'p-h-24',html:<Card type='card2' {...o}/>}
+                                return {className:'p-h-24',html:<Card type='restoran_card' {...o}/>}
                             })
                         }
                     ]
