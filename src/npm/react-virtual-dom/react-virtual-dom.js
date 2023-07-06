@@ -6,18 +6,9 @@ let RVDCLS = {
   row:'rvd-row',column:'rvd-column',hidexs:'rvd-hide-xs',hidesm:'rvd-hide-sm',hidemd:'rvd-hide-md',hidelg:'rvd-hide-lg'
 }
 export default class ReactVirtualDom extends Component {
-  eventHandler(event, action,type = 'bind'){
-    event = 'ontouchstart' in document.documentElement ? { mousemove: "touchmove", mouseup: "touchend" }[event] : event;
-    $(window).unbind(event, action);
-    if(type === 'bind'){$(window).bind(event, action)}
-  }
-  getClassName(pointer,isRoot,parent = {},props){
+  getClassName(pointer,isRoot,props){
     let className = RVDCLS.rvd;
-    let gapClassName = RVDCLS.gap;
     if(isRoot){className += ' rvd-root'}
-    if(parent.gapAttrs && parent.gapAttrs.className){
-      gapClassName += ' ' + parent.gapAttrs.className
-    }
     if(props.className){className += ' ' + props.className}
     if(pointer){ className += ' ' + RVDCLS.pointer;}
     if(props.align === 'v'){className += ' ' + (props.column?RVDCLS.justify:RVDCLS.align);}
@@ -25,58 +16,29 @@ export default class ReactVirtualDom extends Component {
     else if(props.align === 'vh'){className += ` ${RVDCLS.justify} ${RVDCLS.align}`;}
     if(props.row){className += ' ' + RVDCLS.row}
     else if(props.column || props.grid){className += ' ' + RVDCLS.column}
-    let hide_xs,hide_sm,hide_md,hide_lg;
-    
-    if(props.show_xs){hide_xs = false; hide_sm = true; hide_md = true; hide_lg = true;}
-    if(props.hide_xs){hide_xs = true;}
-    if(props.show_sm){hide_xs = true; hide_sm = false; hide_md = true; hide_lg = true;}
-    if(props.hide_sm){hide_sm = true;}
-    if(props.show_md){hide_xs = true; hide_sm = true; hide_md = false; hide_lg = true;}
-    if(props.hide_md){hide_md = true;}
-    if(props.show_lg){hide_xs = true; hide_sm = true; hide_md = true; hide_lg = false;}
-    if(props.hide_lg){hide_lg = true;} 
-    if(hide_xs){
-      className += ' ' + RVDCLS.hidexs;
-      gapClassName += ' ' + RVDCLS.hidexs;
-    }
-    if(hide_sm){
-      className += ' ' + RVDCLS.hidesm;
-      gapClassName += ' ' + RVDCLS.hidesm;
-    }
-    if(hide_md){
-      className += ' ' + RVDCLS.hidemd;
-      gapClassName += ' ' + RVDCLS.hidemd;
-    }
-    if(hide_lg){
-      className += ' ' + RVDCLS.hidelg;
-      gapClassName += ' ' + RVDCLS.hidelg;
-    }
-    return {className,gapClassName};
+    let hideClassName = getHideClassName(props)
+    return className + (hideClassName?' ' + hideClassName:'');
   }
   getProps(obj,index,parent = {},isRoot){
+    let {htmls = {}} = this.props;
     let {childsProps = ()=>{return {}}} = parent;
     let Props = (typeof childsProps === 'function'?childsProps(obj,index):childsProps) || {};
     let props = {...Props,...obj}
-    let {onResize,swapId,size,flex,onClick,html,style,longTouch} = props; 
+    let {swapId,size,flex,onClick,html,style,longTouch} = props; 
     let attrs = obj.attrs || Props.attrs || {};
     let pointer =  !!onClick || !!attrs.onClick;
     let childs = [];
     html = typeof html === 'function'?html():html;
+    if(typeof html === 'string' && htmls[html]){
+      html = htmls[html](obj)
+    }
     let dataId = 'a' + Math.random();
     style = {...attrs.style,...style}
-    let axis;
-    let gapStyle = {}
     if(parent.row){
       if(size !== undefined){style.width = size; flex = undefined}
-      gapStyle.width = parent.gap;
-      if(size && onResize){gapStyle.cursor = 'col-resize';}
-      axis = 'x';
     }
     else if(parent.column || parent.grid){
       if(size !== undefined){style.height = size; flex = undefined}
-      gapStyle.height = parent.gap;
-      if(size && onResize){gapStyle.cursor = 'row-resize';}
-      axis = 'y';
     }
     if(obj.row){childs = typeof obj.row === 'function'?obj.row():obj.row;}
     else if(obj.column){childs = typeof obj.column === 'function'?obj.column():obj.column}
@@ -95,16 +57,8 @@ export default class ReactVirtualDom extends Component {
       }
       obj.column = [...childs]
     }
-    if(parent.gapAttrs && parent.gapAttrs.style){gapStyle = {...gapStyle,...parent.gapAttrs.style}}
-    let {className,gapClassName} = this.getClassName(pointer,isRoot,parent,props);
-    let gapAttrs = {className:gapClassName,style:gapStyle,draggable:false,onDragStart:(e)=>{e.preventDefault(); return false}};
-    if(size && onResize){
-      gapAttrs['ontouchstart' in document.documentElement?'onTouchStart':'onMouseDown'] = (e)=>{
-        this.so = {pos:this.getClient(e),onResize,axis,size,dataId};
-        this.eventHandler('mousemove',$.proxy(this.mouseMove,this));
-        this.eventHandler('mouseup',$.proxy(this.mouseUp,this));
-      }
-    }
+    let className = this.getClassName(pointer,isRoot,props);
+    let gapAttrs = getGapAttrs(obj,parent,props,dataId)
     if(swapId !== undefined){
       attrs.draggable = true;
       attrs.onDragStart = (e)=>{
@@ -123,17 +77,13 @@ export default class ReactVirtualDom extends Component {
       }
     } 
     attrs = {onClick,...attrs,style:{flex,...style},className,'data-id':dataId};
-    if(props.egg){
-      attrs.onClick = ()=>{
-        this.egg(props.egg)
-      }
-    }
+    if(props.egg){attrs.onClick = ()=>this.egg(props.egg)}
     if(longTouch){
       attrs['ontouchstart' in document.documentElement?'onTouchStart':'onMouseDown'] = (e)=>{
         this.lt = dataId;
         this[dataId + 'callback'] = longTouch;
         this.timer()
-        this.eventHandler('mouseup',$.proxy(this.longTouchMouseUp,this));
+        eventHandler('mouseup',$.proxy(this.longTouchMouseUp,this));
       }
     }
     if(this.props.loading && html){
@@ -147,8 +97,10 @@ export default class ReactVirtualDom extends Component {
     }
     return {childs,html,attrs,gapAttrs}
   }
-  getClient(e){return 'ontouchstart' in document.documentElement?{x:e.changedTouches[0].clientX,y:e.changedTouches[0].clientY}:{x:e.clientX,y:e.clientY}}
   getLayout(obj,index,parent,isRoot){
+    if(typeof obj === 'object' && typeof parent === 'object'){obj.props = {...parent.props,...obj.props}}
+    let {getLayout} = this.props;
+    if(getLayout){obj = getLayout(obj,parent)}
     if(!obj || obj === null || (typeof obj.show === 'function'?obj.show():obj.show) === false){return ''}
     let {childs,html,attrs,gapAttrs} = this.getProps(obj,index,parent,isRoot)
     return (
@@ -156,23 +108,18 @@ export default class ReactVirtualDom extends Component {
         <div {...attrs}>
           {childs.length?childs.map((o,i)=><Fragment key={i}>{this.getLayout(o,i,obj,false)}</Fragment>):html}
         </div>
-        {parent && parent.gap !== undefined && <div {...gapAttrs}></div>}
+        {parent && (parent.gap !== undefined || (parent.props && parent.props.gap !== undefined)) && <div {...gapAttrs}></div>}
       </Fragment>
     ) 
   }
   egg({callback = ()=>{},count = 10}){
     this.eggCounter++;
-    if(this.eggCounter >= count){
-        callback()
-    }
+    if(this.eggCounter >= count){callback()}
     clearTimeout(this.timeOut);
-    this.timeOut = setTimeout(()=>{
-        this.eggCounter = 0;
-    },500)
-
+    this.timeOut = setTimeout(()=>this.eggCounter = 0,500)
   }
   longTouchMouseUp(){
-    this.eventHandler('mouseup',this.longTouchMouseUp,'unbind');
+    eventHandler('mouseup',this.longTouchMouseUp,'unbind');
     clearInterval(this[this.lt + 'interval']);
   }
   timer(){
@@ -185,22 +132,7 @@ export default class ReactVirtualDom extends Component {
         }
     },10)
   }
-  mouseMove(e){
-    var {rtl} = this.props;
-    var {pos,axis,size,dataId} = this.so;
-    var client = this.getClient(e);
-    var offset = (client[axis] - pos[axis]) * (rtl?-1:1);
-    if(offset % 24 !== 0){return}
-    this.so.newSize = offset + size;
-    var panel = $('[data-id="'+dataId+'"]');
-    panel.css({[{'x':'width','y':'height'}[axis]]:this.so.newSize})
-  }
-  mouseUp(){
-    this.eventHandler('mousemove',this.mouseMove,'unbind');
-    this.eventHandler('mouseup',this.mouseUp,'unbind');
-    var {onResize,newSize} = this.so;
-    onResize(newSize);
-  }
+  
   render(){
     var {gap,layout} = this.props;
     return this.getLayout(layout,0,undefined,true);
@@ -216,4 +148,85 @@ export function RVDRemoveH(selector,callback){
 }
 export function RVDRemove(selector,callback){
   $(selector).animate({opacity:0},200,callback);
+}
+function eventHandler(event, action,type = 'bind'){
+  event = 'ontouchstart' in document.documentElement ? { mousemove: "touchmove", mouseup: "touchend" }[event] : event;
+  $(window).unbind(event, action);
+  if(type === 'bind'){$(window).bind(event, action)}
+}
+function getGapAttrs(obj,parent = {},props = {},dataId){
+  let $$ = {
+    getClient(e){return 'ontouchstart' in document.documentElement?{x:e.changedTouches[0].clientX,y:e.changedTouches[0].clientY}:{x:e.clientX,y:e.clientY}},
+    mouseMove(e){
+      var {rtl} = this.props;
+      var {pos,axis,size,dataId} = this.so;
+      var client = this.getClient(e);
+      var offset = (client[axis] - pos[axis]) * (rtl?-1:1);
+      if(offset % 24 !== 0){return}
+      this.so.newSize = offset + size;
+      var panel = $('[data-id="'+dataId+'"]');
+      panel.css({[{'x':'width','y':'height'}[axis]]:this.so.newSize})
+    },
+    mouseUp(){
+      eventHandler('mousemove',this.mouseMove,'unbind');
+      eventHandler('mouseup',this.mouseUp,'unbind');
+      var {onResize,newSize} = this.so;
+      onResize(newSize);
+    },
+    getGap(obj,parent,dir){
+      let gap = parent['gap' + dir] || parent.gap || (parent.props?parent.props['gap' + dir] || parent.props.gap:undefined)
+      return typeof gap === 'function'?gap(obj,parent):gap;
+    },
+    getClassName(){
+      let className = RVDCLS.gap;
+      if(parent.gapAttrs && parent.gapAttrs.className){className += ' ' + parent.gapAttrs.className}
+      let hideClassName = getHideClassName(props)
+      return className + (hideClassName?' ' + hideClassName:'');
+    },
+    getGapAttrs(){
+      let {size,onResize} = props;
+      let style = {},axis;
+      if(parent.row){
+        axis = 'x';
+        style.width = this.getGap(obj,parent,'H');
+        if(size && onResize){style.cursor = 'col-resize';}
+      }
+      else if(parent.column || parent.grid){
+        axis = 'y'
+        style.height = this.getGap(obj,parent,'V');
+        if(size && onResize){style.cursor = 'row-resize';}
+      }
+      else {return {}}
+      if(parent.gapAttrs && parent.gapAttrs.style){style = {...style,...parent.gapAttrs.style}}
+      let gapAttrs = {
+        className:this.getClassName(),style,draggable:false,
+        onDragStart:(e)=>{e.preventDefault(); return false}
+      };
+      if(size && onResize){
+        gapAttrs['ontouchstart' in document.documentElement?'onTouchStart':'onMouseDown'] = (e)=>{
+          this.so = {pos:this.getClient(e),onResize,axis,size,dataId};
+          eventHandler('mousemove',$.proxy(this.mouseMove,this));
+          eventHandler('mouseup',$.proxy(this.mouseUp,this));
+        }
+      }
+      return gapAttrs;
+    }
+  } 
+  return $$.getGapAttrs()
+}
+function getHideClassName(props){
+  let hide_xs,hide_sm,hide_md,hide_lg,className;  
+  if(props.show_xs){hide_xs = false; hide_sm = true; hide_md = true; hide_lg = true;}
+  if(props.hide_xs){hide_xs = true;}
+  if(props.show_sm){hide_xs = true; hide_sm = false; hide_md = true; hide_lg = true;}
+  if(props.hide_sm){hide_sm = true;}
+  if(props.show_md){hide_xs = true; hide_sm = true; hide_md = false; hide_lg = true;}
+  if(props.hide_md){hide_md = true;}
+  if(props.show_lg){hide_xs = true; hide_sm = true; hide_md = true; hide_lg = false;}
+  if(props.hide_lg){hide_lg = true;}
+  if(hide_xs){className += ' ' + RVDCLS.hidexs;}
+  if(hide_sm){className += ' ' + RVDCLS.hidesm;}
+  if(hide_md){className += ' ' + RVDCLS.hidemd;}
+  if(hide_lg){className += ' ' + RVDCLS.hidelg;}
+  return className;
 }

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import RVD from './../react-virtual-dom/react-virtual-dom';
-import AIOButton from './../aio-button/aio-button';
+import AIOInput from './../aio-input/aio-input';
 import AIOPopup from '../aio-popup/aio-popup';
 import { Icon } from '@mdi/react';
 import { mdiPlusThick, mdiMagnify, mdiCheck, mdiClose, } from '@mdi/js';
@@ -13,14 +13,13 @@ export default class ProductManager extends Component {
         this.state = { products: props.products, popup: false }
     }
     header_layout() {
-        return { className: 'p-6', row: [this.add_layout(), this.search_layout(), this.submit_layout()] }
+        return { gap:12,className: 'product-manager-header', row: [this.add_layout(), this.search_layout(), this.submit_layout()] }
     }
     add_layout() {
         return {
-            size: 48, align: 'vh', className: 'fs-14 bold',
-            html: <Icon path={mdiPlusThick} size={1} />,
+            size: 60, align: 'vh', className: 'product-manager-header-button',
+            html: 'افزودن',
             onClick: () => this.productFormPopup(),
-            style: { color: 'dodgerblue' }
         }
     }
     search_layout() {
@@ -28,8 +27,9 @@ export default class ProductManager extends Component {
         return {
             flex: 1,
             html: (
-                <AIOButton
-                    type='text' style={{ width: '100%' }} value={searchValue}
+                <AIOInput
+                    placeholder='جستجو'
+                    type='text' style={{ width: '100%',background:'#f8f8f8'}} value={searchValue}
                     after={<Icon path={mdiMagnify} size={.9} style={{ margin: '0 6px' }} />}
                     onChange={(searchValue) => this.setState({ searchValue })}
                 />
@@ -38,13 +38,11 @@ export default class ProductManager extends Component {
     }
     submit_layout() {
         return {
-            size: 48, align: 'vh', className: 'fs-14 bold',
-            html: <Icon path={mdiCheck} size={1} />,
+            size: 84, align: 'vh', className: 'product-manager-header-button',html: 'ثبت تغییرات',
             onClick: () => {
                 let { onSubmit } = this.props, { products } = this.state;
                 onSubmit(products);
             },
-            style: { color: 'dodgerblue' }
         }
     }
     getProductsBySearch() {
@@ -160,6 +158,7 @@ export default class ProductManager extends Component {
             <>
                 <RVD
                     layout={{
+                        className:'product-manager',
                         column: [
                             this.header_layout(),
                             this.body_layout()
@@ -186,7 +185,7 @@ class ProductCard extends Component {
         let { model } = this.state;
         let {image} = model;
         return (
-            <AIOButton
+            <AIOInput
                 type='file'
                 text={image ? <img src={image} style={{ width: 78, height: 78 }} width='100%' /> : 'افزودن تصویر'}
                 onChange={async (files) => {
@@ -214,7 +213,7 @@ class ProductCard extends Component {
         let { model } = this.state;
         let { optionTypes = [] } = model;
         return (
-            <AIOButton
+            <AIOInput
                 type='table'
                 add={{ text: '', value: '' }}
                 rows={optionTypes}
@@ -276,7 +275,7 @@ class ProductCard extends Component {
         let { model } = this.state;
         let { optionValues = [] } = optionType;
         return (
-            <AIOButton
+            <AIOInput
                 type='table'
                 add={{ name: '', id: '' }}
                 remove={true}
@@ -298,7 +297,7 @@ class ProductCard extends Component {
         let { model } = this.state;
         let { variants = [], optionTypes = [] } = model;
         return (
-            <AIOButton
+            <AIOInput
                 type='table'
                 add={{ id: 'nv' + Math.round(Math.random() * 10000000) }}
                 remove={true}

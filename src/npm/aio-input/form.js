@@ -9,8 +9,9 @@ export default class Form extends Component {
     constructor(props){
         super(props);
         let {value = {},onChange} = props;
+        this.state = {initialValue:JSON.stringify(props.model)}
         if(!onChange){
-            this.state = {value}
+            this.state.value = value;
         }
         this.errors = {}
     }
@@ -25,6 +26,9 @@ export default class Form extends Component {
             return value;
         }
     }
+    getErrors(){
+        return [...Object.keys(this.errors).filter((o)=>!!this.errors[o]).map((o)=>this.errors[o])]
+    }
     setValue(v,field,obj){
         let { onChange } = this.props;
         let value = this.getValue();
@@ -32,7 +36,7 @@ export default class Form extends Component {
         let error = this.getError(obj,v)
         if(error){this.errors[field] = error}
         else {this.errors[field] = undefined}
-        if(onChange){onChange(newValue,[...Object.keys(this.errors).filter((o)=>!!this.errors[o]).map((o)=>this.errors[o])])}
+        if(onChange){onChange(newValue,this.getErrors())}
         else{this.setState({value:newValue})} 
         
     }
@@ -68,15 +72,32 @@ export default class Form extends Component {
         }
         return res
     }
+    reset(){
+        let {onChange} = this.props;
+        let {initialValue} = this.state;
+        if(onChange){onChange(JSON.parse(initialValue))}
+        else {
+            this.setState({value:JSON.parse(initialValue)})
+        }
+    }
     footer_layout() {
-        let { footer, onSubmit, onClose, footerAttrs = {}, closeText = 'Close', submitText = 'submit' } = this.props;
+        let { footer, onSubmit, onClose, footerAttrs = {}, closeText = 'Close',resetText='reset',submitText = 'submit',reset } = this.props;
+        let {initialValue} = this.state;
         if (footer === false) { return false }
-        if (!footer && !onSubmit && !onClose) { return false }
-        let disabled = !!Object.keys(this.errors).length
+        if (!footer && !onSubmit && !onClose && !reset) { return false }
+        let disabled = !!Object.keys(this.errors).length || initialValue === JSON.stringify(this.getValue())
+        if(footer){
+            let html = typeof footer === 'function'?footer({onReset:()=>this.reset(),disabled,errors:this.getErrors()}):footer
+            return {
+                className: 'aio-input-form-footer' + (footerAttrs.className ? ' ' + footerAttrs.className : ''), style: footerAttrs.style,
+                html
+            }
+        }
         return {
             className: 'aio-input-form-footer' + (footerAttrs.className ? ' ' + footerAttrs.className : ''), style: footerAttrs.style,
             row: [
                 { show: !!onClose, html: <button onClick={() => onClose()} className='aio-input-form-close-button aio-input-form-footer-button'>{closeText}</button> },
+                { show: !!reset, html: <button onClick={() => this.reset()} className='aio-input-form-reset-button aio-input-form-footer-button'>{resetText}</button> },
                 { show: !!onSubmit, html: <button disabled={disabled} onClick={() => onSubmit()} className='aio-input-form-submit-button aio-input-form-footer-button'>{submitText}</button> },
             ]
         }

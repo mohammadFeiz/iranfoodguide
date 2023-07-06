@@ -9,8 +9,6 @@
     color:inherit;
     flex-shrink:0;
     padding:6px;
-    font-size:12px;
-    background:#fff;
 }
 .aio-input-rtl{
     direction:rtl;
@@ -205,6 +203,7 @@
     background:none;
     color:inherit;
     cursor:pointer;
+    flex-shrink: 0;
 }
 
 .aio-input-options {

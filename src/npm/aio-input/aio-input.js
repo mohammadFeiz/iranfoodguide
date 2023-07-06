@@ -222,12 +222,11 @@ class InputSlider extends Component{
 class Multiselect extends Component {
     static contextType = AIContext;
     getTagByValue(v) {
-        let { getProp, getOptionProp, onChange = () => { } } = this.context;
+        let { getProp, getOptionProp} = this.context;
         let options = getProp('options', [])
-        let value = getProp('value')
         let option = options.find((option) => v === getOptionProp(option, 'value'))
         if (option === undefined) { return }
-        let disabled = getProp(option, 'disabled');
+        let disabled = getProp('disabled');
         return {
             option, disabled,
             text: getOptionProp(option, 'text'),
@@ -235,8 +234,14 @@ class Multiselect extends Component {
             tagBefore: getOptionProp(option, 'tagBefore'),
             tagAfter: getOptionProp(option, 'tagAfter'),
             tagAttrs: getOptionProp(option, 'tagAttrs', {}),
-            onRemove: !disabled ? () => onChange(value.filter((o) => o !== v)) : undefined
+            onRemove: ()=>this.removeTag(v,disabled)
         }
+    }
+    removeTag(v,disabled){
+        if(disabled){return}
+        let {getProp,onChange = () => { } } = this.context;
+        let value = getProp('value')
+        onChange(value.filter((o) => o !== v))
     }
     render() {
         let { style = {}, getProp } = this.context;
@@ -259,7 +264,9 @@ class Input extends Component {
         this.dataUniqId = 'ai' + Math.round(Math.random() * 10000000)
         this.dom = createRef();
         this.container = createRef();
-        this.state = { value: props.value, prevValue: props.value }
+        let {value = ''} = props;
+        if(value === null){value = ''}
+        this.state = { value, prevValue: value }
     }
     componentDidMount() {
         let { type, min, max, swip } = this.context;

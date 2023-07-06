@@ -101,7 +101,7 @@ export function getResponse({getState}){
                     logo:o.logo, //String یو آر ال لوگوی رستوران
                     address:o.address.address, //String آدرس رستوران
                     deliveryTime:o.deliveryTime, //Number مدت زمان ارسال به دقیقه
-                    tags:types.map((t)=>{return {name:t.typeTitle,id:t.id}}), //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
+                    tags:types.map((t)=>t.id), //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
                     //startTime:<...>, //Number bewtween (1 and 24) زمان شروع به کار
                     //endTime:<...>, //Number bewtween (1 and 24) زمان پایان کار
                 }
@@ -295,6 +295,7 @@ export function getResponse({getState}){
             // {
             //     id:String, آی دی غذا
             //     parentId:String, آی دی غذایی که این غذا زیر مجموعه ی آن است 
+            //     menuCategory:String, نام دسته بندی منو برای تفکیک غذا ها در یو آی
             //     name:String, نام غذا
             //     image:String, یو آر ال تصویر غذا
             //     price:Number قیمت غذا

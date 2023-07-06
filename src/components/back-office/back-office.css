@@ -22,3 +22,10 @@
     border-radius:4px;
     margin:0 1px;
 }
+.admin-panel-restoran-card{
+    height:100%;
+    background:#f8f8f8;
+}
+.admin-panel-restoran-card .aio-form{
+    background: none;
+}
