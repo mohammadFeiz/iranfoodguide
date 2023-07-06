@@ -1,6 +1,5 @@
 import React, { Component } from "react";
-import AIOButton from "../../npm/aio-button/aio-button";
-import AIOService from './../../npm/aio-service/aio-service';
+import AIOInput from './../../npm/aio-input/aio-input';
 import AIODatePicker from './../../npm/aio-datepicker/aio-datepicker';
 import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
 import Restorans from "./restorans";
@@ -43,7 +42,7 @@ export default class BackOffice extends Component {
         let { activeTabId, tabs } = this.state;
         return {
             html: (
-                <AIOButton
+                <AIOInput
                     type='tabs'
                     options={tabs}
                     value={activeTabId}
@@ -204,7 +203,7 @@ class OrderPage extends Component {
         return {
             size: 36, className: 'p-h-12',
             html: (
-                <AIOButton
+                <AIOInput
                     style={{ width: '100%' }}
                     type='select'
                     text='افزودن محتوی'
@@ -367,7 +366,7 @@ class OrderPageCard extends Component {
                 { flex: 1 },
                 {
                     html: (
-                        <AIOButton
+                        <AIOInput
                             type='select' caret={false}
                             style={{ background: 'none' }}
                             text={<Icon path={mdiDotsHorizontal} size={0.9} />}
@@ -434,7 +433,7 @@ class OrderPageCard extends Component {
             size: type === 'billboard' ? 240 : 120, align: 'vh',
             style: { border: '1px solid #aaa' },
             html: (
-                <AIOButton
+                <AIOInput
                     type='file'
                     style={{ background: 'none' }}
                     text={
@@ -505,7 +504,7 @@ class SliderCard extends Component {
                 { flex: 1 },
                 {
                     html: (
-                        <AIOButton
+                        <AIOInput
                             type='select' caret={false}
                             style={{ background: 'none' }}
                             text={<Icon path={mdiDotsHorizontal} size={0.9} />}
@@ -544,7 +543,7 @@ class SliderCard extends Component {
                         {
                             flex: 1,
                             html: (
-                                <AIOButton
+                                <AIOInput
                                     type='select'
                                     value={mode}
                                     style={{ width: '100%', background: 'none', border: '1px solid #ddd' }}
@@ -696,7 +695,7 @@ class Tags extends Component{
         let {tags} = this.state;
         return {
             html:(
-                <AIOButton
+                <AIOInput
                     type='table'
                     header={this.header()}
                     rows={tags}

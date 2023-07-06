@@ -1,6 +1,5 @@
 import React, { Component,createContext } from "react";
 import AIOPopup from "../../npm/aio-popup/aio-popup";
-import AIOButton from "../../npm/aio-button/aio-button";
 import AIOInput from './../../npm/aio-input/aio-input';
 import Form from './../../npm/aio-form-react/aio-form-react';
 import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
@@ -108,8 +107,8 @@ export default class Restorans extends Component {
                     flex: 1,
                     html: (
                         <AIOInput
-                            type='text' style={{ width: '100%' }} value={searchValue}
-                            after={<Icon path={mdiMagnify} size={.9} style={{ margin: '0 6px' }} />}
+                            type='text' style={{ width: '100%',background:'#fff' }} value={searchValue}
+                            after={<Icon path={mdiMagnify} size={.9} />}
                             onChange={(searchValue) => this.setState({ searchValue })}
                         />
                     )
@@ -137,7 +136,7 @@ export default class Restorans extends Component {
                     flex: 1,
                     column: [
                         {row: [{ flex: 1, html: `نام رستوران : ${name}` },{ html: `کد : ${id}` }]},
-                        {row: [{ flex: 1, html:tags.map((o)=>restoranTagsDictionary[o]).join(' , '),className:'fs-10'  }]}
+                        {row: [{ flex: 1, html:tags.map((o)=>o.name).join(' , '),className:'fs-10'  }]}
                     ]
                 }
             ]
@@ -275,7 +274,7 @@ class RestoranCard extends Component {
     image_layout() {
         let { model } = this.state;
         return (
-            <AIOButton
+            <AIOInput
                 type='file'
                 text={model.image ? <img src={model.image} width={200} /> : 'افزودن تصویر'}
                 onChange={async (files) => {
@@ -297,7 +296,7 @@ class RestoranCard extends Component {
     logo_layout() {
         let { model } = this.state;
         return (
-            <AIOButton
+            <AIOInput
                 type='file'
                 text={model.logo ? <img src={model.logo} style={{ width: 72, height: 72 }} width='100%' /> : 'افزودن لوگو'}
                 onChange={async (files) => {

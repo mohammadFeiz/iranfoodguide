@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import RVD from './../npm/react-virtual-dom/react-virtual-dom';
-import AIOButton from '../npm/aio-button/aio-button';
+import AIOInput from '../npm/aio-button/aio-button';
 import AIODate from '../npm/aio-date/aio-date';
 import Map from './../npm/map/map';
 import { Icon } from '@mdi/react';
@@ -187,35 +187,13 @@ export default class RestoranPage extends Component {
       }
     )
   }
-  title_layout() {
-    let { logo, name, distance } = this.props;
-    let {tabMode} = this.state;
-    return {
-      className: 'p-h-12 m-b-12',
-      row: [
-        {flex:1,html:<RestoranTitle {...{logo, name, distance}}/>},
-        {
-          show:!tabMode,
-          align: 'v',
-          html: (
-            <AIOButton
-              type='button'
-              text={'مشاهده اطلاعات'}
-              className='button-3'
-              onClick={()=>this.openPopup('info')}
-            />
-          )
-        }
-      ]
-    }
-  }
   tabs_layout(cartLength){
     let {activeTabId,tabMode,cartTab} = this.state;
     if(!tabMode){return false}
     return {
       className:'m-b-12',
       html:(
-        <AIOButton
+        <AIOInput
           type='tabs'
           options={[
             {text:'منوی رستوران',value:'menu',style:{flex:1}},
@@ -241,25 +219,6 @@ export default class RestoranPage extends Component {
           onChange={(values, activeMenu) => this.setState({ activeMenu })}
         />
       )
-    }
-  }
-  filter_layout() {
-    let { tags } = this.props;
-    let { activeMenu } = this.state;
-    return {
-      className: 'p-h-12 m-b-12',
-      row: [
-        {flex: 1,html: <SearchBox onChange={(searchValue) => this.setState({ searchValue })} />},
-        { size: 12 },
-        {
-          html: (
-            <AIOButton
-              className='select-2' type='select' value={activeMenu} options={tags} optionText='option' optionValue='option'
-              onChange={(activeMenu) => this.setState({ activeMenu })} style={{ width: 90 }}
-            />
-          )
-        }
-      ]
     }
   }
   foods_layout() {
@@ -323,9 +282,7 @@ export default class RestoranPage extends Component {
             style:{height:'100%',background:'#f8f8f8'},
             column: [
               this.header_layout(cartLength),
-              this.title_layout(),
               this.tabs_layout(cartLength),
-              //this.filter_layout(),
               {
                 show:!tabMode || (tabMode && activeTabId === 'menu'),
                 flex:1,

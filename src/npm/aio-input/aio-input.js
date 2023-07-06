@@ -1,273 +1,349 @@
-import React,{Component,createRef} from 'react';
-import {Icon} from '@mdi/react';
-import {mdiChevronDown} from '@mdi/js';
-import Popover from './../../npm/aio-popup/aio-popup';
+import React, { Component, createRef } from 'react';
+import AIODate from './../aio-date/aio-date';
+import Layout from './layout';
+import Tags from './tags';
+import Table from './table';
+import Form from './form';
+import Slider from './../aio-slider/aio-slider';
+import AIOSwip from '../aio-swip/aio-swip';
+import Options from './options';
+import DatePicker from './datepicker';
+import AIContext from './context';
 import $ from 'jquery';
 import './aio-input.css';
-export default class Input extends Component{
-  constructor(props){
-    super(props);
-    this.dataUniqId = 'ai' + Math.round(Math.random() * 10000000)
-    this.dom = createRef();
-    this.container = createRef();
-    this.state = {value:props.value,prevValue:props.value,error:false,open:false} 
-    $(window).on('click',(e)=>this.handleClick(e))
-  }
-  handleClick(e){
-    let target = $(e.target);
-    if(target.attr('data-uniq-id') === this.dataUniqId){
-      console.log('ai 1')
-      return
-    }
-    if(target.parents(`[data-uniq-id=${this.dataUniqId}]`).length){
-      console.log('ai 2')
-      return
-    }
-    this.setState({open:false})
-  }
-  change(value){
-    let {type,onChange,maxLength = Infinity,justNumber,delay = 400,filter = []} = this.props;
-    if (type === 'number') {
-      if(value){value = +value;}
-    }
-    else if(type === 'text' || value === 'textarea'){
-      if(value){
-        if(justNumber){
-          value = value.toString();
-          let lastChar = value[value.length - 1];
-          if(isNaN(+lastChar)){value = value.slice(0,value.length - 1)}
+export default class AIOInput extends Component {
+    constructor(props) {
+        super(props);
+        this.dom = createRef();
+        this.datauniqid = 'aiobutton' + (Math.round(Math.random() * 10000000));
+        this.state = {
+            fitHorizontal:['text','number','textarea','password'].indexOf(props.type) !== -1 || props.popupWidth === 'fit' || props.type === 'multiselect',
+            backdrop:['text','number','textarea','password'].indexOf(props.type) === -1,
+            open: props.open || false,
         }
-        if(filter.length){
-          value = value.toString();
-          let lastChar = value[value.length - 1];
-          if(filter.indexOf(lastChar) !== -1){value = value.slice(0,value.length - 1)}
+    }
+    dragStart(e) { this.dragIndex = parseInt($(e.target).attr('datarealindex')); }
+    dragOver(e) { e.preventDefault(); }
+    drop(e) {
+        e.stopPropagation();
+        let { onSwap } = this.props, from = this.dragIndex, dom = $(e.target);
+        if (!dom.hasClass('aio-input-option')) { dom = dom.parents('.aio-input-option'); };
+        if (!dom.hasClass('aio-input-option')) { return };
+        let to = parseInt(dom.attr('datarealindex'));
+        if (from === to) { return }
+        onSwap(from, to, this.swap)
+    }
+    swap(arr, from, to) {
+        if (to === from + 1) {
+            let a = to;
+            to = from;
+            from = a;
         }
-        if(value.toString().length > maxLength){
-          value = value.toString().slice(0,maxLength);
+        let Arr = arr.map((o, i) => { o._testswapindex = i; return o })
+        let fromIndex = Arr[from]._testswapindex
+        Arr.splice(to, 0, { ...Arr[from], _testswapindex: false })
+        return Arr.filter((o) => o._testswapindex !== fromIndex)
+    }
+    toggle(state) {
+        let { open } = this.state;
+        let { onToggle } = this.props;
+        if (state === undefined) { state = !open }
+        if (state === open) { return }
+        this.setState({ open: state });
+        if (state) { $('body').addClass('aio-input-open'); }
+        else {
+            $('body').removeClass('aio-input-open');
+            setTimeout(() => $(this.dom.current).focus(), 0)
         }
-      }
+        if (onToggle) { onToggle(state) }
     }
-    this.setState({value});
-    clearTimeout(this.timeout);
-    this.timeout = setTimeout(()=>{
-      onChange(value);
-    },delay);
-  }
-  getOptions(){
-    let {optionText,options = []} = this.props;
-    let {value} = this.state;
-    let res = options.map((option,index)=>{
-      let text;
-      if(typeof option === 'object' && option.text !== undefined){text = option.text}
-      else if(typeof optionText === 'function'){
-        text = optionText(option,index)
-      }
-      else if(typeof optionText === 'string'){
-        try{eval(`text = ${optionText}`)}
-        catch{text = ''}
-      }
-      else {text = ''}
-      return text
-    })
-    return res.filter((o)=>!value || o.indexOf(value) !== -1)
-  }
-  componentDidMount(){
-    let {type,min,max,swip} = this.props;
-    if(type === 'number' && swip){
-      AIOSwip({
-        speedY:0.2,
-        dom:$(this.dom.current),
-        start:()=>{
-          this.so = this.state.value;
-        },
-        move:({dx,dy,dist})=>{
-          let newValue = -dy + this.so
-          if(min !== undefined && newValue < min){return}
-          if(max !== undefined && newValue > max){return}
-          this.change(newValue)
+    getSelectText() {
+        let { options = [] } = this.props;
+        let value = this.getProp('value');
+        let option = options.find((option) => this.getOptionProp(option, 'value') === value);
+        if (option === undefined) { return '' }
+        return this.getOptionProp(option, 'text', '')
+    }
+    getDatepickerText() {
+        let value = this.getProp('value');
+        if (value) {
+            let unit = this.getProp('unit', 'day');
+            let Pattern = this.getProp('pattern');
+            let list = AIODate().convertToArray({ date: value });
+            let [year, month = 1, day = 1, hour = 0] = list;
+            list = [year, month, day, hour];
+            let pattern;
+            let splitter = AIODate().getSplitter(value)
+            if (Pattern) { pattern = Pattern }
+            else if (unit === 'month') { pattern = `{year}${splitter}{month}` }
+            else if (unit === 'day') { pattern = `{year}${splitter}{month}${splitter}{day}` }
+            else if (unit === 'hour') { pattern = `{year}${splitter}{month}${splitter}{day} {hour} : 00` }
+            return AIODate().getDateByPattern({ date: list, pattern })
         }
-      })
+        let calendarType = this.getProp('calendarType', 'gregorian')
+        return this.getProp('placeholder', calendarType === 'gregorian' ? 'Select Date' : 'انتخاب تاریخ')
     }
-  }
-  componentDidUpdate(){
-    let {type,autoHeight,delay = 400} = this.props;
-    if(type === 'textarea' && autoHeight){
-      let dom = this.dom.current;
-      dom.style.height = 'fit-content';
-      let scrollHeight = dom.scrollHeight + 'px'
-      dom.style.height = scrollHeight;
-      dom.style.overflow = 'hidden';
-      dom.style.resize = 'none';
+    getProp(key, def) {
+        let { type, popOver, caret,options } = this.props;
+        if(key === 'attrs'){
+            if(['text','textarea','number','password','color'].indexOf(type) !== -1){return {}}
+        }
+        if (key === 'popOver') {
+            if(['table','form','radio','tabs','checkbox','file'].indexOf(type) !== -1){return}
+            if (type === 'button') { return popOver }
+            if (type === 'datepicker') { return () => <DatePicker {...this.props} /> }
+            if (type === 'select' || type === 'multiselect') { return () => <Options /> }
+            if(type && options && ['text','number','textarea','password'].indexOf(type) !== -1){return ()=><Options type={type}/>}
+        }
+        let propsResult = this.props[key] === 'function' ? this.props[key]() : this.props[key];
+        if (key === 'caret') { return caret === false?false:(this.getProp('popOver') ? (caret || true) : false )}
+        if (key === 'multiple') { return type === 'multiselect' || (type === 'radio' && !!propsResult)}
+        if (key === 'text' && propsResult === undefined) {
+            if (type === 'select') { return this.getSelectText() }
+            if (type === 'datepicker') { return this.getDatepickerText() }
+        }
+        if (key === 'value') {
+            if (this.getProp('multiple')) {
+                if (propsResult === undefined) { return [] }
+                return !Array.isArray(propsResult) ? [propsResult] : propsResult
+            }
+            else { return Array.isArray(propsResult) ? propsResult[0] : propsResult }
+        }
+        propsResult = propsResult === undefined ? def : propsResult;
+        return propsResult;
     }
-    clearTimeout(this.rrt)
-    if(this.state.value !== this.props.value){
-      this.rrt = setTimeout(()=>this.setState({value:this.props.value}),delay + 10)
+    getOptionProp(option, key, def) {
+        if(key === 'onClick'){return option.onClick}
+        let optionResult = typeof option[key] === 'function' ? option[key](option) : option[key]
+        if (optionResult !== undefined) { return optionResult }
+        let prop = this.props['option' + key[0].toUpperCase() + key.slice(1, key.length)];
+        if (typeof prop === 'string') {
+            try {
+                let props = this.props;
+                let value, evalText = 'value = ' + prop;
+                eval(evalText);
+                return value;
+            }
+            catch {
+                prop = prop
+            }
+        }
+        if (typeof prop === 'function') { return prop(option) }
+        if (prop !== undefined) { return prop }
+        return def
     }
-  }
-  getInput(){
-    let {attrs = {},type,spin} = this.props;
-    let {error,value} = this.state;   
-    if(error !== false){
-      return <div className='aio-form-inline-error aio-form-input' onClick={()=>this.setState({error:false})}>{error}</div>
+    click(e) {
+        if ($(e.target).parents('.aio-input-tags').length !== 0) { return; }
+        let { type, onChange = () => { }, onClick } = this.props;
+        if (type === 'file') { return }
+        if (this.getProp('popOver')) { this.toggle(true); }
+        else if (type === 'checkbox') { onChange(!this.getProp('value')) }
+        else if (onClick) { onClick(); }
     }
-    let props = {
-       ...attrs,value,type,ref:this.dom,
-       className:spin === false?'no-spin':'',
-       onChange:(e)=>this.change(e.target.value)
+    optionClick(option) {
+        let { onChange = () => { },type } = this.props;
+        let Value = this.getProp('value');
+        let { value, onClick, close,text } = option;
+        if (onClick) { onClick(value, option); }
+        else if(type && ['text','number','textarea','password'].indexOf(type) !== -1){onChange(text)}
+        else if (this.getProp('multiple')) {
+            if (Value.indexOf(value) === -1) { onChange(Value.concat(value), value, 'add') }
+            else { onChange(Value.filter((o) => o !== value), value, 'remove') }
+        }
+        else { onChange(value, option) }
+        if (close) { this.toggle(false) }
     }
-    if(type === 'textarea'){return <textarea {...props}/>}
-    else {return (<input {...props}/>)}
-  }
-  getBefore(){
-    let {before} = this.props;
-    return (
-      <div className='aio-input-before'>
-        {before}
-      </div>
-    )
-  }
-  getAfter(){
-    let {after} = this.props;
-    return (
-      <div className='aio-input-after'>
-        {after}
-      </div>
-    )
-  }
-  getPopup(){
-    let {open} = this.state;
-    if(!open){return null}
-    let options = this.getOptions()
-    if(!options.length){return null}
-    let getTarget = ()=>$(this.container.current);
-    
-    return (
-      <Popover
-        popupWidth='fit'
-        id={this.dataUniqId}
-        backdrop={false}
-        attrs={{style:{padding:0}}}
-        body={()=>{
-          return (
-            <div className='aio-input-options'>
-              {
-                options.map((o,i)=>{
-                  return (
-                    <div key={i} className='aio-input-option' onClick={()=>this.change(o)}>{o}</div>
-                  )
-                })
-              }
+    getContext() {
+        let { open,fitHorizontal,backdrop } = this.state;
+        return {
+            ...this.props,
+            dragStart:this.dragStart.bind(this),
+            dragOver:this.dragOver.bind(this),
+            drop:this.drop.bind(this),
+            click: this.click.bind(this),
+            optionClick: this.optionClick.bind(this),
+            datauniqid: this.datauniqid,
+            getProp: this.getProp.bind(this),
+            getOptionProp: this.getOptionProp.bind(this),
+            parentDom: this.dom,
+            toggle: this.toggle.bind(this),
+            open,fitHorizontal,backdrop
+        }
+    }
+    render_button() { return <Layout /> }
+    render_file() { return <Layout /> }
+    render_select() { return <Layout /> }
+    render_multiselect() { return <Multiselect /> }
+    render_radio() { return <Layout text={<Options />} /> }
+    render_tabs() { return <Layout text={<Options />} /> }
+    render_checkbox() { return <Layout /> }
+    render_datepicker() { return <Layout /> }
+    render_table() { return <Table {...this.props} /> }
+    render_text() { return <Layout text={<Input value={this.getProp('value')}/>} /> }
+    render_password() { return <Layout text={<Input value={this.getProp('value')}/>} /> }
+    render_textarea() { return <Layout text={<Input value={this.getProp('value')}/>} /> }
+    render_number() { return <Layout text={<Input value={this.getProp('value')} />} /> }
+    render_color() { return <Layout text={<Input value={this.getProp('value')} />} /> }
+    render_slider() { return <Layout text={<InputSlider value={this.getProp('value')}/>} /> }
+    render_form() { return <Form {...this.props} /> }
+    render() {
+        let { type } = this.props;
+        if (!type || !this['render_' + type]) { return null }
+        return (
+            <AIContext.Provider value={this.getContext()}>
+                {this['render_' + type]()}
+            </AIContext.Provider>
+        )
+    }
+}
+AIOInput.defaultProps = { showTags: true }
+class InputSlider extends Component{
+    static contextType = AIContext;
+    change(value){
+        let {onChange} = this.context;
+        if(value.length === 1){onChange(value[0])}
+        else {onChange([value[0],value[1]])}
+    }
+    render(){
+        let {getProp} = this.context;
+        let value = getProp('value');
+        let rtl = getProp('rtl');
+        if(!Array.isArray(value)){value = [value]}
+        return (
+            <Slider
+                direction={rtl?'left':'right'}
+                showValue={true}
+                value={value}
+                onChange={this.change.bind(this)}
+            />
+        )
+    }
+}
+class Multiselect extends Component {
+    static contextType = AIContext;
+    getTagByValue(v) {
+        let { getProp, getOptionProp, onChange = () => { } } = this.context;
+        let options = getProp('options', [])
+        let value = getProp('value')
+        let option = options.find((option) => v === getOptionProp(option, 'value'))
+        if (option === undefined) { return }
+        let disabled = getProp(option, 'disabled');
+        return {
+            option, disabled,
+            text: getOptionProp(option, 'text'),
+            value: getOptionProp(option, 'value'),
+            tagBefore: getOptionProp(option, 'tagBefore'),
+            tagAfter: getOptionProp(option, 'tagAfter'),
+            tagAttrs: getOptionProp(option, 'tagAttrs', {}),
+            onRemove: !disabled ? () => onChange(value.filter((o) => o !== v)) : undefined
+        }
+    }
+    render() {
+        let { style = {}, getProp } = this.context;
+        let value = getProp('value');
+        let showTags = getProp('showTags', true);
+        let tags = value.map((o, i) => this.getTagByValue(o));
+        return (
+            <div className={'aio-input-multiselect-container'} style={{ width: style.width }}>
+                <Layout />
+                {!!showTags && !!value.length && <Tags tags={tags} />}
             </div>
-          )
-        }}
-        getTarget={getTarget}
-      />
-    )
-  }
-  getCaret(){
-    let {options = []} = this.props;
-    if(!options.length){return null}
-    return (
-      <div className='aio-input-caret'>
-        <Icon path={mdiChevronDown} size={0.7}/>
-      </div>
-    )
-  }
-  render(){
-    let {type,label,className,style} = this.props;
-    return (
-      <>
-        <div 
-          ref={this.container} 
-          style={style}
-          data-uniq-id={this.dataUniqId}
-          className={`aio-input aio-input-${type}${className?' ' + className:''}`} 
-          data-label={label?label:undefined}
-          onClick={()=>this.setState({open:!this.state.open})}
-        >
-          {this.getBefore()}
-          {this.getInput()}
-          {this.getAfter()}
-          {this.getCaret()}
-        </div>
-        {this.getPopup()}
-      </>
-    )
-  }
-}
-function AIOSwip({dom,start = ()=>{},move = ()=>{},end = ()=>{},speedX = 1,speedY = 1,stepX = 1,stepY = 1,parameter}){
-  let a = {
-    init(){
-      this.eventHandler(dom,'mousedown',$.proxy(this.mouseDown,this))
-    },
-    getClient(e){
-      let touch = 'ontouchstart' in document.documentElement;
-      return touch?{x: e.changedTouches[0].clientX,y:e.changedTouches[0].clientY }:{x:e.clientX,y:e.clientY}
-    },
-    eventHandler(selector, event, action,type = 'bind'){
-      var me = { mousedown: "touchstart", mousemove: "touchmove", mouseup: "touchend" }; 
-      event = 'ontouchstart' in document.documentElement ? me[event] : event;
-      var element = typeof selector === "string"?(selector === "window"?$(window):$(selector)):selector; 
-      element.unbind(event, action); 
-      if(type === 'bind'){element.bind(event, action)}
-    },
-    getPercentByValue(value,start,end){
-      return 100 * (value - start) / (end - start)
-    },
-    getMousePosition(e){
-        let client = this.getClient(e);
-        var x = client.x - this.left;
-        var y = client.y - this.top;
-        var xp = this.getPercentByValue(x,0,this.width);
-        var yp = this.getPercentByValue(y,0,this.height);
-        return {xp,yp,clientX:client.x,clientY:client.y,x,y}
-    },
-    mouseDown(e){
-      var offset = dom.offset();
-      this.width = dom.width();
-      this.height = dom.height(); 
-      this.left = offset.left;
-      this.top = offset.top;
-      let mp = this.getMousePosition(e)
-      this.so = {
-        client:{x:mp.clientX,y:mp.clientY}
-      };
-      let res = start({mousePosition:{...mp},parameter,e});
-      if(res === false){return}
-      if(Array.isArray(res)){
-        let x = res[0];
-        let y = res[1]
-        this.so.x = x;
-        this.so.y = y;
-      }
-      this.eventHandler('window','mousemove',$.proxy(this.mouseMove,this));
-      this.eventHandler('window','mouseup',$.proxy(this.mouseUp,this))
-    },
-    mouseMove(e){
-      let client = this.getClient(e);
-      let dx = client.x - this.so.client.x;
-      let dy = client.y - this.so.client.y;
-      dx = Math.round(dx * speedX)
-      dy = Math.round(dy * speedY)
-      dx = Math.floor(dx / stepX) * stepX;
-      dy = Math.floor(dy / stepY) * stepY;
-      if(dx === this.dx && dy === this.dy){return}
-      this.dx = dx;
-      this.dy = dy;
-      let dist = Math.round(Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)))
-      this.dist = dist;
-      let x,y;
-      if(this.so.x !== undefined && this.so.y !== undefined){
-        x = this.so.x + dx;
-        y = this.so.y + dy;
-      }
-      move({dx,dy,dist,x,y,parameter,mousePosition:{...this.getMousePosition(e)},e});
-    },
-    mouseUp(e){
-      this.eventHandler('window','mousemove',this.mouseMove,'unbind');
-      this.eventHandler('window','mouseup',this.mouseUp,'unbind');
-      end({dx:this.dx,dy:this.dy,dist:this.dist,parameter,e})
+        )
     }
-  }
-  a.init();
 }
+
+class Input extends Component {
+    static contextType = AIContext;
+    constructor(props) {
+        super(props);
+        this.dataUniqId = 'ai' + Math.round(Math.random() * 10000000)
+        this.dom = createRef();
+        this.container = createRef();
+        this.state = { value: props.value, prevValue: props.value }
+    }
+    componentDidMount() {
+        let { type, min, max, swip } = this.context;
+        if (type === 'number' && swip) {
+            AIOSwip({
+                speedY: 0.2,
+                dom: $(this.dom.current),
+                start: () => {
+                    this.so = this.state.value || 0;
+                },
+                move: ({ dx, dy, dist }) => {
+                    let newValue = -dy + this.so
+                    if (min !== undefined && newValue < min) { return }
+                    if (max !== undefined && newValue > max) { return }
+                    this.change(newValue)
+                }
+            })
+        }
+    }
+    componentDidUpdate() {
+        let { type, autoHeight, delay = 400 } = this.props;
+        if (type === 'textarea' && autoHeight) {
+            let dom = this.dom.current;
+            dom.style.height = 'fit-content';
+            let scrollHeight = dom.scrollHeight + 'px'
+            dom.style.height = scrollHeight;
+            dom.style.overflow = 'hidden';
+            dom.style.resize = 'none';
+        }
+        clearTimeout(this.rrt)
+        if (this.state.value !== this.props.value) {
+            this.rrt = setTimeout(() => this.setState({ value: this.props.value }), delay + 10)
+        }
+    }
+    change(value) {
+        let { type,getProp } = this.context;
+        let onChange = getProp('onChange');
+        if(!onChange){return}
+        let maxLength = getProp('maxLength', Infinity);
+        let justNumber = getProp('justNumber');
+        let delay = getProp('delay', 400);
+        let filter = getProp('filter', []);
+
+        if (type === 'number') { if (value) { value = +value; } }
+        else if (type === 'text' || value === 'textarea') {
+            if (value) {
+                if (justNumber) {
+                    value = value.toString();
+                    let lastChar = value[value.length - 1];    
+                    if (isNaN(+lastChar)) { value = value.slice(0, value.length - 1) }
+                }
+                if (filter.length) {
+                    value = value.toString();
+                    let lastChar = value[value.length - 1];    
+                    if (filter.indexOf(lastChar) !== -1) { value = value.slice(0, value.length - 1) }
+                }
+                if (value.toString().length > maxLength) {
+                    value = value.toString().slice(0, maxLength);
+                }
+            }
+        }
+        this.setState({ value });
+        clearTimeout(this.timeout);
+        this.timeout = setTimeout(() => {
+            this.onChange(value);
+        }, delay);
+    }
+    render() {
+        let { getProp, type } = this.context;
+        let { value } = this.state;
+        let attrs = getProp('attrs', {});
+        let disabled = getProp('disabled', false);
+        let placeholder = getProp('placeholder');
+        let spin = getProp('spin');
+        this.onChange = getProp('onChange');
+        let props = {
+            ...attrs, value, type, disabled, ref: this.dom,placeholder,
+            className: spin === false ? 'no-spin' : '',
+            onChange: (e) => this.change(e.target.value)
+        }
+        if (typeof this.onChange !== 'function') { return <div className='aio-input-value'>{value}</div> }
+        else if (type === 'textarea') { return <textarea {...props} /> }
+        else { return (<input {...props} />) }
+    }
+}
+
+

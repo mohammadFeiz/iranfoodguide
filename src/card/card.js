@@ -50,7 +50,7 @@ class RestoranCard extends Component {
         return {
             gap: 3,flex:1,className:'ofx-auto rvd-hidden-scrollbar',
             row: tags.map((o,i) => {
-                return {align: 'vh',html: <div key={i} className='card-tag'>{restoran_tags_dic[o]}</div>}
+                return {align: 'vh',html: <div key={i} className='card-tag'>{restoran_tags_dic[o.id]}</div>}
             })
         }
     }

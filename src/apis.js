@@ -13,14 +13,15 @@ import shandiz_image from './images/shandiz_image.png';
 import pasta_alferedo from './images/pasta_alferedo.png';
 import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
+
 export function getResponse({getState}){
     //let baseUrl = 'https://localhost:7203/api'
    let baseUrl = 'https://iranfoodguide.ir/api'
     let {mockStorage} = getState();
     let mock = !!mockStorage;
     /**********************restoran data model**************************************** */
-    //name: '',image: false,logo: false,latitude: 35.699739,longitude: 51.338097,startTime:0,endTime:0,
-    //address: '',ifRate: 0,ifComment: '',tags: [id,id,....],phone: '',
+    //name: String,image: String,logo: String,latitude: Number,longitude: Number,startTime:0,endTime:0,
+    //address: '',ifRate: 0,ifComment: '',tags: [{name:String,id:Any},...],phone: '',
     /************************************************************** */
     /**********************restoran_tags data model**************************************** */
     //name: '',id: ''
@@ -78,7 +79,7 @@ export function getResponse({getState}){
             return { response, result: true }
         },
         async get_restorans() {
-            if (mock) { return { mock: true } }
+            //if (mock) { return { mock: true } }
             let url = `${baseUrl}/Restaurant/Search`;
             let body = {
                 // "PageNumber":pageSize,
@@ -87,30 +88,28 @@ export function getResponse({getState}){
             let response = await Axios.post(url,body);
             let data = response.data.data.items
             let result=data;
-
-            // result = data.map((o)=>{
-            //     return {
-            //         id:<...>, //String آی دی رستوران
-            //         name:<...>, //String نام رستوران
-            //         latitude:<...>, //Number موقعیت رستوران در راستای لتیتیود
-            //         longitude:<...>, //Number موقعیت رستوران در راستای لانگیتیود
-            //         image:<...>, //String یو آر ال تصویر رستوران
-            //         logo:<...>, //String یو آر ال لوگوی رستوران
-            //         address:<...>, //String آدرس رستوران
-            //         phone:<...>, //String تلفن رستوران
-            //         ifRate:<...>, //Number امتیاز ایران فود به این رستوران
-            //         ifComment:<...>, //String کامنت ایران فود در مورد این رستوران
-            //         deliveryTime:<...>, //Number مدت زمان ارسال به دقیقه
-            //         tags:<...>, //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
-            //         startTime:<...>, //Number bewtween (1 and 24) زمان شروع به کار
-            //         endTime:<...>, //Number bewtween (1 and 24) زمان پایان کار
-            //         tags: Array of ids آرایه ای از تگ های رستوران
-            //     }
-            // })
+            result = data.map((o)=>{
+                let {address,types} = o;
+                if(!types || types === null){types = []}
+                return {
+                    id:o.id, //String آی دی رستوران
+                    name:o.title, //String نام رستوران
+                    latitude:address.latitude, //Number موقعیت رستوران در راستای لتیتیود
+                    longitude:address.longitude, //Number موقعیت رستوران در راستای لانگیتیود
+                    phone:address.phoneNumber,//String تلفن رستوران
+                    image:o.image, //String یو آر ال تصویر رستوران
+                    logo:o.logo, //String یو آر ال لوگوی رستوران
+                    address:o.address.address, //String آدرس رستوران
+                    deliveryTime:o.deliveryTime, //Number مدت زمان ارسال به دقیقه
+                    tags:types.map((t)=>{return {name:t.typeTitle,id:t.id}}), //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
+                    //startTime:<...>, //Number bewtween (1 and 24) زمان شروع به کار
+                    //endTime:<...>, //Number bewtween (1 and 24) زمان پایان کار
+                }
+            })
             return { response, result }
         },
         async add_restoran(restoran) {
-            if (mock) { return { mock: true } }
+            //if (mock) { return { mock: true } }
             //parameters
             //restoran آبجکت رستوران برای افزودن
             // این آبجکت به شکل زیر است
@@ -126,8 +125,6 @@ export function getResponse({getState}){
             //     endTime:Number bewtween (1 and 24) زمان پایان کار
             //     tags:Array of ids آرایه ای از تگ های رستوران
             // }
-
-
             //آدرس درخواست 
             let url;
             url = `${baseUrl}/Restaurant/Create`;
@@ -158,7 +155,7 @@ export function getResponse({getState}){
                         "applyChangeTime": "12:00"
                     }
                 ],
-                "types": restoran.tags
+                "types": restoran.tags.map((o)=>{return {typeId:o}})
             }
 
             //دریافت ریسپانس
@@ -171,7 +168,7 @@ export function getResponse({getState}){
             return { response, result: { id } }
         },
         async edit_restoran(restoran) {
-            if (mock) { return { mock: true } }
+            //if (mock) { return { mock: true } }
             let method;
             method = "put";
             let url = `${baseUrl}/Restaurant/Edit`;
@@ -211,7 +208,7 @@ export function getResponse({getState}){
             return { response, result: true }
         },
         async remove_restoran(restoranId) {
-            if (mock) { return { mock: true } }
+            //if (mock) { return { mock: true } }
             let url = `${baseUrl}/Restaurant?Id=${restoranId.toString()}`; 
             let response = await Axios.delete(url);
             return { response, result: true }

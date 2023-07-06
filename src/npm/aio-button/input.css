@@ -1,4 +1,4 @@
-  .aio-input{
+  /* .aio-input{
     box-sizing: border-box;
     position:relative;
     background:#fff;
@@ -118,14 +118,12 @@
     justify-content:center;
     width:36px;
   }
-  /* Chrome, Safari, Edge, Opera */
   input.no-spin::-webkit-outer-spin-button,
   input.no-spin::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
-  
-  /* Firefox */
+
   input.no-spin[type=number] {
     -moz-appearance: textfield;
   }
@@ -142,5 +140,4 @@
   .aio-input-icon-button:disabled{
     cursor:not-allowed;
     opacity:0.4;
-  }
-  
+  } */

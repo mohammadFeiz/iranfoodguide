@@ -404,3 +404,11 @@
   100%{background-position:100% 0%}
   
 }
+.rvd-hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.rvd-hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
