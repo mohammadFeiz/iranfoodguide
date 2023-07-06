@@ -162,7 +162,8 @@ export default class Form extends Component {
     }
     error_layout(error,props){
         if(!error){return false}
-        let { errorAttrs = {} } = this.props;
+        let { errorAttrs = {} ,showErrors = true} = this.props;
+        if(!showErrors){return false}
         let { className } = errorAttrs;
         return { 
             html: error,attrs:errorAttrs,

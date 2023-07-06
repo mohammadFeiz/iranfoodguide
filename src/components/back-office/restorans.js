@@ -15,7 +15,7 @@ export default class Restorans extends Component {
     static contextType = BOContext;
     constructor(props) {
         super(props);
-        this.state = { restorans: [], popup: false, searchValue: '', restoranTagsDictionary: {}, foodCategories: [] }
+        this.state = { restorans: [], popup: false, searchValue: '', restoran_tags_dic: {}, foodCategories: [] }
     }
     async get_restorans() { return await this.context.apis({ api: 'get_restorans', name: 'دریافت لیست رستوزان ها', def: [] }); }
     async add_restoran(newRestoran) {
@@ -70,12 +70,12 @@ export default class Restorans extends Component {
             }
         })
     }
-    async get_restoranTagsDictionary() {
+    async get_restoran_tags_dic() {
         let { apis } = this.context;
         let tagOptions = await apis({ api: 'get_tags', parameter: { type: 'restoran' }, name: 'دریافت لیست تگ های رستوران ها', def: [] });
-        let restoranTagsDictionary = {}
-        for (let i = 0; i < tagOptions.length; i++) { let { id, name } = tagOptions[i]; restoranTagsDictionary[id] = name; }
-        return restoranTagsDictionary
+        let restoran_tags_dic = {}
+        for (let i = 0; i < tagOptions.length; i++) { let { id, name } = tagOptions[i]; restoran_tags_dic[id] = name; }
+        return restoran_tags_dic
     }
     async getFoodCategories() {
         let { apis } = this.context;
@@ -88,10 +88,10 @@ export default class Restorans extends Component {
     }
     async componentDidMount() {
         let restorans = await this.get_restorans();
-        let restoranTagsDictionary = await this.get_restoranTagsDictionary();
+        let restoran_tags_dic = await this.get_restoran_tags_dic();
         let foodCategories = this.getFoodCategories();
         this.mounted = true;
-        this.setState({ restorans, restoranTagsDictionary, foodCategories })
+        this.setState({ restorans, restoran_tags_dic, foodCategories })
     }
     getRestoranById(id) {
         let { restorans } = this.state;
@@ -101,12 +101,14 @@ export default class Restorans extends Component {
         let { searchValue } = this.state;
         return {
             className: 'p-h-12 m-b-12',
+            gap:12,
             row: [
-                { size: 48, align: 'vh', html: <Icon path={mdiPlusThick} size={1} />, onClick: () => this.openPopup('add'), className: 'fs-14 bold', style: { background: 'dodgerblue', color: '#fff' } },
+                { size: 96, align: 'vh', html: 'افزودن رستوران', onClick: () => this.openPopup('add'), className: 'fs-12', style: { background: 'orange', color: '#fff'} },
                 {
                     flex: 1,
                     html: (
                         <AIOInput
+                            placeholder='جستجو'
                             type='text' style={{ width: '100%', background: '#fff' }} value={searchValue}
                             after={<Icon path={mdiMagnify} size={.9} />}
                             onChange={(searchValue) => this.setState({ searchValue })}
@@ -122,21 +124,21 @@ export default class Restorans extends Component {
     }
     body_layout() {
         return {
-            flex: 1, className: 'ofy-auto', gap: 12,
+            flex: 1, className: 'ofy-auto p-12 m-12', gap: 12,style:{border:'1px solid #ccc'},
             column: this.getRestoransBySearch().map((restoran) => this.restoranCard_layout(restoran))
         }
     }
     restoranCard_layout(restoran) {
         let { name, id, tags } = restoran;
-        let { restoranTagsDictionary } = this.state;
+        let { restoran_tags_dic } = this.state;
         return {
-            onClick: () => this.openPopup('edit', restoran), className: 'p-12 m-h-12 fs-12 br-12', style: { background: '#fff' },
+            onClick: () => this.openPopup('edit', restoran), className: 'p-12 fs-12 br-12', style: { background: '#fff' },
             row: [
                 {
                     flex: 1,
                     column: [
                         { row: [{ flex: 1, html: `نام رستوران : ${name}` }, { html: `کد : ${id}` }] },
-                        { row: [{ flex: 1, html: tags.map((o) => o.name).join(' , '), className: 'fs-10' }] }
+                        { row: [{ flex: 1, html: tags.map((tagId) => restoran_tags_dic[tagId]).join(' , '), className: 'fs-10' }] }
                     ]
                 }
             ]
@@ -334,39 +336,6 @@ class RestoranCard extends Component {
     }
     form_layout() {
         let { model, tagOptions } = this.state;
-        let { type } = this.props;
-        return {
-            className: 'admin-panel-restoran-card p-24',
-            html: (
-                <Form
-                    lang='fa'
-                    theme={{ inlineLabel: true, labelStyle: { width: 90 }, rowStyle: { marginBottom: 0 }, bodyStyle: { padding: 6 } }}
-                    reset={true} showErrors={false} model={model}
-                    footer={(obj) => this.formFooter_layout(obj)}
-                    onChange={(model) => this.setState({ model })}
-                    inputs={[
-                        { type: 'html', html: () => this.image_layout(), rowKey: '0' },
-                        { type: 'html', html: () => this.logo_layout(), rowKey: '0' },
-                        { type: 'html', rowKey: '0' },
-                        { show: type === 'edit', type: 'html', html: () => this.foods_layout(), rowKey: '0' },
-                        { type: 'html', html: () => this.map_layout(), rowKey: '0', rowWidth: 90 },
-                        { type: 'html', html: () => this.remove_layout(), rowKey: '0', show: type === 'edit', rowWidth: 72 },
-                        { type: 'text', field: 'model.id', label: 'آی دی', disabled: true, show: model.id !== undefined },
-                        { type: 'text', field: 'model.name', label: 'نام', validations: [['required']] },
-                        { type: 'textarea', field: 'model.address', label: 'آدرس', validations: [['required']] },
-                        { type: 'text', field: 'model.phone', label: 'تلفن ثابت', justNumber: true, validations: [['required']] },
-                        { type: 'select', field: 'model.startTime', label: 'ساعت شروع', validations: [['required']], options: this.timeOptions },
-                        { type: 'select', field: 'model.endTime', label: 'ساعت پایان', validations: [['required']], options: this.timeOptions },
-                        { type: 'number', field: 'model.tax', label: 'درصد مالیات', validations: [['>=', 0], ['<=', 100]] },
-                        { type: 'number', field: 'model.deliveryTime', label: 'زمان ارسال(دقیقه)' },
-                        { type: 'multiselect', text: 'انتخاب تگ', field: 'model.tags', label: 'تگ ها', options: tagOptions, optionText: 'option.name', optionValue: 'option.id' },
-                    ]}
-                />
-            )
-        }
-    }
-    form_layout() {
-        let { model, tagOptions } = this.state;
         return {
             className: 'admin-panel-restoran-card p-24',
             html: (
@@ -374,10 +343,7 @@ class RestoranCard extends Component {
                     type='form' lang='fa'
                     reset={true} showErrors={false} value={model}
                     footer={(obj) => this.formFooter_layout(obj)}
-                    onChange={(model) => {
-                        debugger;
-                        this.setState({ model })
-                    }}
+                    onChange={(model,errors) => this.setState({ model })}
                     inputs={{
                         props:{gap:12,inlineLabelAttrs:{style:{width:90,fontSize:12,justifyContent:'end',padding:'0 12px'}}},
                         column: [
