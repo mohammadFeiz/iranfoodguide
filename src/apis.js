@@ -163,8 +163,7 @@ export function getResponse({getState}){
             let response = await Axios[method](url, body);
 
             //دریافت آی دی تگ اضافه شده از روی ریسپانس
-            let id;
-            //id = <...>
+            let id = response.data.data
 
             return { response, result: { id } }
         },

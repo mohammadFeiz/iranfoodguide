@@ -15,9 +15,15 @@ export default class Restorans extends Component {
     static contextType = BOContext;
     constructor(props) {
         super(props);
-        this.state = { restorans: [], popup: false, searchValue: '', restoran_tags_dic: {}, foodCategories: [] }
+        this.state = { restorans: [], popup: false, searchValue: '',restoran_tags:[], restoran_tags_dic: {}, foodCategories: [] }
     }
-    async get_restorans() { return await this.context.apis({ api: 'get_restorans', name: 'دریافت لیست رستوزان ها', def: [] }); }
+    async get_restorans() {
+        let {apis} = this.context;
+        apis({ 
+            api: 'get_restorans', name: 'دریافت لیست رستوزان ها', def: [] ,
+            callback:(restorans)=>this.setState({restorans})
+        }); 
+    }
     async add_restoran(newRestoran) {
         let { apis } = this.context;
         apis({
@@ -70,28 +76,32 @@ export default class Restorans extends Component {
             }
         })
     }
-    async get_restoran_tags_dic() {
+    async get_restoran_tags() {
         let { apis } = this.context;
-        let tagOptions = await apis({ api: 'get_tags', parameter: { type: 'restoran' }, name: 'دریافت لیست تگ های رستوران ها', def: [] });
-        let restoran_tags_dic = {}
-        for (let i = 0; i < tagOptions.length; i++) { let { id, name } = tagOptions[i]; restoran_tags_dic[id] = name; }
-        return restoran_tags_dic
+        apis({ 
+            api: 'get_tags', parameter: { type: 'restoran' }, 
+            name: 'دریافت لیست تگ های رستوران ها', def: [],
+            callback:(restoran_tags)=>{
+                let restoran_tags_dic = {}
+                for (let i = 0; i < restoran_tags.length; i++) { let { id, name } = restoran_tags[i]; restoran_tags_dic[id] = name; }
+                this.setState({restoran_tags,restoran_tags_dic})
+            }
+        });
+        
     }
     async getFoodCategories() {
         let { apis } = this.context;
         apis({
-            api: 'get_tags',
+            api: 'get_tags',def:[],
             name: 'دریافت لیست تگ های غذا ها',
             parameter: { type: 'food' },
             callback: (foodCategories) => this.setState({ foodCategories })
         })
     }
     async componentDidMount() {
-        let restorans = await this.get_restorans();
-        let restoran_tags_dic = await this.get_restoran_tags_dic();
-        let foodCategories = this.getFoodCategories();
-        this.mounted = true;
-        this.setState({ restorans, restoran_tags_dic, foodCategories })
+        this.get_restorans();
+        this.get_restoran_tags();
+        this.getFoodCategories();
     }
     getRestoranById(id) {
         let { restorans } = this.state;
@@ -159,16 +169,15 @@ export default class Restorans extends Component {
     }
     getContext() {
         let { apis } = this.context;
-        let { foodCategories } = this.state;
+        let { foodCategories,restoran_tags } = this.state;
         return {
-            apis, foodCategories,
+            apis, foodCategories,restoran_tags,
             remove_restoran: this.remove_restoran.bind(this),
             add_restoran: this.add_restoran.bind(this),
             edit_restoran: this.edit_restoran.bind(this)
         }
     }
     render() {
-        if (!this.mounted) { return false }
         return (
             <RestoranContext.Provider value={this.getContext()}>
                 <RVD layout={{ column: [this.header_layout(), this.body_layout()] }} />
@@ -182,7 +191,7 @@ class RestoranCard extends Component {
     constructor(props) {
         super(props);
         this.timeOptions = this.getTimeOptions();
-        this.state = { model: { ...props.restoran }, popup: false, foods: [], tagOptions: undefined }
+        this.state = { model: { ...props.restoran }, popup: false, foods: [] }
     }
     getTimeOptions() {
         return new Array(24).fill(0).map((o, i) => {
@@ -193,21 +202,21 @@ class RestoranCard extends Component {
     }
 
     componentDidMount() {
-        let { apis } = this.context;
-        apis({
-            api: 'get_tags', name: 'دریافت لیست تگ های رستوران ها', parameter: { type: 'restoran' },
-            callback: (tagOptions) => this.setState({ tagOptions })
-        })
         this.updateFoods()
     }
     async updateFoods() {
         let { apis } = this.context, { type } = this.props, { model } = this.state;
         if (type === 'edit') {
-            await apis({ api: 'get_restoran_foods', name: 'دریافت اطلاعات منوی رستوران', parameter: model.id, callback: (foods) => this.setState({ foods }) })
+            await apis({ 
+                api: 'get_restoran_foods', name: 'دریافت اطلاعات منوی رستوران', parameter: model.id,def:[],
+                callback: (foods) => this.setState({ foods }) 
+            })
         }
     }
     foods_layout() {
         let { foods } = this.state;
+        let {type} = this.props;
+        if(type !== 'edit'){return false}
         return {
             props:{gap:0},
             column: [
@@ -335,7 +344,8 @@ class RestoranCard extends Component {
         }
     }
     form_layout() {
-        let { model, tagOptions } = this.state;
+        let {restoran_tags} = this.context;
+        let { model } = this.state;
         return {
             className: 'admin-panel-restoran-card p-24',
             html: (
@@ -379,7 +389,7 @@ class RestoranCard extends Component {
                             
                                 ]
                             },
-                            { input: { type: 'multiselect', options: tagOptions, optionText: 'option.name', optionValue: 'option.id' }, text: 'انتخاب تگ', field: 'value.tags', inlineLabel: 'تگ ها' },
+                            { input: { type: 'multiselect', options: restoran_tags, optionText: 'option.name', optionValue: 'option.id' }, text: 'انتخاب تگ', field: 'value.tags', inlineLabel: 'تگ ها' },
                         ]
                     }}
                 />
@@ -453,8 +463,6 @@ class RestoranCard extends Component {
         })
     }
     render() {
-        let { tagOptions } = this.state;
-        if (!tagOptions) { return null }
         return (
             <>
                 <RVD layout={this.form_layout()} />
