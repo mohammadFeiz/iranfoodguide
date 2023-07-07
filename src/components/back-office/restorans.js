@@ -350,8 +350,7 @@ class RestoranCard extends Component {
             className: 'admin-panel-restoran-card p-24',
             html: (
                 <AIOInput
-                    type='form' lang='fa'
-                    reset={true} showErrors={false} value={model}
+                    type='form' lang='fa' reset={true} showErrors={false} value={model}
                     footer={(obj) => this.formFooter_layout(obj)}
                     onChange={(model,errors) => this.setState({ model })}
                     inputs={{
@@ -531,14 +530,15 @@ class Foods extends Component {
     render() {
         let { foods } = this.props;
         let { foodCategories } = this.context;
+        debugger
         return (
             <ProductManager
                 variantMode={false}
                 subProductMode={true}
                 extraOptions={[
-                    { type: 'multiselect', field: 'model.categories', label: 'دسته بندی ها', options: foodCategories.map((o) => { return { text: o.name, value: o.id } }) },
-                    { type: 'text', field: 'model.menuCategory', label: 'سر فصل منو' },
-                    { type: 'select', label: 'زیر مجموعه ی', options: [{ name: 'انتخاب نشده' }].concat(foods).map((o) => { return { text: o.name, value: o.id } }), field: 'model.parentId' }
+                    { input:{type: 'multiselect', options: foodCategories.map((o) => { return { text: o.name, value: o.id } }) }, field: 'value.categories', inlineLabel: 'دسته بندی ها'},
+                    { input:{type: 'text'}, field: 'value.menuCategory', inlineLabel: 'سر فصل منو' },
+                    { input:{type: 'select', options: [{ name: 'انتخاب نشده' }].concat(foods).map((o) => { return { text: o.name, value: o.id } })}, inlineLabel: 'زیر مجموعه ی', field: 'value.parentId' }
                 ]}
                 products={foods}
                 onAdd={async (newFood) => await this.add_food(newFood)}

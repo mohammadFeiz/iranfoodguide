@@ -4,7 +4,6 @@ import AIOInput from './../aio-input/aio-input';
 import AIOPopup from '../aio-popup/aio-popup';
 import { Icon } from '@mdi/react';
 import { mdiPlusThick, mdiMagnify, mdiCheck, mdiClose, } from '@mdi/js';
-import Form from './../aio-form-react/aio-form-react';
 import Search from './../aio-functions/search';
 import './product-manager.css';
 export default class ProductManager extends Component {
@@ -123,7 +122,7 @@ export default class ProductManager extends Component {
     productFormPopup(o) {
         let { popup } = this.state;
         let {variantMode,extraOptions} = this.props;
-        let product = o || { name: '', image: false, review: '', description: '', details: [], tags: [], price: 0 ,discountPercent:0,categories:[]}
+        let product = o || { name: '', image: false, review: '', description: '', details: [],price: 0 ,discountPercent:0}
         let type = !!o ? 'edit' : 'add';
         let title = !!o ? 'ویرایش محصول' : 'افزودن محصول'
         popup.addPopup({
@@ -209,130 +208,80 @@ class ProductCard extends Component {
         )
 
     }
-    optionTypes_layout() {
-        let { model } = this.state;
-        let { optionTypes = [] } = model;
-        return (
-            <AIOInput
-                type='table'
-                add={{ text: '', value: '' }}
-                rows={optionTypes}
-                onChange={(optionTypes) => {
-                    model.optionTypes = optionTypes;
-                    this.setState({ model })
-                }}
-                columns={[
-                    { title: 'نام', value: 'row.name' },
-                    { title: 'آی دی', value: 'row.id' },
-                ]}
-
-            />
-
-        )
-    }
     form() {
         let { model } = this.state;
+        debugger;
         let {variantMode,extraOptions = []} = this.props;
         let { optionTypes = [] } = model;
         return (
-            <Form
-                lang='fa'
-                style={{ background: 'none', height: '100%', width: '100%' }}
-                theme={{
-                    inlineLabel: true,
-                    labelStyle: { width: 70 },
-                    rowStyle: { marginBottom: 6 },
-                    bodyStyle: { padding: 0 },
-                }}
-                reset={true}
-                showErrors={false}
-                model={model}
+            <AIOInput
+                type='form' lang='fa' reset={true} showErrors={false} value={model}
                 footer={(obj) => this.formFooter_layout(obj)}
-                onChange={(model) => this.setState({ model })}
-                inputs={[
-                    { type: 'text', field: 'model.id', label: 'آی دی', disabled: true, show: model.id !== undefined },
-                    { type: 'text', field: 'model.name', label: 'نام', validations: [['required']] },
-                    { type: 'number', field: 'model.price', label: 'قیمت', validations: [['required']] },
-                    { type: 'number', field: 'model.discountPercent', label: 'درصد تخفیف' },
-                    { type: 'textarea', field: 'model.description', label: 'توضیحات', validations: [['required']] },
-                    { type: 'textarea', field: 'model.review', label: 'شرح', validations: [['required']], theme: { inputStyle: { height: 96 } } },
-                    { show:!!variantMode,type: 'html', label: 'آپشن ها', html: () => this.optionTypes_layout() },
-                    {
-                        show:!!variantMode,type: 'group', inputs: optionTypes.map((o) => {
-                            return {
-                                type: 'html', label: `${o.name} ها`, html: () => this.optionValues_layout(o)
-                            }
-                        })
-                    },
-                    {show:!!variantMode,type: 'html', label: 'واریانت ها', html: () => this.variants_layout()},
-                    {type: 'html', label: 'تصویر', html: () => this.image_layout() },
-                    ...extraOptions
-                ]}
-            />
-        )
-    }
-    optionValues_layout(optionType) {
-        let { model } = this.state;
-        let { optionValues = [] } = optionType;
-        return (
-            <AIOInput
-                type='table'
-                add={{ name: '', id: '' }}
-                remove={true}
-                rows={optionValues}
-                onChange={(optionValues) => {
-                    optionType.optionValues = optionValues;
-                    this.setState({ model })
+                onChange={(model,errors) => this.setState({ model })}
+                inputs={{
+                    props:{gap:12,inlineLabelAttrs:{style:{width:90,fontSize:12,justifyContent:'end',padding:'0 12px'}}},
+                    column:[
+                        { input:{type: 'text',disabled: true}, field: 'value.id', inlineLabel: 'آی دی',  show: model.id !== undefined },
+                        { input:{type: 'text'}, field: 'value.name', inlineLabel: 'نام', validations: [['required']] },
+                        {
+                            row:[
+                                { input:{type: 'number'}, field: 'value.price', inlineLabel: 'قیمت', validations: [['required']] },
+                                { input:{type: 'number'}, field: 'value.discountPercent', inlineLabel: 'درصد تخفیف' }
+                            ]
+                        },
+                        { input:{type: 'textarea'}, field: 'value.description', inlineLabel: 'توضیحات', validations: [['required']] },
+                        { input:{type: 'textarea'}, field: 'value.review', inlineLabel: 'شرح', validations: [['required']], theme: { inputStyle: { height: 96 } } },
+                        { 
+                            input:{
+                                type:'table',add:{ text: '', value: '' },remove:true,
+                                columns:[{ title: 'نام', value: 'row.name' },{ title: 'آی دی', value: 'row.id' }]
+                            },
+                            field:'value.optionTypes',
+                            show:!!variantMode, inlineLabel: 'آپشن ها'
+                        },
+                        {
+                            show:!!variantMode,
+                            column:!variantMode?undefined:optionTypes.map(({name},i) => {
+                                return {
+                                    input:{
+                                        type: 'table',remove:true,add:{ name: '', id: '' },
+                                        columns:[{ title: 'نام', value: 'row.name' },{ title: 'آی دی', value: 'row.id' }]
+                                    }, 
+                                    inlineLabel: `${name} ها`,
+                                    field:`value.optionTypes[${i}].optionValues`
+
+                                }
+                            })
+                        },
+                        {
+                            show:!!variantMode,
+                            input:{
+                                type:'table',
+                                add:{ id: 'nv' + Math.round(Math.random() * 10000000) },
+                                remove:true,
+                                columns:!variantMode?undefined:model.optionTypes.map(({ name, id,optionValues }, i) => {
+                                    return {
+                                        title: name, type: 'select', value: `row.key.split("_")[${i}]`,optionTypeId: id,
+                                        options: optionValues.map(({ name, id }) => { return { text: name, value: id } }), 
+                                        onChange: ({ row, value }) => {
+                                            let key = row.key;
+                                            if (!key) { key = optionTypes.map(() => 'notset').join('_') }
+                                            let keyList = key.split('_');
+                                            keyList[i] = value;
+                                            row.key = keyList.join('_');
+                                            this.setState({ model })
+                                        }
+                                    }
+                                })
+
+                            },
+                            inlineLabel: 'واریانت ها', field:'value.variants'
+                        },
+                        {type: 'html', label: 'تصویر', html: () => this.image_layout() },
+                        ...extraOptions
+                    ]
                 }}
-                columns={[
-                    { title: 'نام', value: 'row.name' },
-                    { title: 'آی دی', value: 'row.id' },
-                ]}
-
             />
-
-        )
-    }
-    variants_layout() {
-        let { model } = this.state;
-        let { variants = [], optionTypes = [] } = model;
-        return (
-            <AIOInput
-                type='table'
-                add={{ id: 'nv' + Math.round(Math.random() * 10000000) }}
-                remove={true}
-                rows={variants}
-                onChange={(variants) => {
-                    model.variants = variants;
-                    this.setState({ model })
-                }}
-                columns={optionTypes.map(({ name, id }, i) => {
-                    return {
-                        title: name, type: 'select', options: 'getOptionValues', value: `row.key.split("_")[${i}]`,
-                        optionTypeId: id,
-                        onChange: ({ row, value }) => {
-                            let key = row.key;
-                            if (!key) { key = optionTypes.map(() => 'notset').join('_') }
-                            let keyList = key.split('_');
-                            keyList[i] = value;
-                            row.key = keyList.join('_');
-                            this.setState({ model })
-                        }
-                    }
-                })}
-                getValue={{
-                    getOptionValues: ({ column }) => {
-                        let { model } = this.state;
-                        let { optionTypes = [] } = model;
-                        let optionType = optionTypes.find((o) => o.id === column.optionTypeId);
-                        let { optionValues } = optionType;
-                        let res = optionValues.map(({ name, id }) => { return { text: name, value: id } })
-                        return res
-                    }
-                }}
-
-            />
-
         )
     }
     getErrorMessage(errors, errorKeys) {

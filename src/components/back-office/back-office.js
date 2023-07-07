@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import AIOInput from './../../npm/aio-input/aio-input';
-import AIODatePicker from './../../npm/aio-datepicker/aio-datepicker';
 import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
 import Restorans from "./restorans";
 import BOContext from "./back-office-context";
@@ -563,11 +562,10 @@ class SliderCard extends Component {
                         {
                             flex: 1,
                             html: (
-                                <AIODatePicker
+                                <AIOInput
+                                    type='date' unit='hour' value={endDate}
                                     style={{ height: 24, width: '100%' }}
-                                    value={endDate}
-                                    unit='hour'
-                                    onChange={({ dateString }) => this.change('endDate', dateString)}
+                                    onChange={(dateString) => this.change('endDate', dateString)}
                                 />
                             )
                         }
