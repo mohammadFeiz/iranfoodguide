@@ -392,7 +392,7 @@ class RestoranCard extends Component {
                             
                                 ]
                             },
-                            { input: { type: 'multiselect', options: restoran_tags, optionText: 'option.name', optionValue: 'option.id' }, text: 'انتخاب تگ', field: 'value.tags', inlineLabel: 'تگ ها' },
+                            { input: { type: 'multiselect', options: restoran_tags, optionText: 'option.name', optionValue: 'option.typeId' }, text: 'انتخاب تگ', field: 'value.tags', inlineLabel: 'تگ ها' },
                         ]
                     }}
                 />
