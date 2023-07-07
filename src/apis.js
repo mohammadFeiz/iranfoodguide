@@ -128,6 +128,8 @@ export function getResponse({getState}){
             let body = {
                 "Title": restoran.name,
                 "LatinTitle": restoran.name,
+                "Tax": restoran.tax,
+                "DeliveryTime": restoran.deliveryTime,
                 "address": {
                     "fullAddress": restoran.address,
                     "latitude": restoran.latitude,
@@ -167,6 +169,8 @@ export function getResponse({getState}){
                 "Title": restoran.name,
                 "LatinTitle": restoran.name,
                 "Id":restoran.id,
+                "Tax": restoran.tax,
+                "DeliveryTime": restoran.deliveryTime,
                 "address": {
                     "fullAddress": restoran.address,
                     "latitude": restoran.latitude,
