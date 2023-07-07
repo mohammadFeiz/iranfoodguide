@@ -177,6 +177,7 @@ export function getResponse({getState}){
             body = {
                 "Title": restoran.name,
                 "LatinTitle": restoran.name,
+                "Id":restoran.id,
                 "address": {
                     "fullAddress": restoran.address,
                     "latitude": restoran.latitude,
