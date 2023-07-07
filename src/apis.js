@@ -101,7 +101,7 @@ export function getResponse({getState}){
                     logo:o.logo, //String یو آر ال لوگوی رستوران
                     address:o.address.address, //String آدرس رستوران
                     deliveryTime:o.deliveryTime, //Number مدت زمان ارسال به دقیقه
-                    tags:types.map((t)=>t.id), //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
+                    tags:types.map((t)=>t.typeId), //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
                     //startTime:<...>, //Number bewtween (1 and 24) زمان شروع به کار
                     //endTime:<...>, //Number bewtween (1 and 24) زمان پایان کار
                 }
@@ -125,17 +125,7 @@ export function getResponse({getState}){
             //     endTime:Number bewtween (1 and 24) زمان پایان کار
             //     tags:Array of ids آرایه ای از تگ های رستوران
             // }
-            //آدرس درخواست 
-            let url;
-            url = `${baseUrl}/Restaurant/Create`;
-            //url = `${baseUrl}/<...>`
-
-            //نوع درخواست ("get" | "post")
-            let method;
-            method = "post";
-            //بادی متد پست (any | undefined)
-            let body;
-            body = {
+            let body = {
                 "Title": restoran.name,
                 "LatinTitle": restoran.name,
                 "address": {
@@ -160,11 +150,9 @@ export function getResponse({getState}){
             }
 
             //دریافت ریسپانس
-            let response = await Axios[method](url, body);
-
+            let response = await Axios.post(`${baseUrl}/Restaurant/Create`, body);
             //دریافت آی دی تگ اضافه شده از روی ریسپانس
             let id = response.data.data
-
             return { response, result: { id } }
         },
         async edit_restoran(restoran) {
@@ -175,6 +163,7 @@ export function getResponse({getState}){
             //بادی متد پست (any | undefined)
             let body;
             body = {
+                "id":restoran.id,
                 "Title": restoran.name,
                 "LatinTitle": restoran.name,
                 "address": {
@@ -197,7 +186,7 @@ export function getResponse({getState}){
                 ],
                 "types": [
                     {
-                        "typeId": restoran.tags
+                        "typeId": restoran.tags.map((o)=>{return {typeId:o}})
                     }
                 ]
             }

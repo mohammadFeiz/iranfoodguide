@@ -82,6 +82,7 @@ export default class Restorans extends Component {
             api: 'get_tags', parameter: { type: 'restoran' }, 
             name: 'دریافت لیست تگ های رستوران ها', def: [],
             callback:(restoran_tags)=>{
+                debugger;
                 let restoran_tags_dic = {}
                 for (let i = 0; i < restoran_tags.length; i++) { let { id, name } = restoran_tags[i]; restoran_tags_dic[id] = name; }
                 this.setState({restoran_tags,restoran_tags_dic})
@@ -141,6 +142,9 @@ export default class Restorans extends Component {
     restoranCard_layout(restoran) {
         let { name, id, tags } = restoran;
         let { restoran_tags_dic } = this.state;
+        let tagsText = tags.map((tagId) => {
+            return restoran_tags_dic[tagId];
+        }).join(' , ')
         return {
             onClick: () => this.openPopup('edit', restoran), className: 'p-12 fs-12 br-12', style: { background: '#fff' },
             row: [
@@ -148,7 +152,7 @@ export default class Restorans extends Component {
                     flex: 1,
                     column: [
                         { row: [{ flex: 1, html: `نام رستوران : ${name}` }, { html: `کد : ${id}` }] },
-                        { row: [{ flex: 1, html: tags.map((tagId) => restoran_tags_dic[tagId]).join(' , '), className: 'fs-10' }] }
+                        { row: [{ flex: 1, html: tagsText, className: 'fs-10' }] }
                     ]
                 }
             ]
