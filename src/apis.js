@@ -166,6 +166,7 @@ export function getResponse({getState}){
                 "id":restoran.id,
                 "Title": restoran.name,
                 "LatinTitle": restoran.name,
+                "Id":restoran.id,
                 "address": {
                     "fullAddress": restoran.address,
                     "latitude": restoran.latitude,
