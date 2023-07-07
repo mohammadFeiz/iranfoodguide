@@ -89,7 +89,7 @@ export function getResponse({getState}){
             let data = response.data.data.items
             let result=data;
             result = data.map((o)=>{
-                let {address,types} = o;
+                let {address,types,workingTimes = {}} = o;
                 if(!types || types === null){types = []}
                 return {
                     id:o.id, //String آی دی رستوران
@@ -102,8 +102,8 @@ export function getResponse({getState}){
                     address:o.address.address, //String آدرس رستوران
                     deliveryTime:o.deliveryTime, //Number مدت زمان ارسال به دقیقه
                     tags:types.map((t)=>t.typeId), //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
-                    //startTime:<...>, //Number bewtween (1 and 24) زمان شروع به کار
-                    //endTime:<...>, //Number bewtween (1 and 24) زمان پایان کار
+                    startTime:workingTimes.startTime, //Number bewtween (1 and 24) زمان شروع به کار
+                    endTime:workingTimes.endTime, //Number bewtween (1 and 24) زمان پایان کار
                 }
             })
             return { response, result }

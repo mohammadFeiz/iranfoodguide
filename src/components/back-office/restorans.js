@@ -82,7 +82,6 @@ export default class Restorans extends Component {
             api: 'get_tags', parameter: { type: 'restoran' }, 
             name: 'دریافت لیست تگ های رستوران ها', def: [],
             callback:(restoran_tags)=>{
-                debugger;
                 let restoran_tags_dic = {}
                 for (let i = 0; i < restoran_tags.length; i++) { let { id, name } = restoran_tags[i]; restoran_tags_dic[id] = name; }
                 this.setState({restoran_tags,restoran_tags_dic})
@@ -534,7 +533,6 @@ class Foods extends Component {
     render() {
         let { foods } = this.props;
         let { foodCategories } = this.context;
-        debugger
         return (
             <ProductManager
                 variantMode={false}
