@@ -181,7 +181,8 @@ export function getResponse({getState}){
                     {
                         "Title": restoran.name,
                         "phoneNumber": restoran.phone,
-                    }],
+                    }
+                ],
                 "workingTimes": [
                     {
                         "startTime": restoran.startTime,// "12:00",
@@ -189,13 +190,8 @@ export function getResponse({getState}){
                         "applyChangeTime": "12:00"
                     }
                 ],
-                "types": [
-                    {
-                        "typeId": restoran.tags.map((o)=>{return {typeId:o}})
-                    }
-                ]
+                "types": restoran.tags.map((o)=>{return {typeId:o}})
             }
-
             //دریافت ریسپانس
             let response = await Axios[method](url, body);
 
@@ -350,25 +346,19 @@ export function getResponse({getState}){
             return { response, result: true }
         },
         //ویرایش تصویر رستوران
-        async edit_restoran_image({ restoranId, imageFile }) {
-            if (mock) { return { mock: true } }
+        async edit_restoran_image({ restoranId,imageUrl,imageFile }) {
+            //if (mock) { return { mock: true } }
             //parameters
             //restoranId  آی دی رستوران
-            //imageFile فایل انتخاب شده ی کاربر ادمین برای تصویر این رستوران
-
+            //imageUrl فایل انتخاب شده ی کاربر ادمین برای تصویر این رستوران
             //آدرس درخواست 
-            let url=`${baseUrl}/RestaurantImage/AdImageOfRestaurant`; 
-
-            //نوع درخواست ("get" | "post")
-            let method;
-            //method = <...>;
+            let url=`${baseUrl}/RestaurantImage/AdImageOfRestaurant?RestaurantId=${restoranId}?Title=${imageFile.name}`; 
 
             //بادی متد پست (any | undefined)
-            let body;
-            //body = <...>
-
+            let body = {imageFile:imageUrl};
+            
             //دریافت ریسپانس
-            let response = await Axios[method](url, body);
+            let response = await Axios.post(url, body);
             return { response, result: true }
         },
         //ویرایش لوگوی رستوران
