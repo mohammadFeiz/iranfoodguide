@@ -104,6 +104,7 @@ export function getResponse({getState}){
                     tags:types.map((t)=>t.typeId), //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
                     startTime:workingTimes[0].startTime, //Number bewtween (1 and 24) زمان شروع به کار
                     endTime:workingTimes[0].endTime, //Number bewtween (1 and 24) زمان پایان کار
+                    tax:o.tax
                 }
             })
             return { response, result }
@@ -326,57 +327,46 @@ export function getResponse({getState}){
             return { response, result: true }
         },
         //ویرایش تصویر غذا
-        async edit_food_image({ restoranId, foodId, imageFile }) {
+        async edit_food_image({ foodId, imageFile }) {
             if (mock) { return { mock: true } }
-            //parameters
-            //restoranId  آی دی رستوران
-            //foodId آی دی غذا
-            //imageFile فایل انتخاب شده ی کاربر ادمین برای این غذا
-
-            let url=`${baseUrl}/RestaurantFood/AddLogoImage`; 
+            let url=`${baseUrl}/RestaurantFood/AddLogoImage?RestaurantFoodId=${foodId}&Title=${'msf'}`; 
             let method;
-            //method = <...>;
-
-            //بادی متد پست (any | undefined)
-            let body;
-            //body = <...>
-
+            let formData = new FormData()
+            formData.append('imageFile', imageFile,imageFile.name)
+            let body = formData;
             //دریافت ریسپانس
             let response = await Axios[method](url, body);
             return { response, result: true }
         },
         //ویرایش تصویر رستوران
-        async edit_restoran_image({ restoranId,imageUrl,imageFile }) {
+        async edit_restoran_image({ restoranId,imageFile }) {
             //if (mock) { return { mock: true } }
             //parameters
             //restoranId  آی دی رستوران
             //imageUrl فایل انتخاب شده ی کاربر ادمین برای تصویر این رستوران
             //آدرس درخواست 
-            let url=`${baseUrl}/RestaurantImage/AdImageOfRestaurant?RestaurantId=${restoranId}&Title=${imageFile.name}`; 
-
-            //بادی متد پست (any | undefined)
-            let body = {imageFile:imageUrl};
-            
+            let url=`${baseUrl}/RestaurantImage/AdImageOfRestaurant?RestaurantId=${restoranId}&Title=${'msf'}`; 
+            let formData = new FormData()
+            formData.append('imageFile', imageFile,imageFile.name)
+            let body = formData;
             //دریافت ریسپانس
             let response = await Axios.post(url, body);
             return { response, result: true }
         },
         //ویرایش لوگوی رستوران
         async edit_restoran_logo({ restoranId, imageFile }) {
-            if (mock) { return { mock: true } }
+            //if (mock) { return { mock: true } }
             //parameters
             //restoranId  آی دی رستوران
             //imageFile فایل انتخاب شده ی کاربر ادمین برای لوگوی این رستوران
             //آدرس درخواست 
-            let url=`${baseUrl}/RestaurantImage/AddLogoImage`; 
-            //نوع درخواست ("get" | "post")
-            let method;
-            //method = <...>;
-            //بادی متد پست (any | undefined)
-            let body;
-            //body = <...>
+            debugger
+            let url=`${baseUrl}/RestaurantImage/AddLogoImage?RestaurantId=${restoranId}&Title=${'msf'}`; 
+            let formData = new FormData()
+            formData.append('imageFile', imageFile,imageFile.name)
+            let body = formData;
             //دریافت ریسپانس
-            let response = await Axios[method](url, body);
+            let response = await Axios.post(url, body);
             return { response, result: true }
         },
         async setProfile({ profile,mobile, registered }) {

@@ -29,14 +29,18 @@ export default class Restorans extends Component {
         apis({
             api: 'add_restoran', parameter: newRestoran,
             callback: async ({ id }) => {
-                await apis({
-                    api: 'edit_restoran_image', name: 'ثبت تصویر رستوران',
-                    parameter: { restoranId: newRestoran.id, imageFile: newRestoran.image_file, imageUrl: newRestoran.image }
-                })
-                await apis({
-                    api: 'edit_restoran_logo', name: 'ثبت لوگوی رستوران',
-                    parameter: { restoranId: newRestoran.id, imageFile: newRestoran.logo_file, imageUrl: newRestoran.logo }
-                })
+                if(newRestoran.image_file){
+                    await apis({
+                        api: 'edit_restoran_image', name: 'ثبت تصویر رستوران',
+                        parameter: { restoranId: id, imageFile: newRestoran.image_file }
+                    })
+                }
+                if(newRestoran.logo_file){
+                    await apis({
+                        api: 'edit_restoran_logo', name: 'ثبت لوگوی رستوران',
+                        parameter: { restoranId: id, imageFile: newRestoran.logo_file }
+                    })
+                }
                 let { restorans, popup } = this.state;
                 let newRestorans = [{ ...newRestoran, id }, ...restorans]
                 this.setState({ restorans: newRestorans });
@@ -49,14 +53,18 @@ export default class Restorans extends Component {
         apis({
             api: 'edit_restoran', name: 'ویرایش اطلاعات رستوران', parameter: newRestoran,
             callback: async () => {
-                await apis({
-                    api: 'edit_restoran_image', name: 'ثبت تصویر رستوران',
-                    parameter: { restoranId: newRestoran.id, imageFile: newRestoran.image_file, imageUrl: newRestoran.image }
-                })
-                await apis({
-                    api: 'edit_restoran_logo', name: 'ثبت لوگوی رستوران',
-                    parameter: { restoranId: newRestoran.id, imageFile: newRestoran.logo_file, imageUrl: newRestoran.logo }
-                })
+                if(newRestoran.image_file){
+                    await apis({
+                        api: 'edit_restoran_image', name: 'ثبت تصویر رستوران',
+                        parameter: { restoranId: newRestoran.id, imageFile: newRestoran.image_file }
+                    })
+                }
+                if(newRestoran.logo_file){
+                    await apis({
+                        api: 'edit_restoran_logo', name: 'ثبت لوگوی رستوران',
+                        parameter: { restoranId: newRestoran.id, imageFile: newRestoran.logo_file }
+                    })
+                }
                 let { restorans, popup } = this.state;
                 let newRestorans = restorans.map((o) => o.id === newRestoran.id ? newRestoran : o)
                 this.setState({ restorans: newRestorans });

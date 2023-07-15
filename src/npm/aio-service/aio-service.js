@@ -2,6 +2,7 @@ import Axios from "axios";
 import AIODate from "./../../npm/aio-date/aio-date";
 import AIOStorage from './../../npm/aio-storage/aio-storage';
 import AIOMessage from "../aio-message/aio-message";
+import JsonValidator from "../aio-functions/json-validator";
 import './index.css';
 import $ from "jquery";
 export let helper = {
@@ -70,7 +71,7 @@ function Service(config) {
     }
     else{
       if(validation){
-        let message = JSONValidator(result,validation);
+        let message = JsonValidator(result,validation);
         if(typeof message === 'string'){
           helper.showAlert({type:'error',text:`apis().${api} validation error`,subtext:message});
           return def === undefined?result:def;
@@ -173,60 +174,4 @@ function Service(config) {
     if(onError && typeof result === 'string'){onError(result);}
     return result;
   }
-}
-
-function JSONValidator(json,config){
-  let obj = {
-    getType(value){
-        let type = typeof value;
-        if(Array.isArray(value)){type = 'array'}
-        return type
-    },
-    checkType_req(config,res,resultText,shouldBe){
-      if(typeof config === 'function'){config = config(res)}
-      if(Array.isArray(config)){
-        if(this.getType(res) !== 'array'){
-          return `${resultText} is ${this.getType(res)} ${shouldBe !== undefined?` but should be ${JSON.stringify(shouldBe)}`:''}`
-        }
-        for(let i = 0; i < res.length; i++){
-          let o = res[i];
-          let result = this.checkType(config[0],o,`${resultText}[${i}]`,config[0])
-          if(result){
-              return result
-          }
-        }
-      }
-      else if(typeof config === 'object'){
-        if(this.getType(res) !== 'object'){
-          return `${resultText} is ${this.getType(res)} ${shouldBe !== undefined?` but should be ${JSON.stringify(shouldBe)}`:''}`
-        }
-        for(let prop in config){
-          let result = this.checkType(config[prop],res[prop],prop,config[prop])
-          if(result){
-            return result
-          }
-        }
-      }
-      else if(config !== this.getType(res)){
-        return `${resultText} is ${JSON.stringify(res)} ${shouldBe !== undefined?` but should be ${JSON.stringify(shouldBe)}`:''}`
-      }
-    },
-    checkType(config,res,resultText = 'result'){
-      if(typeof config === 'string' && config.indexOf(',') !== -1){
-        config = config.split(',');
-        let finalResult;
-        let isThereError = true;
-        for(let i = 0; i < config.length; i++){
-          let result = this.checkType_req(config[i],res,resultText,config)
-          if(result){finalResult = result}
-          else{isThereError = false}
-        }
-        if(isThereError){return finalResult}
-      }
-      else{
-        return this.checkType_req(config,res,resultText,config)
-      }
-    }
-  }
-  return obj.checkType(config,json)
 }
