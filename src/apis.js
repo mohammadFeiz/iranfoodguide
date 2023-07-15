@@ -102,8 +102,8 @@ export function getResponse({getState}){
                     address:o.address.address, //String آدرس رستوران
                     deliveryTime:o.deliveryTime, //Number مدت زمان ارسال به دقیقه
                     tags:types.map((t)=>t.typeId), //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
-                    startTime:workingTimes.startTime, //Number bewtween (1 and 24) زمان شروع به کار
-                    endTime:workingTimes.endTime, //Number bewtween (1 and 24) زمان پایان کار
+                    startTime:workingTimes[0].startTime, //Number bewtween (1 and 24) زمان شروع به کار
+                    endTime:workingTimes[0].endTime, //Number bewtween (1 and 24) زمان پایان کار
                 }
             })
             return { response, result }

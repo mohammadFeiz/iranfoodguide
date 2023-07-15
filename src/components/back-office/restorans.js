@@ -198,9 +198,9 @@ class RestoranCard extends Component {
     }
     getTimeOptions() {
         return new Array(24).fill(0).map((o, i) => {
-            let hour = (i + 1).toString();
+            let hour = i.toString();
             hour = hour.length === 1 ? `0${hour}` : hour;
-            return { text: <div style={{ direction: 'ltr' }}>{`${hour} : 00`}</div>, value: `${i + 1}:0` }
+            return { text: <div style={{ direction: 'ltr' }}>{`${hour}:00:00`}</div>, value: `${hour}:00:00` }
         })
     }
 
