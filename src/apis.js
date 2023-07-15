@@ -352,7 +352,7 @@ export function getResponse({getState}){
             //restoranId  آی دی رستوران
             //imageUrl فایل انتخاب شده ی کاربر ادمین برای تصویر این رستوران
             //آدرس درخواست 
-            let url=`${baseUrl}/RestaurantImage/AdImageOfRestaurant?RestaurantId=${restoranId}?Title=${imageFile.name}`; 
+            let url=`${baseUrl}/RestaurantImage/AdImageOfRestaurant?RestaurantId=${restoranId}&Title=${imageFile.name}`; 
 
             //بادی متد پست (any | undefined)
             let body = {imageFile:imageUrl};
