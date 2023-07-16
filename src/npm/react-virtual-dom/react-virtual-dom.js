@@ -100,8 +100,8 @@ export default class ReactVirtualDom extends Component {
   getLayout(obj,index,parent,isRoot){
     if(typeof obj === 'object' && typeof parent === 'object'){obj.props = {...parent.props,...obj.props}}
     let {getLayout} = this.props;
-    if(getLayout){obj = getLayout(obj,parent)}
     if(!obj || obj === null || (typeof obj.show === 'function'?obj.show():obj.show) === false){return ''}
+    if(getLayout){obj = getLayout(obj,parent)}
     let {childs,html,attrs,gapAttrs} = this.getProps(obj,index,parent,isRoot)
     return (
       <Fragment key={index}>

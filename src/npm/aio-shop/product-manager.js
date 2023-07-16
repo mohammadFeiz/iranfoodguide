@@ -126,7 +126,7 @@ export default class ProductManager extends Component {
         let type = !!o ? 'edit' : 'add';
         let title = !!o ? 'ویرایش محصول' : 'افزودن محصول'
         popup.addPopup({
-            title, type: 'fullscreen', style: { maxWidth: 600 },
+            title, type: 'fullscreen',
             body: () => (
                 <RVD
                     layout={{
@@ -210,7 +210,6 @@ class ProductCard extends Component {
     }
     form() {
         let { model } = this.state;
-        debugger;
         let {variantMode,extraOptions = []} = this.props;
         let { optionTypes = [] } = model;
         return (

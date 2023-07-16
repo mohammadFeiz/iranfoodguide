@@ -200,6 +200,7 @@
     padding: 0 12px;
     display: flex;
     align-items: center;
+    box-sizing: border-box;
     background:none;
     color:inherit;
     cursor:pointer;
@@ -303,6 +304,7 @@
 
 .aio-input-radio {
     padding: 0;
+    width:100%;
 }
 
 .aio-input-radio-options {
@@ -496,4 +498,8 @@
 }
 .aio-input-slider-value{
     height:100%;
+}
+.aio-input-textarea textarea{
+    font-family:inherit !important;
+    padding:6px;
 }

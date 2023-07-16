@@ -27,11 +27,11 @@ export default class App extends Component {
     this.baseUrl = 'https://iranfoodguide.ir'
     this.state = {
       isLogin: false,
+      isRegistered:false,
       registerFields: [
-        { type: 'text', label: 'نام', field: 'firstName', required: true, rowKey: '1' },
-        { type: 'html', html: () => '', rowWidth: 12, rowKey: '1' },
-        { type: 'text', label: 'نام خانوادگی', field: 'lastName', required: true, rowKey: '1' },
-        { type: 'text', label: 'ایمیل', field: 'email', required: true, rowKey: '2' },
+        { type: 'text', label: 'نام', field: 'firstName', required: true },
+        { type: 'text', label: 'نام خانوادگی', field: 'lastName', required: true },
+        { type: 'text', label: 'ایمیل', field: 'email', required: true },
         { type: 'text', label: 'شبا', field: 'sheba' },
       ]
     }
@@ -54,11 +54,6 @@ export default class App extends Component {
       catch { return 'error' }
     }
   }
-  async onSubmitUserId({ mode, userId, registered }) {//return boolean or string
-    let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: userId })
-    if (!response.data.isSuccess) { return response.data.message }
-    return !!response.data.data.isRegistered;
-  }
   async onRegister({ registerModel, mode, userId }) {//return string or true
     let apis = getResponse({})
     let { firstName, lastName, email, sheba } = registerModel;
@@ -69,14 +64,23 @@ export default class App extends Component {
     if (response.data.isSuccess) { return true }
     else { return response.data.message }
   }
-  async onSubmitPassword({ mode, userId, password }) {//return string or true
-    let response = await Axios.post(`${this.baseUrl}/Users/TokenWithCode`, {mobileNumber: userId,code: password.toString()});
-    if (response.data.isSuccess) {
-      this.personId = response.data.data.personId
-      return { token: response.data.data.access_token };
+  async onSubmit(model,mode){
+    if(mode === 'OTPPhoneNumber'){
+      debugger;
+      let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.OTPPhoneNumber })
+      if (!response.data.isSuccess) { return {mode:'Error',error:response.data.message} }
+      let isRegistered = !!response.data.data.isRegistered;
+      this.setState({isRegistered});
+      return {mode:'OTPCode'}
     }
-    else {
-      return response.data.message || 'error';
+    else if (mode === 'OTPCode'){
+      debugger;
+      let response = await Axios.post(`${this.baseUrl}/Users/TokenWithCode`, {mobileNumber: model.OTPPhoneNumber,code: model.OTPCode.toString()});
+      if (response.data.isSuccess) {
+        this.personId = response.data.data.personId
+        return { mode:'Authenticated',token: response.data.data.access_token };
+      }
+      else {return {mode:'Error',error:response.data.message};} 
     }
   }
   renderLogin() {
@@ -88,8 +92,7 @@ export default class App extends Component {
         registerFields={registerFields}
         checkToken={async (token) => await this.checkToken(token)}
         onRegister={async (obj) => await this.onRegister(obj)}
-        onSubmitUserId={async (obj) => await this.onSubmitUserId(obj)}
-        onSubmitPassword={async (obj) => await this.onSubmitPassword(obj)}
+        onSubmit={this.onSubmit.bind(this)}
       />
     )
   }

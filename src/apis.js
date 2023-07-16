@@ -206,7 +206,7 @@ export function getResponse({getState}){
             return { response, result: true }
         },
         async get_restoran_foods(restoranId) {
-            if (mock) { return { mock: true } }
+            //if (mock) { return { mock: true } }
             let url = `${baseUrl}/Menu/Search`;
             let body = {"RestaurantId": restoranId}
             let response = await Axios.post(url,body);
@@ -228,7 +228,7 @@ export function getResponse({getState}){
             return { response, result }
         },
         async add_food({ restoranId, food }) {
-            if (mock) { return { mock: true } }
+            //if (mock) { return { mock: true } }
             //restoranId => آی دی رستوران
             //food => آبجکت غذا برای افزودن
             //آبجکت غذا مانند زیر است
@@ -242,7 +242,7 @@ export function getResponse({getState}){
             //     review:String توضیحات مفصل در مورد غذا
             //     categories:Array آرایه ای از آی دی های دسته بندی
             // }
-
+            debugger;
 
             let url = `${baseUrl}/RestaurantFood/Create`;
 
@@ -280,7 +280,7 @@ export function getResponse({getState}){
             return { response, result:{id} }
         },
         async edit_food({ restoranId, food }) {
-            if (mock) { return { mock: true } }
+            //if (mock) { return { mock: true } }
             //restoranId => آی دی رستوران
             //food => آبجکت غذا برای ویرایش
             //آبجکت غذا مانند زیر است
@@ -318,7 +318,7 @@ export function getResponse({getState}){
             return { response, result: true }
         },
         async remove_food({ restoranId, foodId }) {
-            if (mock) { return { mock: true } }
+            //if (mock) { return { mock: true } }
             // parameters
             //restoranId آی دی رستورانی که یک غذا از آن باید حذف بشود
             //foodId آی دی غذایی که باید حذف شود

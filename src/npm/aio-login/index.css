@@ -3,7 +3,7 @@
     font-size:14px;
     font-family:IRANSans-Light;
     direction:rtl;
-    max-width:500px;
+    width:100%;
 }
 .aio-login .aio-form{
     background: none;
@@ -12,11 +12,11 @@
     padding:12px;
     background: none;
 }
-.aio-login .aio-form-prefix{
+.aio-login .aio-input-before{
     background:#f6f7f9;
     color:#9ba9c3;
 }
-.aio-login .aio-form-affix{
+.aio-login .aio-input-after{
     background:#f6f7f9;
     color:#9ba9c3;
 }
@@ -77,9 +77,9 @@
 .aio-login-form{
     background:#fff;
     margin:12px;
+    width:100%;
     padding:12px;
     border-radius:12px;
-    
 }
 .aio-login .aio-form-input{
     background:#f6f7f9;
@@ -132,4 +132,10 @@
 }
 .aio-login .aio-form-row{
     margin-bottom:12px;
+}
+.aio-login-otp-code input{
+    font-size: 32px;
+    letter-spacing: 24px;
+    text-align: center;
+    direction:ltr;
 }

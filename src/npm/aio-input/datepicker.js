@@ -7,7 +7,7 @@ export default class DatePicker extends Component{
     let {getProp} = this.context;
     let unit = getProp('unit','day');
     let onChange = getProp('onChange',()=>{});
-    let calendarType = getProp('unit','gregorian');
+    let calendarType = getProp('calendarType','gregorian');
     let disabled = getProp('disabled',false);
     let value = getProp('value');
     let onClear = getProp('onClear');

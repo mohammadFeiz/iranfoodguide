@@ -15,7 +15,7 @@ export default class Restorans extends Component {
     static contextType = BOContext;
     constructor(props) {
         super(props);
-        this.state = { restorans: [], popup: false, searchValue: '',restoran_tags:[], restoran_tags_dic: {}, foodCategories: [] }
+        this.state = { restorans: [], popup: false, searchValue: '',restoran_tags:[], restoran_tags_dic: {}, food_tags: [] }
     }
     async get_restorans() {
         let {apis} = this.context;
@@ -97,19 +97,19 @@ export default class Restorans extends Component {
         });
         
     }
-    async getFoodCategories() {
+    async get_food_tags() {
         let { apis } = this.context;
         apis({
             api: 'get_tags',def:[],
             name: 'دریافت لیست تگ های غذا ها',
             parameter: { type: 'food' },
-            callback: (foodCategories) => this.setState({ foodCategories })
+            callback: (food_tags) => this.setState({ food_tags })
         })
     }
     async componentDidMount() {
         this.get_restorans();
         this.get_restoran_tags();
-        this.getFoodCategories();
+        this.get_food_tags();
     }
     getRestoranById(id) {
         let { restorans } = this.state;
@@ -180,9 +180,9 @@ export default class Restorans extends Component {
     }
     getContext() {
         let { apis } = this.context;
-        let { foodCategories,restoran_tags } = this.state;
+        let { food_tags,restoran_tags } = this.state;
         return {
-            apis, foodCategories,restoran_tags,
+            apis, food_tags,restoran_tags,
             remove_restoran: this.remove_restoran.bind(this),
             add_restoran: this.add_restoran.bind(this),
             edit_restoran: this.edit_restoran.bind(this)
@@ -540,13 +540,13 @@ class Foods extends Component {
     }
     render() {
         let { foods } = this.props;
-        let { foodCategories } = this.context;
+        let { food_tags } = this.context;
         return (
             <ProductManager
                 variantMode={false}
                 subProductMode={true}
                 extraOptions={[
-                    { input:{type: 'multiselect', options: foodCategories.map((o) => { return { text: o.name, value: o.id } }) }, field: 'value.categories', inlineLabel: 'دسته بندی ها'},
+                    { input:{type: 'multiselect', options: food_tags.map((o) => { return { text: o.name, value: o.id } }) }, field: 'value.tags', inlineLabel: 'تگ ها'},
                     { input:{type: 'text'}, field: 'value.menuCategory', inlineLabel: 'سر فصل منو' },
                     { input:{type: 'select', options: [{ name: 'انتخاب نشده' }].concat(foods).map((o) => { return { text: o.name, value: o.id } })}, inlineLabel: 'زیر مجموعه ی', field: 'value.parentId' }
                 ]}

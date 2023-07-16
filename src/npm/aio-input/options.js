@@ -33,6 +33,7 @@ export default class Options extends Component {
             let obj = {
                 text,
                 value,
+                caret:false,
                 attrs: getOptionProp(option, 'attrs',{}),
                 checkIcon: getOptionProp(option, 'checkIcon'),
                 checked: getOptionProp(option, 'checked', this.getDefaultOptionChecked(type, value)),

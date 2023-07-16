@@ -165,6 +165,9 @@ button,input{
   background-size: cover;
   color:#fff;
 }
+.login-page .aio-login{
+  margin:0 24px;
+}
 .login-page .aio-login-title{
   color:#fff;
 }
@@ -176,10 +179,12 @@ button,input{
 }
 .login-page .aio-login-submit{
   background: #FF8B00;
+  height:36px;
   border-radius:8px;
 }
 .login-page .aio-login-submit:disabled{
   background: #b3aea7;
+  border:1px solid #b3aea7;
 }
 .login-bg{
   position: absolute;
@@ -210,15 +215,20 @@ button,input{
   font-size: 24px;
   font-weight: bold;
 }
-.login-page .aio-form-input{
+.login-page .aio-input{
   border-radius:8px;
+  background: #fff;
+  color:#333;
+  height:36px;
 }
-
+.aio-login-text{
+  color:#fff;
+}
 .aio-login-form{
   background:none !important;
   
 }
-.login-page .aio-form-error{
+.login-page .aio-input-form-error{
   color:orange;
 }
 
