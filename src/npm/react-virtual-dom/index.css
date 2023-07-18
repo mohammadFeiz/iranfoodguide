@@ -369,7 +369,12 @@
   width:100%;
   height:100%;
 }
-
+.t-a-right{
+  text-align:right;
+}
+.t-a-left{
+  text-align:left;
+}
 .rvd-rotate-card{
   transform:rotateX(180deg);
   opacity:0;

@@ -53,6 +53,15 @@ export default class ReactSuperApp extends Component {
         }
 
       },
+      print: (callback = ()=>{})=>{
+        $('body').removeClass('aio-button-open');
+        $('.rsa').addClass('print-mode');
+        setTimeout(()=>{
+          window.print();
+          $('.rsa').removeClass('print-mode');
+          callback()
+        },20)
+      },
       setNavId: (navId) => this.setState({ navId })
     }
     if (props.themes) { this.state.changeTheme('init') }
@@ -67,7 +76,7 @@ export default class ReactSuperApp extends Component {
       if (res !== false) { return navId }
     }
     if (!navs.length) { return false }
-    return navs[0].id;
+    return navs.filter(({show = ()=>true})=>show())[0].id;
   }
   header_layout(nav) {
     let { header, sides = [], title = () => nav.text } = this.props;
@@ -211,7 +220,7 @@ class Navigation extends Component {
   render() {
     let { type, navs } = this.props;
     if (type === 'bottom') {
-      return (<RVD layout={{ className: 'rsa-bottom-menu', hide_sm: true, hide_md: true, hide_lg: true, row: navs.map((o) => this.bottomMenu_layout(o)) }} />)
+      return (<RVD layout={{ className: 'rsa-bottom-menu', hide_sm: true, hide_md: true, hide_lg: true, row: navs.filter(({show = ()=>true})=>show()).map((o) => this.bottomMenu_layout(o)) }} />)
     }
     return (<RVD layout={{ hide_xs: true, className: 'rsa-navigation', column: [this.header_layout(), this.items_layout(navs, 0)] }} />);
   }
