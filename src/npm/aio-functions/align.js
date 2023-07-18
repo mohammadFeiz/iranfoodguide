@@ -29,6 +29,7 @@ export default function Align(dom,target,config = {}){
         let domLimit = $$.getDomLimit(dom); 
         domLimit.top = targetLimit.bottom
         domLimit.bottom = domLimit.top + domLimit.height;  
+        if(fitHorizontal){domLimit.width = targetLimit.width}
         //اگر راست به چپ باید باشد
         if(rtl){
           //راست المان را با راست هدف ست کن
@@ -47,7 +48,6 @@ export default function Align(dom,target,config = {}){
           //اگر المان از سمت راست صفحه بیرون زد سمت چپ المان را با پهنای المان ست کن
           if(domLimit.right > pageLimit.right){domLimit.left = pageLimit.right - domLimit.width;}
         }
-        if(fitHorizontal){domLimit.width = targetLimit.width}
         //اگر المان از سمت پایین صفحه بیرون زد
         if(domLimit.bottom > pageLimit.bottom){
           if(domLimit.height > targetLimit.top - pageLimit.top){domLimit.top = pageLimit.bottom - domLimit.height;}  
@@ -61,7 +61,7 @@ export default function Align(dom,target,config = {}){
           domLimit.height = pageLimit.bottom - pageLimit.top - 12;
           overflowY = 'auto';
         }
-        let finalStyle = {left:domLimit.left,top:domLimit.top,width:domLimit.width,maxHeight:domLimit.height,overflowY,...style}
+        let finalStyle = {left:domLimit.left,top:domLimit.top,width:domLimit.width,overflowY,...style}
           console.log(finalStyle)
         if(animate){
           let beforeTop = finalStyle.top + 90,afterTop = finalStyle.top,obj;
