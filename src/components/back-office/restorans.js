@@ -169,7 +169,7 @@ export default class Restorans extends Component {
         let { popup } = this.state;
         if (type === 'add') {
             restoran = {
-                name: '', image: false, logo: false, latitude: 35.699739, longitude: 51.338097, startTime: 0, endTime: 0,
+                name: '', image: false, logo: false, latitude: 35.699739, longitude: 51.338097, startTime: '00:00', endTime: '00:00',
                 address: '', ifRate: 0, ifComment: '', tags: [], phone: '',
             }
         }
@@ -208,7 +208,7 @@ class RestoranCard extends Component {
         return new Array(24).fill(0).map((o, i) => {
             let hour = i.toString();
             hour = hour.length === 1 ? `0${hour}` : hour;
-            return { text: <div style={{ direction: 'ltr' }}>{`${hour}:00:00`}</div>, value: `${hour}:00:00` }
+            return { text: <div style={{ direction: 'ltr' }}>{`${hour}:00`}</div>, value: `${hour}:00` }
         })
     }
 

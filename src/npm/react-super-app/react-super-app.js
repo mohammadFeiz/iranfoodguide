@@ -4,6 +4,7 @@ import { Icon } from '@mdi/react';
 import { mdiMenu, mdiChevronRight, mdiChevronLeft, mdiChevronDown } from '@mdi/js';
 import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
 import AIOPopup from '../aio-popup/aio-popup';
+import $ from 'jquery';
 import './index.css';
 
 export default class ReactSuperApp extends Component {
