@@ -15,8 +15,8 @@ import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
 
 export function getResponse({getState}){
-    //let baseUrl = 'https://localhost:7203/api'
-     let baseUrl = 'https://iranfoodguide.ir/api'
+    let baseUrl = 'https://localhost:7203/api'
+    // let baseUrl = 'https://iranfoodguide.ir/api'
     let {mockStorage} = getState();
     let mock = !!mockStorage;
     /**********************restoran data model**************************************** */
@@ -251,7 +251,8 @@ export function getResponse({getState}){
                 "title": food.name,
                 "food": {
                   //"id": 0,
-                  "types":food.categories,
+                  "types": food.categories.map((o)=>{return {typeId:o}}),
+                  //"types":food.categories,
                   "title":  food.name,
                   "latinTitle":  food.name,
                   "description":food.description
