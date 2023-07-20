@@ -2,7 +2,6 @@ import Axios from "axios";
 import AIODate from "./../../npm/aio-date/aio-date";
 import AIOStorage from './../../npm/aio-storage/aio-storage';
 import AIOMessage from "../aio-message/aio-message";
-import JsonValidator from "../aio-functions/json-validator";
 import './index.css';
 import $ from "jquery";
 export let helper = {
@@ -34,13 +33,14 @@ export default function services(obj = {}) {
     getResponse,
     getMock = ()=>{return {}},
     onCatch = ()=>{},
-    getError = ()=>{}
+    getError = ()=>{},
+    baseUrl
   } = obj;
   if(typeof id !== 'string'){console.error('aio-storage => id should be an string, but id is:',id); return;}
   return Service({
-    getState,token,loader,id,onCatch,getError,
-    getResponse:getResponse({getState,token,helper}),
-    getMock:getMock({getState,token,helper}) 
+    getState,token,loader,id,onCatch,getError,baseUrl,
+    getResponse:getResponse({getState,token,helper,baseUrl}),
+    getMock:getMock({getState,token,helper,baseUrl}) 
   })
 }
 function AIOServiceLoading(id){
@@ -59,7 +59,7 @@ function AIOServiceLoading(id){
   `)
 }
 function Service(config) {
-  function validate(result,{validation,api,def,name,errorMessage,successMessage}){
+  function validate(result,{validation,api,def,name,errorMessage,successMessage,messageTime}){
     name = typeof name === 'function'?name():name;
     name = name || api;
     if(typeof result === 'string'){
@@ -70,17 +70,10 @@ function Service(config) {
       return def === undefined?result:def;
     }
     else{
-      if(validation){
-        let message = JsonValidator(result,validation);
-        if(typeof message === 'string'){
-          helper.showAlert({type:'error',text:`apis().${api} validation error`,subtext:message});
-          return def === undefined?result:def;
-        }
-      }
       if(successMessage){
-        successMessage = typeof successMessage === 'function'?successMessage():successMessage
+        successMessage = typeof successMessage === 'function'?successMessage(result):successMessage
         if(successMessage === true){successMessage = ''}
-        helper.showAlert({type:'success',text:`${name} با موفقیت انجام شد`,subtext:successMessage});
+        helper.showAlert({type:'success',text:`${name} با موفقیت انجام شد`,subtext:successMessage,time:messageTime});
       }
     }
     return result;

@@ -251,8 +251,9 @@ export function getResponse({getState}){
                 "title": food.name,
                 "food": {
                   //"id": 0,
-                  "types": food.categories.map((o)=>{return {typeId:o}}),
+                  //"types": food.categories.map((o)=>{return {typeId:o}}),
                   //"types":food.categories,
+                  "types":food.tags.map((o)=>{return {typeId:o}}),
                   "title":  food.name,
                   "latinTitle":  food.name,
                   "description":food.description
