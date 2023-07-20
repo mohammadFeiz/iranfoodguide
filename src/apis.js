@@ -15,8 +15,8 @@ import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
 
 export function getResponse({getState}){
-    let baseUrl = 'https://localhost:7203/api'
-    // let baseUrl = 'https://iranfoodguide.ir/api'
+    //let baseUrl = 'https://localhost:7203/api'
+    let baseUrl = 'https://iranfoodguide.ir/api'
     let {mockStorage} = getState();
     let mock = !!mockStorage;
     /**********************restoran data model**************************************** */
@@ -207,7 +207,7 @@ export function getResponse({getState}){
         },
         async get_restoran_foods(restoranId) {
             //if (mock) { return { mock: true } }
-            let url = `${baseUrl}/Menu/Search`;
+            let url = `${baseUrl}/RestaurantFood/Search`;
             let body = {"RestaurantId": restoranId}
             let response = await Axios.post(url,body);
             let result = response.data.data.items.FoodCategories;
