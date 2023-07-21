@@ -265,7 +265,7 @@ export function getResponse({getState}){
                 "discount":food.discountPercent
               }
             //دریافت ریسپانس
-            let response = await Axios.post(url, body);
+            let response = await Axios[action === 'add'?'post':'put'](url, body);
             let result = action === 'edit'?true:{id:response.data.data};
             return { response, result }
         },
