@@ -52,7 +52,7 @@ export default class ProductManager extends Component {
         this.setState({ products: newProducts });
     }
     async add(newProduct){
-        let {onAdd} = this.props;
+        let {onAdd = ()=>'id' + Math.round(Math.random() * 1000000)} = this.props;
         let id = await onAdd(newProduct)
         if(id !== undefined){
             let { products,popup } = this.state;
@@ -63,7 +63,7 @@ export default class ProductManager extends Component {
         }
     }
     async remove(id) {
-        let {onRemove} = this.props;
+        let {onRemove = ()=>true} = this.props;
         let res = await onRemove(id);
         if(res === true){
             let { products,popup } = this.state;
@@ -73,7 +73,7 @@ export default class ProductManager extends Component {
         }
     }
     async edit(newProduct) {
-        let {onEdit} = this.props;
+        let {onEdit = ()=>true} = this.props;
         let res = await onEdit(newProduct);
         if(res === true){
             let { products,popup } = this.state;
