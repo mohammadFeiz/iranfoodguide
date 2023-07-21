@@ -466,7 +466,9 @@ class RestoranCard extends Component {
             body: () => {
                 return (
                     <div style={{ height: '100%', background: '#fff' }}>
-                        <Foods foods={foods} onChange={() => this.updateFoods()} restoranId={model.id} onClose={() => popup.removePopup()} />
+                        <Foods foods={foods} onChange={(newFoods) => {
+                            this.setState({foods:newFoods})
+                        }} restoranId={model.id} onClose={() => popup.removePopup()} />
                     </div>
                 )
             }
@@ -533,9 +535,9 @@ class Foods extends Component {
         })
         if (res === true) { return true }
     }
-    submit() {
+    submit(newFoods) {
         let { onClose, onChange } = this.props;
-        onChange()
+        onChange(newFoods)
         onClose()
     }
     render() {

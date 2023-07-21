@@ -101,7 +101,7 @@ export default class ProductManager extends Component {
                             flex: 1,
                             column: [
                                 { size: 6 },
-                                { html: `کد ${o.id.indexOf('not-set') === 0?'ثبت نشده':o.id}` },
+                                { html: `کد ${o.id}` },
                                 {size:3},
                                 { html: o.name },
                                 {size:3},

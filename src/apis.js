@@ -210,7 +210,7 @@ export function getResponse({getState}){
             let url = `${baseUrl}/RestaurantFood/Search`;
             let body = {"RestaurantId": restoranId}
             let response = await Axios.post(url,body);
-            let result = response.data.data.items.FoodCategories;
+            let result = response.data.data.items;
             //مپ کردن دیتای سرور به دیتای فرانت
             //let result = [];
             // result = data.map((o)=>{
@@ -225,6 +225,7 @@ export function getResponse({getState}){
             //       categories:<...> //Array آرایه ای از آی دی های دسته بندی
             //     }
             // })
+            debugger;
             return { response, result }
         },
         async add_food({ restoranId, food }) {
@@ -242,8 +243,6 @@ export function getResponse({getState}){
             //     review:String توضیحات مفصل در مورد غذا
             //     categories:Array آرایه ای از آی دی های دسته بندی
             // }
-            debugger;
-
             let url = `${baseUrl}/RestaurantFood/Create`;
 
             let body = {
@@ -266,17 +265,10 @@ export function getResponse({getState}){
                 "discount":food.discountPercent
               }
            
-            //نوع درخواست ("get" | "post")
-            let method;
-            method ="post"
-            //بادی متد پست (any | undefined)
-            //body = <...>
-
             //دریافت ریسپانس
-            let response = await Axios[method](url, body);
-            let result = response.data.data.items.FoodCategories;
+            let response = await Axios.post(url, body);
             //دریافت آی دی غذای اضافه شده از روی ریسپانس
-            let id = response.data;
+            let id = response.data.data;
             //id = <...>
 
             return { response, result:{id} }
