@@ -15,8 +15,8 @@ import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
 
 export function getResponse({getState}){
-    let baseUrl = 'https://localhost:7203/api'
-    //let baseUrl = 'https://iranfoodguide.ir/api'
+    //let baseUrl = 'https://localhost:7203/api'
+    let baseUrl = 'https://iranfoodguide.ir/api'
     let {mockStorage} = getState();
     let mock = !!mockStorage;
     /**********************restoran data model**************************************** */
@@ -225,33 +225,31 @@ export function getResponse({getState}){
             //       categories:<...> //Array آرایه ای از آی دی های دسته بندی
             //     }
             // })
-            debugger;
             return { response, result }
         },
-        async add_food({ restoranId, food }) {
+        async add_or_edit_food({ restoranId, food,action }){
             //if (mock) { return { mock: true } }
             //restoranId => آی دی رستوران
-            //food => آبجکت غذا برای افزودن
+            //food => آبجکت غذا
+            //action => "add" | "edit"
             //آبجکت غذا مانند زیر است
             // {
+            //     id:String, آی دی غذا فقط در ویرایش
             //     name:String, نام غذا
             //     parentId:String, آی دی غذایی که این غذا زیر مجموعه ی آن است 
+            //     menuCategory:String, نام دسته بندی منو برای تفکیک غذا ها در یو آی
             //     image:String, یو آر ال تصویر غذا
             //     price:Number قیمت غذا
             //     discountPercent:درصد تخفیف غذا
             //     description:String توضیحات مختصر در مورد غذا
             //     review:String توضیحات مفصل در مورد غذا
-            //     categories:Array آرایه ای از آی دی های دسته بندی
+            //     tags:Array آرایه ای از آی دی های تگ های غذا
             // }
-            let url = `${baseUrl}/RestaurantFood/Create`;
-
+            let url = `${baseUrl}/RestaurantFood/${action === 'add'?'Create':'Edit'}`;
             let body = {
-               // "id": 0,
+                "id": action === 'edit'?food.id:undefined,
                 "title": food.name,
                 "food": {
-                  //"id": 0,
-                  //"types": food.categories.map((o)=>{return {typeId:o}}),
-                  //"types":food.categories,
                   "types":food.tags.map((o)=>{return {typeId:o}}),
                   "title":  food.name,
                   "latinTitle":  food.name,
@@ -266,14 +264,10 @@ export function getResponse({getState}){
                 "isFavorite": true,
                 "discount":food.discountPercent
               }
-           
             //دریافت ریسپانس
             let response = await Axios.post(url, body);
-            //دریافت آی دی غذای اضافه شده از روی ریسپانس
-            let id = response.data.data;
-            //id = <...>
-
-            return { response, result:{id} }
+            let result = action === 'edit'?true:{id:response.data.data};
+            return { response, result }
         },
         async edit_food({ restoranId, food }) {
             //if (mock) { return { mock: true } }
@@ -298,7 +292,7 @@ export function getResponse({getState}){
                 "title": food.name,
                 "food": {
                 //"id": 0,
-                "types":food.categories,
+                "types":food.tags.map((o)=>{return {typeId:o}}),
                 "title":  food.name,
                 "latinTitle":  food.name,
                 "description":food.description
@@ -324,14 +318,13 @@ export function getResponse({getState}){
         },
         //ویرایش تصویر غذا
         async edit_food_image({ foodId, imageFile }) {
-            if (mock) { return { mock: true } }
+            //if (mock) { return { mock: true } }
             let url=`${baseUrl}/RestaurantFood/AddLogoImage?RestaurantFoodId=${foodId}&Title=${'msf'}`; 
-            let method;
             let formData = new FormData()
             formData.append('imageFile', imageFile,imageFile.name)
             let body = formData;
             //دریافت ریسپانس
-            let response = await Axios[method](url, body);
+            let response = await Axios.post(url, body);
             return { response, result: true }
         },
         //ویرایش تصویر رستوران
@@ -600,20 +593,22 @@ export function getMock({helper,getState}){
             let foods = mockStorage.load({ name: `restoran_${restoranId}_menu`, def: [] });
             return foods
         },
-        add_food({ restoranId, food }) {
+        add_or_edit_food({ restoranId, food ,action }){
             let foods = mockStorage.load({ name: `restoran_${restoranId}_menu`, def: [] });
-            let id = 'food' + Math.round(Math.random() * 1000000);
-            let newFood = { ...food, id }
-            let newFoods = [newFood, ...foods];
+            let newFoods,result;
+            if(action === 'add'){
+                let id = 'food' + Math.round(Math.random() * 1000000);
+                let newFood = { ...food, id }
+                newFoods = [newFood, ...foods];
+                result = {id}
+            }
+            else {
+                let newFood = { ...food }
+                newFoods = foods.map((o) => o.id === newFood.id ? newFood : o)
+                result = true;
+            }
             mockStorage.save({ name: `restoran_${restoranId}_menu`, value: newFoods });
-            return { id };
-        },
-        edit_food({ restoranId, food }) {
-            let foods = mockStorage.load({ name: `restoran_${restoranId}_menu`, def: [] });
-            let newFood = { ...food }
-            let newFoods = foods.map((o) => o.id === newFood.id ? newFood : o);
-            mockStorage.save({ name: `restoran_${restoranId}_menu`, value: newFoods });
-            return true;
+            return result;
         },
         remove_food({ restoranId, foodId }) {
             let foods = mockStorage.load({ name: `restoran_${restoranId}_menu`, def: [] });

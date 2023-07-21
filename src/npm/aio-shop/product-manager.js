@@ -9,10 +9,10 @@ import './product-manager.css';
 export default class ProductManager extends Component {
     constructor(props) {
         super(props);
-        this.state = { products: props.products, popup: false }
+        this.state = { popup: false }
     }
     header_layout() {
-        return { gap:12,className: 'product-manager-header', row: [this.add_layout(), this.search_layout(), this.submit_layout()] }
+        return { gap:12,className: 'product-manager-header', row: [this.add_layout(), this.search_layout()] }
     }
     add_layout() {
         return {
@@ -35,30 +35,16 @@ export default class ProductManager extends Component {
             )
         }
     }
-    submit_layout() {
-        return {
-            size: 84, align: 'vh', className: 'product-manager-header-button',html: 'ثبت تغییرات',
-            onClick: () => {
-                let { onSubmit } = this.props, { products } = this.state;
-                onSubmit(products);
-            },
-        }
-    }
     getProductsBySearch() {
-        let { products, searchValue } = this.state;
+        let { searchValue } = this.state;
+        let { products} = this.props;
         return Search(products, searchValue, (o) => `${o.name} ${o.id}`)
-    }
-    changeState(newProducts){
-        this.setState({ products: newProducts });
     }
     async add(newProduct){
         let {onAdd = ()=>'id' + Math.round(Math.random() * 1000000)} = this.props;
-        let id = await onAdd(newProduct)
-        if(id !== undefined){
-            let { products,popup } = this.state;
-            newProduct.id = id;
-            let newProducts = [newProduct, ...products]
-            this.changeState(newProducts)
+        let res = await onAdd(newProduct)
+        if(res === true){
+            let { popup } = this.state;
             popup.removePopup();
         }
     }
@@ -66,9 +52,7 @@ export default class ProductManager extends Component {
         let {onRemove = ()=>true} = this.props;
         let res = await onRemove(id);
         if(res === true){
-            let { products,popup } = this.state;
-            let newProducts = products.filter((nf) => nf.id !== id)
-            this.changeState(newProducts);
+            let { popup } = this.state;
             popup.removePopup()
         }
     }
@@ -76,9 +60,7 @@ export default class ProductManager extends Component {
         let {onEdit = ()=>true} = this.props;
         let res = await onEdit(newProduct);
         if(res === true){
-            let { products,popup } = this.state;
-            let newProducts = products.map((product) => product.id === newProduct.id ? newProduct : product)
-            this.changeState(newProducts);
+            let { popup } = this.state;
             popup.removePopup()
         }
     }

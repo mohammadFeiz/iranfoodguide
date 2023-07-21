@@ -459,11 +459,12 @@ class RestoranCard extends Component {
         })
     }
     openFoods() {
-        let { popup, model, foods } = this.state;
+        let { popup, model} = this.state;
         popup.addPopup({
             title: `منوی رستوران ${model.name}`, type: 'fullscreen',
             animate: false,
             body: () => {
+                let { model, foods } = this.state;
                 return (
                     <div style={{ height: '100%', background: '#fff' }}>
                         <Foods foods={foods} onChange={(newFoods) => {
@@ -489,51 +490,38 @@ class RestoranCard extends Component {
 
 class Foods extends Component {
     static contextType = RestoranContext;
-    async add_food(newFood) {
+    async add_or_edit_food(newFood,action) {
         let { apis } = this.context;
-        let { restoranId } = this.props;
+        let { restoranId,foods,onChange } = this.props;
         let res = await apis({
-            api: 'add_food',
-            name: 'ثبت غذا در منوی رستوران',
-            parameter: { restoranId, food: newFood }
+            api: 'add_or_edit_food',
+            name: `${action === 'add'?'ثبت':'ویرایش'} غذا در منوی رستوران`,
+            parameter: { restoranId, food: newFood,action }
         })
-        if (typeof res === 'object') {
-            await apis({
-                api: 'edit_food_image',
-                name: 'ثبت تصویر منوی رستوران',
-                parameter: { restoranId, foodId: res.id, imageFile: newFood.image_file, imageUrl: newFood.image }
-            })
-            return res.id
+        let success = false,newFoods,foodId;
+        if(action === 'add' && typeof res === 'object'){
+            success = true; foodId = res.id;
+            newFoods = [{...newFood,id:foodId}, ...foods];
+            
         }
-    }
-    async edit_food(newFood) {
-        let { apis } = this.context;
-        let { restoranId } = this.props;
-        let res = await apis({
-            api: 'edit_food',
-            name: 'ویرایش غذا در منوی رستوران',
-            parameter: { restoranId, food: newFood }
-        })
-
-        if (res) {
-            let foodId = newFood.id;
+        else if(action === 'edit' && res === true){
+            success = true; foodId = newFood.id;
+            newFoods = foods.map((food) => food.id === foodId ? newFood : food)
+        }
+        if(success){
+            onChange(newFoods);
             await apis({
-                api: 'edit_food_image',
-                name: 'ثبت تصویر منوی رستوران',
+                api: 'edit_food_image',name: 'ثبت تصویر منوی رستوران',
                 parameter: { restoranId, foodId, imageFile: newFood.image_file, imageUrl: newFood.image }
             })
             return true
         }
     }
-    async remove_food(foodId) {
+    async remove_food(id) {
         let { apis } = this.context;
-        let { restoranId } = this.props;
-        let res = await apis({
-            api: 'remove_food',
-            name: 'حذف غذا از منوی رستوران',
-            parameter: { restoranId, foodId }
-        })
-        if (res === true) { return true }
+        let { restoranId,foods,onChange } = this.props;
+        let res = await apis({api: 'remove_food',name: 'حذف غذا از منوی رستوران',parameter: { restoranId, foodId:id }})
+        if (res === true) {onChange(foods.filter((nf) => nf.id !== id)); return true}
     }
     submit(newFoods) {
         let { onClose, onChange } = this.props;
@@ -553,8 +541,8 @@ class Foods extends Component {
                     { input:{type: 'select', options: [{ name: 'انتخاب نشده' }].concat(foods).map((o) => { return { text: o.name, value: o.id } })}, inlineLabel: 'زیر مجموعه ی', field: 'value.parentId' }
                 ]}
                 products={foods}
-                onAdd={async (newFood) => await this.add_food(newFood)}
-                onEdit={async (newFood) => await this.edit_food(newFood)}
+                onAdd={async (newFood) => await this.add_or_edit_food(newFood,'add')}
+                onEdit={async (newFood) => await this.add_or_edit_food(newFood,'edit')}
                 onRemove={async (foodId) => await this.remove_food(foodId)}
                 onSubmit={(newFoods) => this.submit(newFoods)}
             />
