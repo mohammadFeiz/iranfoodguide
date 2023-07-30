@@ -1,6 +1,6 @@
 import React,{Component} from "react";
 import RVD from './../react-virtual-dom/react-virtual-dom';
-import AIOButton from './../aio-button/aio-button';
+import AIOInput from "../aio-input/aio-input";
 import {Icon} from "@mdi/react";
 import { mdiDeleteOutline, mdiHistory, mdiMagnify } from "@mdi/js";
 import './search-box.css';
@@ -90,7 +90,7 @@ export default class SearchBox extends Component{
     }
     historyModeRender(){
         return (
-            <AIOButton
+            <AIOInput
                 type='button' popupWidth='fit' text={'جستجو'}
                 className='search-box-button search-box-input'
                 popupAttrs={{className:'search-box-popup'}}

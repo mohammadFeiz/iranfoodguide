@@ -7,8 +7,9 @@
 }
 .as-shipping-option{
     font-weight:bold;
-    padding:3px 0;
+    padding:6px 0;
     width:100%;
+    height:fit-content;
 }
 .as-shipping-option:last-child{
     border-bottom:none;

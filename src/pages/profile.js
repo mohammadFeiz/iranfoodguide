@@ -3,7 +3,7 @@ import RVD from './../npm/react-virtual-dom/react-virtual-dom';
 import SplitNumber from "../npm/aio-functions/split-number";
 import { Icon } from '@mdi/react';
 import { mdiAccount, mdiAccountCircleOutline, mdiChevronRight, mdiMapMarker, mdiPlusCircle, mdiPlusThick } from '@mdi/js';
-import Form from './../npm/aio-form-react/aio-form-react';
+import AIOInput from "../npm/aio-input/aio-input";
 import Map from './../npm/map/map';
 import Timer from "../components/timer";
 import AppContext from "../app-context";
@@ -59,16 +59,16 @@ export default class Profile extends Component {
             logout();
         }
         if (key === 'ettelaate_shakhsi') {
-            addPopup({ header: false, body: () => <Ettelaate_shakhsi /> })
+            addPopup({ type:'fullscreen',header: false, body: () => <Ettelaate_shakhsi /> })
         }
         if (key === 'address_ha') {
-            addPopup({ header: false, body: () => <Address_ha /> })
+            addPopup({ type:'fullscreen',header: false, body: () => <Address_ha /> })
         }
         if (key === 'takhfif_ha') {
-            addPopup({ header: false, body: () => <Takhfif_ha /> })
+            addPopup({ type:'fullscreen',header: false, body: () => <Takhfif_ha /> })
         }
         if (key === 'restoran_haye_mahboob') {
-            addPopup({ header: false, body: () => <Restoran_haye_mahboob /> })
+            addPopup({ type:'fullscreen',header: false, body: () => <Restoran_haye_mahboob /> })
         }
     }
     header_layout() {
@@ -149,16 +149,19 @@ class Ettelaate_shakhsi extends Component {
                 },
                 {
                     html: (
-                        <Form
-                            model={model}
+                        <AIOInput
+                            type='form' model={model}
                             onChange={(model) => this.setState({ model })}
-                            inputs={[
-                                { type: 'text', label: 'نام', field: 'model.firstName' },
-                                { type: 'text', label: 'نام خانوادگی', field: 'model.lastName' },
-                                //{ type: 'text', label: 'موبایل', field: 'model.mobile' },
-                                { type: 'text', label: 'ایمیل', field: 'model.email' },
-                                { type: 'text', label: 'شماره شبا', field: 'model.sheba' },
-                            ]}
+                            inputs={{
+                                props:{gap:12},
+                                column:[
+                                    { input:{type: 'text'}, label: 'نام', field: 'value.firstName' },
+                                    { input:{type: 'text'}, label: 'نام خانوادگی', field: 'value.lastName' },
+                                    //{ input:{type: 'text'}, label: 'موبایل', field: 'value.mobile' },
+                                    { input:{type: 'text'}, label: 'ایمیل', field: 'value.email' },
+                                    { input:{type: 'text'}, label: 'شماره شبا', field: 'value.sheba' },
+                                ]
+                            }}
                         />
                     )
                 }
@@ -252,7 +255,7 @@ class Address_ha extends Component {
                     onClick: () => {
                         let { rsa_actions } = this.context;
                         rsa_actions.addPopup({
-                            header: false,
+                            type:'fullscreen',header: false,
                             body: () => <Address_form model={o} onSubmit={(model) => this.onSubmit(model,'edit')} />
                         })
                     },
@@ -331,31 +334,33 @@ class Address_form extends Component {
         return {
             flex: 1,
             html: (
-                <Form
-                    model={model}
-                    style={{ height: '100%' }}
-                    inputs={[
-                        {
-                            type: 'html', html: () => {
-                                let {model} = this.state;
-                                return (
-                                    <Map
-                                        msf={true}
-                                        delay={320}
-                                        latitude={model.latitude}
-                                        longitude={model.longitude}
-                                        style={{ height: 120, width: '100%' }}
-                                        onClick={() => this.onMapClick()}
-                                    />
-                                )
-                            }
-                        },
-                        { type: 'text', label: 'عنوان آدرس', field: 'model.title' },
-                        { type: 'text', label: 'آدرس دقیق', field: 'model.address' },
-                        { type: 'text', label: 'پلاک', field: 'model.number' },
-                        { type: 'text', label: 'واحد', field: 'model.unit' },
-                        { type: 'text', label: 'تلفن ثابت', field: 'model.phone' },
-                    ]}
+                <AIOInput
+                    type='form' value={model} style={{ height: '100%' }}
+                    inputs={{
+                        props:{gap:6},
+                        column:[
+                            {
+                                html: () => {
+                                    let {model} = this.state;
+                                    return (
+                                        <Map
+                                            msf={true}
+                                            delay={320}
+                                            latitude={model.latitude}
+                                            longitude={model.longitude}
+                                            style={{ height: 120, width: '100%' }}
+                                            onClick={() => this.onMapClick()}
+                                        />
+                                    )
+                                }
+                            },
+                            { input:{type: 'text'}, label: 'عنوان آدرس', field: 'value.title' },
+                            { input:{type: 'text'}, label: 'آدرس دقیق', field: 'value.address' },
+                            { input:{type: 'text'}, label: 'پلاک', field: 'value.number' },
+                            { input:{type: 'text'}, label: 'واحد', field: 'value.unit' },
+                            { input:{type: 'text'}, label: 'تلفن ثابت', field: 'value.phone' },
+                        ]
+                    }}
                     onChange={(model, error) => this.setState({ model, error })}
                     onSubmit={() => this.onSubmit()}
                     submitText={type === 'add' ? 'ثبت آدرس جدید' : 'ویرایش آدرس'}

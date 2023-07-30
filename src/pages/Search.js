@@ -2,7 +2,6 @@ import React,{Component} from "react";
 import RVD from '../npm/react-virtual-dom/react-virtual-dom';
 import SearchBox from "./../npm/search-box/search-box";
 import GroupButton from "../components/group-button";
-import AIOButton from '../npm/aio-button/aio-button';
 import AIOInput from "../npm/aio-input/aio-input";
 import Card from "../card/card";
 import ListHeader from "../components/list-header";
@@ -46,7 +45,7 @@ export default class Search extends Component{
         let {searchType} = this.state;
         return {
             className:'bgFF5900',size:36,align:'vh',html:(
-                <AIOButton
+                <AIOInput
                     type='tabs' className='restoran-search-type' value={searchType}
                     options={[{text:'رستوران',value:'0'},{text:'غذا',value:'1'}]}
                     onChange={(searchType)=>this.setState({searchType},()=>this.fetchData())}

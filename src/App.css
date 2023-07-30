@@ -239,18 +239,18 @@ button,input{
   height:24px;
   transform: translateY(6px);
 }
-.restoran-search-type .aio-button-tabs-option{
+.restoran-search-type .aio-input-tabs-option{
   color:#fff;
   border-radius: 6px 6px 0 0;
   padding:0 16px;
   font-size:14px;
   font-weight:bold;
 }
-.restoran-search-type .aio-button-tabs-option.active{
+.restoran-search-type .aio-input-tabs-option.active{
   color:orange;
   background:#fff;
 }
-.restoran-search-type .aio-button-tabs-option.active:after{
+.restoran-search-type .aio-input-tabs-option.active:after{
   display:none;
 }
 

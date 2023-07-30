@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
 import RVD from './../npm/react-virtual-dom/react-virtual-dom';
-import AIOInput from '../npm/aio-button/aio-button';
+import AIOInput from '../npm/aio-input/aio-input';
 import AIODate from '../npm/aio-date/aio-date';
 import Map from './../npm/map/map';
 import { Icon } from '@mdi/react';
 import { mdiArrowRight, mdiChevronDown, mdiChevronUp, mdiClock, mdiClose, mdiComment, mdiTable, mdiWallet } from '@mdi/js';
 import { icons } from './../icons';
-import shandiz_logo from './../images/shandiz_logo.png';
-import shandiz_image from './../images/shandiz_image.png';
 import Rate from './../components/rate';
 import SVG_Cart from './../svgs/cart';
 import GroupButton from './group-button';

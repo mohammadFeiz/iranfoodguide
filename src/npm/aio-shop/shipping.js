@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import RVD from '../react-virtual-dom/react-virtual-dom';
-import AIOButton from './../../npm/aio-button/aio-button';
+import AIOInput from '../aio-input/aio-input';
 import SplitNumber from '../aio-functions/split-number';
 import Box from './box';
 import './shipping.css';
@@ -97,12 +97,12 @@ export default class Shipping extends Component {
                 <Box
                     title={title} subtitle={subtitle}
                     content={(
-                        <AIOButton
+                        <AIOInput
                             type='radio'
                             className='as-shipping-item'
                             multiple={multiple}
                             options={options.map((o) => { return { ...o, before: o.icon } })}
-                            optionClassName={`"as-fs-m as-fc-m as-shipping-option${isLast?"":" as-border-bottom"}"`}
+                            optionClassName="as-shipping-option"
                             value={this.state.shipping[field]}
                             onChange={(value)=>this.changeShipping({...shipping,[field]:value})}
                         />

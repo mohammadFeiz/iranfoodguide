@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import RVD from '../react-virtual-dom/react-virtual-dom';
-import AIOButton from './../../npm/aio-button/aio-button';
+import AIOInput from '../aio-input/aio-input';
 import AIOVariant from './aio-variant';
 import Price from './price';
 import Box from './box';
@@ -116,12 +116,12 @@ export default class ProductPage extends Component{
                             {gap:6,column:optionTypes.map((o,i)=>this.optionValues_layout(o,i))},
                             {
                                 html:(
-                                    <AIOButton
+                                    <AIOInput
                                         type='select'
                                         text={isExist?undefined:'نا موجود'}
                                         popupWidth='fit'
                                         className='as-product-page-variant-options-button'
-                                        popupAttrs={{className:'as-product-page-variant-options-popup'}}
+                                        popoverAttrs={{className:'as-product-page-variant-options-popup'}}
                                         options={Variant.options}
                                         optionText='option.textAndPriceLayout'
                                         value={variantKey}
