@@ -11,6 +11,7 @@
 }
 .aio-input-form-body{
     padding:12px;
+    overflow-y:auto;
 }
 .aio-input-form .aio-input{
     width:100%;

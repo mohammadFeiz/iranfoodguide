@@ -22,6 +22,7 @@ import pardakhte_kife_pool_src from '../images/pardakhte-kife-pool.png';
 import kart_be_kart_src from '../images/kart-be-kart.png';
 import pardakhte_hozoori_src from '../images/pardakhte-hozoori.png';
 import SplitNumber from './../npm/aio-functions/split-number';
+import './restoran-page.css';
 
 export default class RestoranPage extends Component {
   static contextType = AppContext;
@@ -37,6 +38,10 @@ export default class RestoranPage extends Component {
       cartTab:true
     }
   }
+  getRestoranProp(prop){
+    let {restoran} = this.props;
+    return restoran[prop]
+  }
   getIcon(option){
     let icon = {
       'ارسال با پیک':()=>ersal_ba_peyk_svg(),
@@ -50,7 +55,7 @@ export default class RestoranPage extends Component {
   }
   getShippingOptions({factor,shipping}){
     let { addresses } = this.context;
-    let { address } = this.props;
+    let address = this.getRestoranProp('address');
     let {coupons} = this.state;
     return [
       {
@@ -100,7 +105,7 @@ export default class RestoranPage extends Component {
   }
   async componentDidMount() {
     let { apis } = this.context;
-    let { id } = this.props;
+    let id = this.getRestoranProp('id');
     apis({
       api: 'get_restoran_foods',
       parameter: id,def:[],
@@ -133,7 +138,7 @@ export default class RestoranPage extends Component {
     apis({
       api:'restoran_coupons',
       parameter:id,
-      name:'دریافت کوپن های تخفیف رستوران',
+      name:'دریافت کوپن های تخفیف رستوران',def:[],
       callback:(coupons)=>this.setState({coupons})
     })
     let Shop = AIOShop({
@@ -170,7 +175,9 @@ export default class RestoranPage extends Component {
     this.setState({Shop})
   }
   header_layout(cartLength) {
-    let { image, rate, onClose } = this.props;
+    let { onClose } = this.props;
+    let rate = this.getRestoranProp('rate');
+    let image = this.getRestoranProp('image');
     let {cartTab,Shop} = this.state;
     return (
       {
@@ -258,9 +265,10 @@ export default class RestoranPage extends Component {
   info_layout(){
     let {tabMode,activeTabId} = this.state;
     if(!tabMode || activeTabId !== 'info'){return false}
+    let {restoran} = this.props;
     return {
       flex:1,
-      html:<RestoranInfo {...this.props} header={false}/>
+      html:<RestoranInfo {...restoran} header={false}/>
     }
   }
   cart_layout(){
@@ -279,7 +287,7 @@ export default class RestoranPage extends Component {
       <>
         <RVD
           layout={{
-            style:{height:'100%',background:'#f8f8f8'},
+            className:'restoran-page',
             column: [
               this.header_layout(cartLength),
               this.tabs_layout(cartLength),
@@ -305,7 +313,7 @@ class SubFoods extends Component{
   foods_layout(foods){
     let {Shop} = this.props;
     return {
-      flex:1,className:'ofy-auto',
+      flex:1,className:'ofy-auto',gap:12,
       column:foods.map((o)=>{
         return { className: 'p-h-12 of-visible', html: Shop.renderProductCard({product:o,config:{changeCart:true}}) }
       })
@@ -434,8 +442,8 @@ class RestoranInfo extends Component {
       { text: `رزرو میز`, subtext: 'مشاهده میزها', icon: mdiTable, color: '#92C020' },
     ]
     return {
-      gap: 1, gapAttrs: { style: { background: '#aaa' } },
-      className: 'm-b-12',
+      gap: 1,
+      className: 'restoran-page-parts',
       row: parts.map((o) => {
         return this.part_layout(o)
       })
@@ -443,7 +451,7 @@ class RestoranInfo extends Component {
   }
   part_layout({ text, subtext, icon, color }) {
     return {
-      flex: 1, style: { color },
+      flex: 1, style: { color },className:'restoran-page-part',
       column: [
         { html: <Icon path={icon} size={0.7} />, align: 'vh', style: { color: '#00AD79' } },
         { size: 4 },
@@ -476,7 +484,7 @@ class RestoranInfo extends Component {
     return (
       <RVD
         layout={{
-          className:'bgFFF h-100',
+          className:'h-100',
           column: [
             this.title_layout(logo,name,rate),
             {
@@ -650,7 +658,7 @@ class Address extends Component{
     }
   }
   address_layout(address){
-    return {flex:1,html:address,className:'bold fs-14',align:'v'}
+    return {flex:1,html:address,className:'fs-14'}
   }
   render(){
     let {address,latitude,longitude} = this.props;

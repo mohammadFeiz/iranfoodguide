@@ -1,14 +1,13 @@
 import React, { Component, createContext } from "react";
 import AIOPopup from "../../npm/aio-popup/aio-popup";
 import AIOInput from './../../npm/aio-input/aio-input';
-import Form from './../../npm/aio-form-react/aio-form-react';
 import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
 import Map from './../../npm/map/map';
 import BOContext from "./back-office-context";
 import ProductManager from './../../npm/aio-shop/product-manager';
 import { Icon } from "@mdi/react";
 import Search from './../../npm/aio-functions/search';
-import { mdiPlusThick, mdiMagnify, mdiFormatListBulletedSquare, mdiMapMarkerAlert, mdiMapMarkerCheck, mdiClose } from '@mdi/js';
+import { mdiMagnify, mdiFormatListBulletedSquare, mdiMapMarkerAlert, mdiMapMarkerCheck, mdiClose } from '@mdi/js';
 import './back-office.css';
 let RestoranContext = createContext()
 export default class Restorans extends Component {
@@ -24,11 +23,13 @@ export default class Restorans extends Component {
             callback:(restorans)=>this.setState({restorans})
         }); 
     }
-    async add_restoran(newRestoran) {
+    async add_or_edit_restoran(newRestoran,type) {
         let { apis } = this.context;
         apis({
-            api: 'add_restoran', parameter: newRestoran,
-            callback: async ({ id }) => {
+            api: 'add_or_edit_restoran', parameter: newRestoran,
+            name: `${type === 'add'?'افزودن':'ویرایش'} رستوران`,
+            callback: async (result) => {
+                let id = type === 'add'?result.id:newRestoran.id;
                 if(newRestoran.image_file){
                     await apis({
                         api: 'edit_restoran_image', name: 'ثبت تصویر رستوران',
@@ -42,31 +43,13 @@ export default class Restorans extends Component {
                     })
                 }
                 let { restorans, popup } = this.state;
-                let newRestorans = [{ ...newRestoran, id }, ...restorans]
-                this.setState({ restorans: newRestorans });
-                popup.removePopup();
-            }
-        })
-    }
-    async edit_restoran(newRestoran) {
-        let { apis } = this.context;
-        apis({
-            api: 'edit_restoran', name: 'ویرایش اطلاعات رستوران', parameter: newRestoran,
-            callback: async () => {
-                if(newRestoran.image_file){
-                    await apis({
-                        api: 'edit_restoran_image', name: 'ثبت تصویر رستوران',
-                        parameter: { restoranId: newRestoran.id, imageFile: newRestoran.image_file }
-                    })
+                let newRestorans;
+                if(type === 'add'){
+                   newRestorans = [{ ...newRestoran, id }, ...restorans];
                 }
-                if(newRestoran.logo_file){
-                    await apis({
-                        api: 'edit_restoran_logo', name: 'ثبت لوگوی رستوران',
-                        parameter: { restoranId: newRestoran.id, imageFile: newRestoran.logo_file }
-                    })
+                else {
+                   newRestorans = restorans.map((o) => o.id === id ? newRestoran : o);
                 }
-                let { restorans, popup } = this.state;
-                let newRestorans = restorans.map((o) => o.id === newRestoran.id ? newRestoran : o)
                 this.setState({ restorans: newRestorans });
                 popup.removePopup();
             }
@@ -118,7 +101,7 @@ export default class Restorans extends Component {
     header_layout() {
         let { searchValue } = this.state;
         return {
-            className: 'p-h-12 m-b-12',
+            className: 'p-h-12',
             gap:12,
             row: [
                 { size: 96, align: 'vh', html: 'افزودن رستوران', onClick: () => this.openPopup('add'), className: 'fs-12', style: { background: 'orange', color: '#fff'} },
@@ -141,28 +124,14 @@ export default class Restorans extends Component {
         return Search(restorans, searchValue, (o) => `${o.name} ${o.address} ${o.phone}`)
     }
     body_layout() {
+        let list = this.getRestoransBySearch();
         return {
-            flex: 1, className: 'ofy-auto p-12 m-12', gap: 12,style:{border:'1px solid #ccc'},
-            column: this.getRestoransBySearch().map((restoran) => this.restoranCard_layout(restoran))
-        }
-    }
-    restoranCard_layout(restoran) {
-        let { name, id, tags } = restoran;
-        let { restoran_tags_dic } = this.state;
-        let tagsText = tags.map((tagId) => {
-            return restoran_tags_dic[tagId];
-        }).join(' , ')
-        return {
-            onClick: () => this.openPopup('edit', restoran), className: 'p-12 fs-12 br-12', style: { background: '#fff' },
-            row: [
-                {
-                    flex: 1,
-                    column: [
-                        { row: [{ flex: 1, html: `نام رستوران : ${name}` }, { html: `کد : ${id}` }] },
-                        { row: [{ flex: 1, html: tagsText, className: 'fs-10' }] }
-                    ]
-                }
-            ]
+            flex: 1, className: 'ofy-auto p-12', gap: 6,
+            column: list.map((restoran) => {
+                let onClick = ()=>this.openPopup('edit',restoran);
+                let onRemove = ()=>this.remove_restoran(restoran.id);
+                return {html:<RestoranCard key={restoran.id} onClick={onClick} onRemove={onRemove} restoran={restoran}/>}
+            })
         }
     }
     openPopup(type, restoran) {
@@ -175,17 +144,17 @@ export default class Restorans extends Component {
         }
         popup.addPopup({
             title: type === 'add' ? 'افزودن رستوران' : 'ویرایش رستوران', type: 'fullscreen',
-            body: () => <RestoranCard type={type} restoran={restoran} />
+            body: () => <RestoranForm type={type} restoran={restoran} />
         })
     }
     getContext() {
         let { apis } = this.context;
-        let { food_tags,restoran_tags } = this.state;
+        let { food_tags,restoran_tags,restoran_tags_dic } = this.state;
         return {
-            apis, food_tags,restoran_tags,
+            apis, food_tags,restoran_tags,restoran_tags_dic,
+            openPopup:this.openPopup.bind(this),
             remove_restoran: this.remove_restoran.bind(this),
-            add_restoran: this.add_restoran.bind(this),
-            edit_restoran: this.edit_restoran.bind(this)
+            add_or_edit_restoran: this.add_or_edit_restoran.bind(this)
         }
     }
     render() {
@@ -197,7 +166,28 @@ export default class Restorans extends Component {
         )
     }
 }
-class RestoranCard extends Component {
+class RestoranCard extends Component{
+    static contextType = RestoranContext;
+    image_layout(image){return {size:60,html:<img src={image} width='100%' alt=''/>}}
+    body_layout(){
+        let {restoran_tags_dic} = this.context;
+        let {restoran,onRemove} = this.props;
+        let {name,tags,id} = restoran;
+        let tagsText = tags.map((tagId) => restoran_tags_dic[tagId]).join(' , ')
+        let row1 = {row: [this.name_layout(name),this.remove_layout(onRemove)]};
+        let row2 = { row: [this.tags_layout(tagsText), this.code_layout(id)] };
+        return {flex: 1,column: [row1,row2],className:'p-6'}
+    }
+    name_layout(name){return { flex: 1, html: name }}
+    remove_layout(onRemove){return {html:<Icon path={mdiClose} size={.9}/>,onClick:onRemove}}
+    tags_layout(tagsText){return { flex: 1, html: tagsText, className: 'fs-10' }}
+    code_layout(id){return { html: `کد : ${id}` }}
+    render(){
+        let {restoran,onClick} = this.props;
+        return <RVD layout={{onClick, className: 'bo-restoran-card',row: [this.image_layout(restoran.image),this.body_layout(restoran)]}}/>;
+    }
+}
+class RestoranForm extends Component {
     static contextType = RestoranContext;
     constructor(props) {
         super(props);
@@ -251,27 +241,32 @@ class RestoranCard extends Component {
     }
     map_layout() {
         let { model } = this.state;
-        let style, path, status;
+        let html;
         if (model.latitude === 35.699739 || model.longitude === 51.338097) {
-            style = { color: 'red' }; path = mdiMapMarkerAlert; status = 'ثبت نشده'
+            html = 'ثبت نشده'
         }
-        else { style = { color: 'green' }; path = mdiMapMarkerCheck; status = 'ثبت شده' }
+        else { 
+            html = (
+                <Map
+                    apiKey='web.c6d5b589faf947e1b6143fa8977eb9b7'
+                    style={{ width: '100%', height: '100%' }}
+                    latitude={model.latitude}
+                    longitude={model.longitude}
+                />
+            ) 
+        }
         return {
-            props:{gap:0},
+            props:{gap:0},flex:1,
             column: [
                 { html: 'موقعیت رستوران', className: 'fs-12' },
                 {
-                    className: 'p-6',
                     style: { border: '1px dashed #333' },
                     html: (
                         <RVD
                             layout={{
                                 onClick: () => this.openMap(), align: 'vh',
-                                style: { fontSize: 12, width: 72, height: 72, ...style },
-                                column: [
-                                    { align: 'vh', html: <Icon path={path} size={1} /> },
-                                    { html: status, align: 'vh', className: 'bold' }
-                                ]
+                                style: { fontSize: 12, width: '100%', height: 84, color:'red' },
+                                html, align: 'vh', className: 'bold'
                             }}
                         />
                     )
@@ -279,25 +274,10 @@ class RestoranCard extends Component {
             ]
         }
     }
-    remove_layout() {
-        let { remove_restoran } = this.context;
-        let { model } = this.state;
-        return {
-            props:{gap:0},
-            column: [
-                { html: 'حذف رستوران', className: 'fs-12' },
-                {
-                    style: { border: '1px dashed #333', padding: 6 },
-                    html: <Icon path={mdiClose} style={{ height: 72, width: 72, color: 'red' }} />,
-                    onClick: () => remove_restoran(model.id), align: 'vh'
-                }
-            ]
-        }
-    }
     image_layout() {
         let { model } = this.state;
         return {
-            props:{gap:0},
+            props:{gap:0},flex:1,
             column: [
                 { html: 'تصویر رستوران', className: 'fs-12' },
                 {
@@ -318,7 +298,7 @@ class RestoranCard extends Component {
                                     fr.readAsDataURL(files[0].file);
                                 }
                             }}
-                            style={{ width: 200, height: 72 }}
+                            style={{ width: '100%', height: 72 }}
                         />
                     )
                 }
@@ -358,9 +338,10 @@ class RestoranCard extends Component {
         let {restoran_tags} = this.context;
         let { model } = this.state;
         return {
-            className: 'admin-panel-restoran-card p-24',
+            className: 'admin-panel-restoran-card p-12 ofy-auto',flex:1,
             html: (
                 <AIOInput
+                    style={{height:'100%',fontSize:12}}
                     type='form' lang='fa' reset={true} showErrors={false} value={model}
                     footer={(obj) => this.formFooter_layout(obj)}
                     onChange={(model,errors) => this.setState({ model })}
@@ -370,12 +351,13 @@ class RestoranCard extends Component {
                             {
                                 row: [
                                     this.image_layout(),
-                                    this.logo_layout(),
+                                    this.logo_layout()
+                                ]
+                            },
+                            {
+                                row: [
                                     this.map_layout(),
                                     this.foods_layout(),
-                                    { flex: 1 },
-                                    this.remove_layout(),
-
                                 ]
                             },
                             {
@@ -418,7 +400,7 @@ class RestoranCard extends Component {
         
     }
     formFooter_layout({ errors, onReset }) {
-        let { edit_restoran, add_restoran } = this.context;
+        let { add_or_edit_restoran } = this.context;
         let { model } = this.state;
         let { type } = this.props;
         let errorMessage = this.getErrorMessage(errors);
@@ -427,8 +409,8 @@ class RestoranCard extends Component {
                 layout={{
                     className: 'h-36 p-h-12 p-v-6',
                     row: [
-                        { show: type === 'add', html: (<button disabled={!!errorMessage} className='bo-submit-button' onClick={() => add_restoran(model)}>ثبت</button>) },
-                        { show: type === 'edit' && !errorMessage, html: (<button className='bo-edit-button' onClick={() => edit_restoran(model)}>ویرایش</button>) },
+                        { show: type === 'add', html: (<button disabled={!!errorMessage} className='bo-submit-button' onClick={() => add_or_edit_restoran(model,'add')}>ثبت</button>) },
+                        { show: type === 'edit' && !errorMessage, html: (<button className='bo-edit-button' onClick={() => add_or_edit_restoran(model,'edit')}>ویرایش</button>) },
                         { show: !!onReset, html: (<button className='bo-reset-button' onClick={() => onReset(model)}>بازنشانی تغییرات</button>) },
                         { flex: 1 },
                         { show: !!errorMessage, html: () => errorMessage, align: 'v', style: { color: 'red', fontSize: 10 } }

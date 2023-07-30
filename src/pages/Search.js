@@ -3,6 +3,7 @@ import RVD from '../npm/react-virtual-dom/react-virtual-dom';
 import SearchBox from "./../npm/search-box/search-box";
 import GroupButton from "../components/group-button";
 import AIOButton from '../npm/aio-button/aio-button';
+import AIOInput from "../npm/aio-input/aio-input";
 import Card from "../card/card";
 import ListHeader from "../components/list-header";
 import calculateDistance from './../npm/aio-functions/calculate-distance';
@@ -16,22 +17,27 @@ export default class Search extends Component{
     constructor(props){
         super(props);
         this.state = {
-            searchType:'0',selected_tags:[],selectedSort:false,restorans:[],pageSize:1000,pageNumber:1
+            searchType:'0',selected_tags:[],selectedSort:false,restorans:[],pageSize:1000,pageNumber:1,searchValue:''
         }
     }
-    async componentDidMount(){
-        let {restoran_tags} = this.context;
-        this.setState({selected_tags:[restoran_tags[0].value]})
-        this.fetchData()
-    }
+    // async componentDidMount(){
+    //     let {restoran_tags = []} = this.context;
+    //     this.setState({selected_tags:restoran_tags[0]?[restoran_tags[0].value]:[]})
+    //     this.fetchData()
+    // }
     async fetchData(){
         let {apis} = this.context;
-        let {pageSize,pageNumber,selected_tags,selectedSort,searchValue} = this.state;
+        let {pageSize,pageNumber,selected_tags,selectedSort,searchValue = ''} = this.state;
         apis({
-            api:'jostojooye_restoran',name:'دریافت لیست رستوران ها',
+            api:'get_restorans',name:'جستجوی رستوران ها',
             parameter:{pageSize,pageNumber,selected_tags,selectedSort,searchValue},
             callback:(restorans)=>this.setState({restorans})
         })
+    }
+    changeState(obj){
+        this.setState(obj);
+        clearTimeout(this.timeout);
+        this.timeout = setTimeout(()=>this.fetchData(),1000)
     }
     search(searchValue){
         this.setState({searchValue},()=>this.fetchData());
@@ -54,29 +60,29 @@ export default class Search extends Component{
             html:(
                 <GroupButton
                     options={restoran_tags.map((o)=>{return {text:o.name,value:o.id}})} value={selected_tags}
-                    onChange={(selected_tags)=>this.setState({selected_tags})}
+                    onChange={(selected_tags)=>this.changeState({selected_tags})}
                 />
             )
         }
     }
     search_layout(){
-        return {flex:1,html:(<SearchBox onChange={(value)=>this.search(value)}/>)}
+        return {flex:1,html:(<SearchBox onChange={(value)=>this.changeState({searchValue:value})}/>)}
     }
     sort_layout(){
         let {restoran_sort_options} = this.context;
         let {selectedSort} = this.state;
         return {
             html:(
-                <AIOButton
+                <AIOInput
                     type='select' caret={false}
                     optionChecked='option.value === props.value'
-                    optionClose={true}
-                    optionCheckIcon={{color:'orange'}}
+                    optionClose={false}
+                    optionCheckIcon={[14,10,1,'orange','orange']}
                     className='button-2'
                     options={restoran_sort_options}
                     value={selectedSort}
                     text={<Icon path={mdiSort} size={0.8}/>}
-                    onChange={(selectedSort)=>this.setState({selectedSort})}
+                    onChange={(selectedSort)=>this.changeState({selectedSort})}
                 />
             )
         }
@@ -87,7 +93,7 @@ export default class Search extends Component{
             type:'fullscreen',
             header:false,
             body:()=>{
-                return <RestoranPage {...restoran} onClose={()=>rsa_actions.removePopup()}/>
+                return <RestoranPage restoran={restoran} onClose={()=>rsa_actions.removePopup()}/>
             }
         })
     }

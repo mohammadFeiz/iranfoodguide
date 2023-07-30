@@ -13,11 +13,31 @@ import shandiz_image from './images/shandiz_image.png';
 import pasta_alferedo from './images/pasta_alferedo.png';
 import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
-
-export function getResponse({getState}){
+function MapRestorans(data){
+    return data.map((o) => {
+        let { address, types, workingTimes = {} } = o;
+        if (!types || types === null) { types = [] }
+        return {
+            id: o.id, //String آی دی رستوران
+            name: o.title, //String نام رستوران
+            latitude: address.latitude, //Number موقعیت رستوران در راستای لتیتیود
+            longitude: address.longitude, //Number موقعیت رستوران در راستای لانگیتیود
+            phone: address.phoneNumber,//String تلفن رستوران
+            image: o.image, //String یو آر ال تصویر رستوران
+            logo: o.logo, //String یو آر ال لوگوی رستوران
+            address: o.address.address, //String آدرس رستوران
+            deliveryTime: o.deliveryTime, //Number مدت زمان ارسال به دقیقه
+            tags: types.map((t) => t.typeId), //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
+            startTime: workingTimes[0].startTime, //Number bewtween (1 and 24) زمان شروع به کار
+            endTime: workingTimes[0].endTime, //Number bewtween (1 and 24) زمان پایان کار
+            tax: o.tax
+        }
+    })
+}
+export function getResponse({ getState }) {
     //let baseUrl = 'https://localhost:7203/api'
     let baseUrl = 'https://iranfoodguide.ir/api'
-    let {mockStorage} = getState();
+    let { mockStorage } = getState();
     let mock = !!mockStorage;
     /**********************restoran data model**************************************** */
     //name: String,image: String,logo: String,latitude: Number,longitude: Number,startTime:0,endTime:0,
@@ -26,7 +46,7 @@ export function getResponse({getState}){
     /**********************restoran_tags data model**************************************** */
     //name: '',id: ''
     /************************************************************** */
-    
+
     return {
         //در یافت لیست تگ های رستوران و تگ های غذا بسته به تایپ ورودی
         async get_tags({ type }) {
@@ -67,7 +87,7 @@ export function getResponse({getState}){
             }
             let response = await Axios.post(url, body);
             let newTagId = response.data.data
-            let result = {id:newTagId};
+            let result = { id: newTagId };
             return { response, result };
         },
         async remove_tag({ type, tagId }) {
@@ -78,43 +98,35 @@ export function getResponse({getState}){
             let response = await Axios.delete(url);
             return { response, result: true }
         },
-        async get_restorans() {
+        async get_restorans(searchObject) {
             //if (mock) { return { mock: true } }
             let url = `${baseUrl}/Restaurant/Search`;
+            //create from searchObject
             let body = {
-                // "PageNumber":pageSize,
-                //"RecordsPerPage":pageNumber
+                //pageSize تعداد ریزالت در هر صفحه
+                //pageNumber شماره صفحه
+                //selected_tags لیستی از آی دی تگ های انتخاب شده برای سرچ توسط کاربر
+                //searchValue متن سرچ شده توسط کاربر
             }
-            let response = await Axios.post(url,body);
+            let response = await Axios.post(url, body);
             let data = response.data.data.items
-            let result=data;
-            result = data.map((o)=>{
-                let {address,types,workingTimes = {}} = o;
-                if(!types || types === null){types = []}
-                return {
-                    id:o.id, //String آی دی رستوران
-                    name:o.title, //String نام رستوران
-                    latitude:address.latitude, //Number موقعیت رستوران در راستای لتیتیود
-                    longitude:address.longitude, //Number موقعیت رستوران در راستای لانگیتیود
-                    phone:address.phoneNumber,//String تلفن رستوران
-                    image:o.image, //String یو آر ال تصویر رستوران
-                    logo:o.logo, //String یو آر ال لوگوی رستوران
-                    address:o.address.address, //String آدرس رستوران
-                    deliveryTime:o.deliveryTime, //Number مدت زمان ارسال به دقیقه
-                    tags:types.map((t)=>t.typeId), //ArrayOfStrings آرایه ای از آی دی تگ های رستوران
-                    startTime:workingTimes[0].startTime, //Number bewtween (1 and 24) زمان شروع به کار
-                    endTime:workingTimes[0].endTime, //Number bewtween (1 and 24) زمان پایان کار
-                    tax:o.tax
-                }
-            })
+            let result = MapRestorans(data);
             return { response, result }
         },
-        async add_restoran(restoran) {
+        async search_restorans() {
+            
+            let response;
+            let data = [];
+            let result = MapRestorans(data);
+            return { response,result }
+        },
+        async add_or_edit_restoran(restoran,type) {
             //if (mock) { return { mock: true } }
             //parameters
             //restoran آبجکت رستوران برای افزودن
             // این آبجکت به شکل زیر است
             // {
+            //     id:Any, آی دی رستوران
             //     name:String, نام رستوران
             //     latitude:Number, موقعیت رستوران در راستای لتیتیود
             //     longitude:Number, موقعیت رستوران در راستای لانگیتیود
@@ -127,6 +139,8 @@ export function getResponse({getState}){
             //     tags:Array of ids آرایه ای از تگ های رستوران
             // }
             let body = {
+                "id": type === 'edit'?restoran.id:undefined,
+                "Id": type === 'edit'?restoran.id:undefined,
                 "Title": restoran.name,
                 "LatinTitle": restoran.name,
                 "Tax": restoran.tax,
@@ -135,48 +149,7 @@ export function getResponse({getState}){
                     "fullAddress": restoran.address,
                     "latitude": restoran.latitude,
                     "longitude": restoran.longitude,
-                    "phoneNumber":restoran.phone
-                },
-                "phoneNumbers": [
-                    {
-                        "Title": restoran.name,
-                        "phoneNumber": restoran.phone,
-                    }],
-                "workingTimes": [
-                    {
-                        "startTime": restoran.startTime,// "12:00",
-                        "endTime": restoran.endTime,
-                        "applyChangeTime": "12:00"
-                    }
-                ],
-                "types": restoran.tags.map((o)=>{return {typeId:o}})
-            }
-
-            //دریافت ریسپانس
-            let response = await Axios.post(`${baseUrl}/Restaurant/Create`, body);
-            //دریافت آی دی تگ اضافه شده از روی ریسپانس
-            let id = response.data.data
-            return { response, result: { id } }
-        },
-        async edit_restoran(restoran) {
-            //if (mock) { return { mock: true } }
-            let method;
-            method = "put";
-            let url = `${baseUrl}/Restaurant/Edit`;
-            //بادی متد پست (any | undefined)
-            let body;
-            body = {
-                "id":restoran.id,
-                "Title": restoran.name,
-                "LatinTitle": restoran.name,
-                "Id":restoran.id,
-                "Tax": restoran.tax,
-                "DeliveryTime": restoran.deliveryTime,
-                "address": {
-                    "fullAddress": restoran.address,
-                    "latitude": restoran.latitude,
-                    "longitude": restoran.longitude,
-                    "phoneNumber":restoran.phone
+                    "phoneNumber": restoran.phone
                 },
                 "phoneNumbers": [
                     {
@@ -191,43 +164,51 @@ export function getResponse({getState}){
                         "applyChangeTime": "12:00"
                     }
                 ],
-                "types": restoran.tags.map((o)=>{return {typeId:o}})
+                "types": restoran.tags.map((o) => { return { typeId: o } })
             }
-            //دریافت ریسپانس
-            let response = await Axios[method](url, body);
-
-            //دریافت ریسپانس
-            return { response, result: true }
+            let response,result;
+            if(type === 'add'){
+                response = await Axios.post(`${baseUrl}/Restaurant/Create`, body);
+                result = {id:response.data.data}
+            }
+            else if(type === 'edit'){
+                response = await Axios.put(`${baseUrl}/Restaurant/Edit`, body);
+                result = true
+            }             
+            return { response, result }
         },
         async remove_restoran(restoranId) {
             //if (mock) { return { mock: true } }
-            let url = `${baseUrl}/Restaurant?Id=${restoranId.toString()}`; 
+            let url = `${baseUrl}/Restaurant?Id=${restoranId.toString()}`;
             let response = await Axios.delete(url);
             return { response, result: true }
         },
         async get_restoran_foods(restoranId) {
             //if (mock) { return { mock: true } }
             let url = `${baseUrl}/RestaurantFood/Search`;
-            let body = {"RestaurantId": restoranId}
-            let response = await Axios.post(url,body);
-            let result = response.data.data.items;
+            let body = { "RestaurantId": restoranId }
+            let response = await Axios.post(url, body);
+            let data = response.data.data.items;
             //مپ کردن دیتای سرور به دیتای فرانت
             //let result = [];
-            // result = data.map((o)=>{
-            //     return {
-            //       id:<...>, //String آی دی غذا
-            //       name:<...>, //String نام غذا
-            //       image:<...>, //String یو آر ال تصویر غذا
-            //       price:<...>, //Number قیمت غذا
-            //       discountPercent:<...>, //Number درصد تخفیف غذا
-            //       description:<...>, //String توضیحات مختصر در مورد غذا
-            //       review:<...>, //String توضیحات مفصل در مورد غذا
-            //       categories:<...> //Array آرایه ای از آی دی های دسته بندی
-            //     }
-            // })
+            let result = data.map((o) => {
+                return {
+                    id: o.id, //String آی دی غذا
+                    name: o.name, //String نام غذا
+                    parentId:o.parentFoodId === null?undefined:o.parentFoodId,// آی دی غذایی که این غذا زیر مجموعه ی آن است 
+                    menuCategory:o.menuCategoryTitle,// نام دسته بندی منو برای تفکیک غذا ها در یو آی
+                    image: o.image, //String یو آر ال تصویر غذا
+                    price: o.price, //Number قیمت غذا
+                    discountPercent: o.discountPercent, //Number درصد تخفیف غذا
+                    description: o.description, //String توضیحات مختصر در مورد غذا
+                    review: o.description, //String توضیحات مفصل در مورد غذا
+                    tags:[],
+                    //tags: o.tags //Array آرایه ای از آی دی های دسته بندی
+                }
+            })
             return { response, result }
         },
-        async add_or_edit_food({ restoranId, food,action }){
+        async add_or_edit_food({ restoranId, food, action }) {
             //if (mock) { return { mock: true } }
             //restoranId => آی دی رستوران
             //food => آبجکت غذا
@@ -245,15 +226,16 @@ export function getResponse({getState}){
             //     review:String توضیحات مفصل در مورد غذا
             //     tags:Array آرایه ای از آی دی های تگ های غذا
             // }
-            let url = `${baseUrl}/RestaurantFood/${action === 'add'?'Create':'Edit'}`;
+            let url = `${baseUrl}/RestaurantFood/${action === 'add' ? 'Create' : 'Edit'}`;
             let body = {
-                "id": action === 'edit'?food.id:undefined,
+                "id": action === 'edit' ? food.id : undefined,
                 "title": food.name,
                 "food": {
-                  "types":food.tags.map((o)=>{return {typeId:o}}),
-                  "title":  food.name,
-                  "latinTitle":  food.name,
-                  "description":food.description
+                    //"types": food.tags.map((o) => { return { typeId: o } }),
+                    "types":[],
+                    "title": food.name,
+                    "latinTitle": food.name,
+                    "description": food.description
                 },
                 "restaurantId": restoranId,
                 "parentFoodId": food.parentId,
@@ -262,81 +244,44 @@ export function getResponse({getState}){
                 "description": food.description,
                 //"inventoryCount": 0,
                 "isFavorite": true,
-                "discount":food.discountPercent
-              }
-            //دریافت ریسپانس
-            let response = await Axios[action === 'add'?'post':'put'](url, body);
-            let result = action === 'edit'?true:{id:response.data.data};
-            return { response, result }
-        },
-        async edit_food({ restoranId, food }) {
-            //if (mock) { return { mock: true } }
-            //restoranId => آی دی رستوران
-            //food => آبجکت غذا برای ویرایش
-            //آبجکت غذا مانند زیر است
-            // {
-            //     id:String, آی دی غذا
-            //     parentId:String, آی دی غذایی که این غذا زیر مجموعه ی آن است 
-            //     menuCategory:String, نام دسته بندی منو برای تفکیک غذا ها در یو آی
-            //     name:String, نام غذا
-            //     image:String, یو آر ال تصویر غذا
-            //     price:Number قیمت غذا
-            //     discountPercent:درصد تخفیف غذا
-            //     description:String توضیحات مختصر در مورد غذا
-            //     review:String توضیحات مفصل در مورد غذا
-            // }
-
-            let url = `${baseUrl}/RestaurantFood/Edit`; 
-            let body = {
-                "id": food.id,
-                "title": food.name,
-                "food": {
-                //"id": 0,
-                "types":food.tags.map((o)=>{return {typeId:o}}),
-                "title":  food.name,
-                "latinTitle":  food.name,
-                "description":food.description
-                },
-                "restaurantId": restoranId,
-                "price": food.price,
-                "description": food.description,
-                //"inventoryCount": 0,
-                "isFavorite": true,
-                "discount":food.discountPercent
+                "discount": food.discountPercent
             }
-            let response = await Axios.post(url, body);
-            return { response, result: true }
+            //دریافت ریسپانس
+            let response = await Axios[action === 'add' ? 'post' : 'put'](url, body);
+            let result = action === 'edit' ? true : { id: response.data.data };
+            return { response, result }
         },
         async remove_food({ restoranId, foodId }) {
             //if (mock) { return { mock: true } }
             // parameters
             //restoranId آی دی رستورانی که یک غذا از آن باید حذف بشود
             //foodId آی دی غذایی که باید حذف شود
-            let url = `${baseUrl}/RestaurantFood?Id=${foodId.toString()}`; 
+            let url = `${baseUrl}/RestaurantFood?Id=${foodId.toString()}`;
             let response = await Axios.delete(url);
             return { response, result: true }
         },
         //ویرایش تصویر غذا
         async edit_food_image({ foodId, imageFile }) {
+            if(!imageFile){return {result:true}}
             //if (mock) { return { mock: true } }
-            let url=`${baseUrl}/RestaurantFood/AddLogoImage?RestaurantFoodId=${foodId}&Title=${'msf'}`; 
+            let url = `${baseUrl}/RestaurantFood/AddLogoImage?RestaurantFoodId=${foodId}&Title=${'msf'}`;
             let formData = new FormData()
-            formData.append('imageFile', imageFile,imageFile.name)
+            formData.append('imageFile', imageFile, imageFile.name)
             let body = formData;
             //دریافت ریسپانس
             let response = await Axios.post(url, body);
             return { response, result: true }
         },
         //ویرایش تصویر رستوران
-        async edit_restoran_image({ restoranId,imageFile }) {
+        async edit_restoran_image({ restoranId, imageFile }) {
             //if (mock) { return { mock: true } }
             //parameters
             //restoranId  آی دی رستوران
             //imageUrl فایل انتخاب شده ی کاربر ادمین برای تصویر این رستوران
             //آدرس درخواست 
-            let url=`${baseUrl}/RestaurantImage/AdImageOfRestaurant?RestaurantId=${restoranId}&Title=${'msf'}`; 
+            let url = `${baseUrl}/RestaurantImage/AdImageOfRestaurant?RestaurantId=${restoranId}&Title=${'msf'}`;
             let formData = new FormData()
-            formData.append('imageFile', imageFile,imageFile.name)
+            formData.append('imageFile', imageFile, imageFile.name)
             let body = formData;
             //دریافت ریسپانس
             let response = await Axios.post(url, body);
@@ -349,19 +294,18 @@ export function getResponse({getState}){
             //restoranId  آی دی رستوران
             //imageFile فایل انتخاب شده ی کاربر ادمین برای لوگوی این رستوران
             //آدرس درخواست 
-            debugger
-            let url=`${baseUrl}/RestaurantImage/AddLogoImage?RestaurantId=${restoranId}&Title=${'msf'}`; 
+            let url = `${baseUrl}/RestaurantImage/AddLogoImage?RestaurantId=${restoranId}&Title=${'msf'}`;
             let formData = new FormData()
-            formData.append('imageFile', imageFile,imageFile.name)
+            formData.append('imageFile', imageFile, imageFile.name)
             let body = formData;
             //دریافت ریسپانس
             let response = await Axios.post(url, body);
             return { response, result: true }
         },
-        async setProfile({ profile,mobile, registered }) {
-            let url = `${baseUrl}/People/${registered?'UpdateProfile':'CreateProfile'}`
+        async setProfile({ profile, mobile, registered }) {
+            let url = `${baseUrl}/People/${registered ? 'UpdateProfile' : 'CreateProfile'}`
             let body = {
-                "Id":profile.id,
+                "Id": profile.id,
                 "firstName": profile.firstName,//نام
                 "lastName": profile.lastName,
                 "email": profile.email,
@@ -373,39 +317,38 @@ export function getResponse({getState}){
                     }
                 ]
             }
-            let response = await Axios.post(url,body);
-            return {response}
+            let response = await Axios.post(url, body);
+            return { response }
         },
         async getProfile() {
-            return {mock:true}
-            let {personId} = getState();
+            return { mock: true }
+            let { personId } = getState();
             let url = `${baseUrl}/People/search`
-            let body = {"Id":personId}
-            let response = await Axios.post(url,body);
+            let body = { "Id": personId }
+            let response = await Axios.post(url, body);
             let result = response.data.data.items[0]
-            return {response,result}
+            return { response, result }
         },
-        async getAddresses(){//لیست آدرس ها
-            return {mock:true}
-            let {personId} = getState();
+        async getAddresses() {//لیست آدرس ها
+            return { mock: true }
+            let { personId } = getState();
             let url = `${baseUrl}/People/GetPeopleAddress`
             let body = {
-                "PersonId":personId
+                "PersonId": personId
             }
-            let response = await Axios.post(url,body);
+            let response = await Axios.post(url, body);
 
-            let result=response.data.data.map((o)=>
-            {
-                    return {
-                        title: o.title,
-                        address: o.address,
-                        number: 30,
-                        unit: 4,
-                        floor: 2,
-                        id: o.id,
-                        description: o.description,
-                        phone: o.phoneNumber
-                    }
+            let result = response.data.data.map((o) => {
+                return {
+                    title: o.title,
+                    address: o.address,
+                    number: 30,
+                    unit: 4,
+                    floor: 2,
+                    id: o.id,
+                    description: o.description,
+                    phone: o.phoneNumber
+                }
             });
             // let result = [                
             //     {
@@ -419,76 +362,69 @@ export function getResponse({getState}){
             //         phone: '02188050006'
             //     }
             // ];
-            return {response,result}
+            return { response, result }
         },
         async takhfif_ha() {
-            return {mock:true}
-            let {personId} = getState();
+            return { mock: true }
+            let { personId } = getState();
             let url = `${baseUrl}/PersonDiscount/Search`;
-            let body = {"PersonId": personId}
-            let response = await Axios.post(url,body);
+            let body = { "PersonId": personId }
+            let response = await Axios.post(url, body);
             let result = response.data.data.items;
-            return {response,result};
+            return { response, result };
         },
-        async addressForm({ address, type}) {
-            let {personId} = getState();
+        async addressForm({ address, type }) {
+            let { personId } = getState();
             if (type === 'add') {
                 let url = `${baseUrl}/People/CreatePeopleAddress`;
                 let body = {
                     "personId": personId,
                     "address": {
-                      "fullAddress": address.address,
-                      "latitude": address.latitude,
-                      "longitude": address.longitude,
-                      "phoneNumber": address.phone
+                        "fullAddress": address.address,
+                        "latitude": address.latitude,
+                        "longitude": address.longitude,
+                        "phoneNumber": address.phone
                     },
                     "title": address.title
                 }
-                let response = await Axios.post(url,body);
-                return {response}
+                let response = await Axios.post(url, body);
+                return { response }
             }
-            else { 
+            else {
 
             }
         },
         async safheye_sefaresh() {
-            return {mock:true}
+            return { mock: true }
             let url = `${baseUrl}/PageLayout/GetListOfFoodDelivery`;
             let body = {};
-            let response = await Axios.post(url,body);
+            let response = await Axios.post(url, body);
             let result = response.data.data;
-            return {response,result};
+            return { response, result };
         },
         async restoran_haye_mahboob() {
-            let {personId} = getState();
+            let { personId } = getState();
             let url = `${baseUrl}/RestaurantFavoruite/search`
-            let body = {"PersonId":personId}
-            let response = await Axios.post(url,body);
+            let body = { "PersonId": personId }
+            let response = await Axios.post(url, body);
             let result = response.data.data.items;
-            return {response,result}
+            return { response, result }
         },
         async mojoodiye_kife_pool() {
-            return {mock:true}
+            return { mock: true }
         },
         async tarikhcheye_kife_pool() {
-           return {mock:true} 
+            return { mock: true }
         },
-        async restoran_sort_options(){
-            return {mock:true}
+        async restoran_sort_options() {
+            return { mock: true }
         },
-        async jostojooye_restoran({pageSize,pageNumber,selectedCategories,selectedSort,searchValue}){
-            //pageSize تعداد ریزالت در هر صفحه
-            //pageNumber شماره صفحه
-            //selectedCategories لیست تگ های انتخاب شده برای سرچ توسط کاربر
-            //selectedSort مرتب سازی انتخابی کاربر
-            //searchValue متن سرچ شده توسط کاربر
-            return {mock:true}
+        
+        async tarikhche_ye_jostojoo() {
+            return { mock: true }
         },
-        async tarikhche_ye_jostojoo(){
-            return {mock:true} 
-        },
-        async hazfe_tarikhche_ye_jostojoo(){
-            return {mock:true} 
+        async hazfe_tarikhche_ye_jostojoo() {
+            return { mock: true }
         },
         // async restoran_menu(restaurantId){
         //     let url = `${baseUrl}/Menu/Search`;
@@ -499,7 +435,7 @@ export function getResponse({getState}){
 
         //     // return {mock:true}
         // },
-        async restoran_comments({id,pageSize,pageNumber}){
+        async restoran_comments({ id, pageSize, pageNumber }) {
             //id => آی دی رستوران
             //pageSize => تعداد کامنت صفحه
             //pageNumber => شماره صفحه کامنت
@@ -507,30 +443,30 @@ export function getResponse({getState}){
             let url = `${baseUrl}/FeedBack/GetRestaurantComments`;
             let body = {
                 "RestaurantId": id,
-                "PageNumber":pageSize,
-                "RecordsPerPage":pageNumber
+                "PageNumber": pageSize,
+                "RecordsPerPage": pageNumber
             }
-            let response = await Axios.post(url,body);
+            let response = await Axios.post(url, body);
             let result = response.data.data.items;
-            return {response,result};
+            return { response, result };
 
-            return {mock:true}
+            return { mock: true }
         },
-        async restoran_coupons(restaurantId){
+        async restoran_coupons(restaurantId) {
 
             let url = `${baseUrl}/RestaurantDiscount/Search`;
-            let body = {"RestaurantId": restaurantId}
-            let response = await Axios.post(url,body);
+            let body = { "RestaurantId": restaurantId }
+            let response = await Axios.post(url, body);
             let result = response.data.data.items;
-            return {response,result};
+            return { response, result };
 
             // return {mock:true}
         }
     }
 }
 
-export function getMock({helper,getState}){
-    let {mockStorage} = getState();
+export function getMock({ helper, getState }) {
+    let { mockStorage } = getState();
     return {
         get_tags({ type }) {
             let res = mockStorage.load({ name: `${type}Tags`, def: [] })
@@ -563,22 +499,24 @@ export function getMock({helper,getState}){
             let res = mockStorage.load({ name: 'restorans', def: [] })
             return res;
         },
-        add_restoran(newRestoran) {
-            let restorans = mockStorage.load({ name: 'restorans', def: [] });
-            let id = 'res' + Math.round(Math.random() * 1000000);
-            newRestoran = { ...newRestoran, id }
-            let newRestorans = [newRestoran, ...restorans];
-            mockStorage.save({ name: 'restorans', value: newRestorans })
-            return { id };
-        },
-        edit_restoran(restoran) {
-            let restorans = mockStorage.load({ name: 'restorans', def: [] });
-            restorans = restorans.map((o) => {
-                if (o.id === restoran.id) { return restoran }
-                return o
-            })
-            mockStorage.save({ name: 'restorans', value: restorans })
-            return true;
+        add_or_edit_restoran(newRestoran,type) {
+            if(type === 'add'){
+                let restorans = mockStorage.load({ name: 'restorans', def: [] });
+                let id = 'res' + Math.round(Math.random() * 1000000);
+                newRestoran = { ...newRestoran, id }
+                let newRestorans = [newRestoran, ...restorans];
+                mockStorage.save({ name: 'restorans', value: newRestorans })
+                return { id };     
+            }
+            else if(type === 'edit'){
+                let restorans = mockStorage.load({ name: 'restorans', def: [] });
+                restorans = restorans.map((o) => {
+                    if (o.id === newRestoran.id) { return newRestoran }
+                    return o
+                })
+                mockStorage.save({ name: 'restorans', value: restorans })
+                return true;
+            }
         },
         remove_restoran(restoranId) {
             let restorans = mockStorage.load({ name: 'restorans', def: [] });
@@ -593,14 +531,14 @@ export function getMock({helper,getState}){
             let foods = mockStorage.load({ name: `restoran_${restoranId}_menu`, def: [] });
             return foods
         },
-        add_or_edit_food({ restoranId, food ,action }){
+        add_or_edit_food({ restoranId, food, action }) {
             let foods = mockStorage.load({ name: `restoran_${restoranId}_menu`, def: [] });
-            let newFoods,result;
-            if(action === 'add'){
+            let newFoods, result;
+            if (action === 'add') {
                 let id = 'food' + Math.round(Math.random() * 1000000);
                 let newFood = { ...food, id }
                 newFoods = [newFood, ...foods];
-                result = {id}
+                result = { id }
             }
             else {
                 let newFood = { ...food }
@@ -628,7 +566,7 @@ export function getMock({helper,getState}){
             mockStorage.save({ name: `restoran_${restoranId}_logo`, value: imageUrl });
             return true;
         },
-        getAddresses(){
+        getAddresses() {
             return [//لیست آدرس ها
                 {
                     title: 'خانه',
@@ -639,8 +577,8 @@ export function getMock({helper,getState}){
                     id: '0',
                     description: '',
                     phone: '02188050006',
-                    latitude:35.760528,
-                    longitude:51.394777
+                    latitude: 35.760528,
+                    longitude: 51.394777
                 }
             ]
         },
@@ -677,7 +615,7 @@ export function getMock({helper,getState}){
             return [
                 {
                     type: 'Billboard',
-                    items: [{src: frame210},{src: frame210},{src: frame210},{src: frame210}]
+                    items: [{ src: frame210 }, { src: frame210 }, { src: frame210 }, { src: frame210 }]
                 },
                 {
                     type: 'Categories',
@@ -697,12 +635,12 @@ export function getMock({helper,getState}){
                     name: 'رستوران های تخفیف دار',
                     items: [
                         {
-                            name: 'رستوران شاندیز گالریا',image: shandiz_image,logo: shandiz_logo,
-                            rate: 3.4,distance: 3,time: 35,tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
+                            name: 'رستوران شاندیز گالریا', image: shandiz_image, logo: shandiz_logo,
+                            rate: 3.4, distance: 3, time: 35, tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
                         },
                         {
-                            name: 'رستوران شاندیز گالریا',image: shandiz_image,logo: shandiz_logo,
-                            rate: 3.4,distance: 3,time: 35,tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
+                            name: 'رستوران شاندیز گالریا', image: shandiz_image, logo: shandiz_logo,
+                            rate: 3.4, distance: 3, time: 35, tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
                         },
                         {
                             name: 'رستوران شاندیز گالریا', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
@@ -729,72 +667,72 @@ export function getMock({helper,getState}){
                     ]
                 },
                 {
-                    type: 'Slider',name: 'غذا های تخفیف دار',cardSize: { width: 160 },
-                    header: {maxDiscount: 15,endDate: new Date().getTime() + (6 * 60 * 60 * 1000)},
+                    type: 'Slider', name: 'غذا های تخفیف دار', cardSize: { width: 160 },
+                    header: { maxDiscount: 15, endDate: new Date().getTime() + (6 * 60 * 60 * 1000) },
                     items: [
                         {
                             name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
-                            price: 210000, discount: 15, image: pasta_alferedo, tags: [],id:'4232'
+                            price: 210000, discount: 15, image: pasta_alferedo, tags: [], id: '4232'
                         },
                         {
-                            name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,id:'423rwe',
+                            name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4, id: '423rwe',
                             price: 210000, discount: 15, image: pasta_alferedo, tags: []
                         },
                         {
-                            name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,id:'423456452',
+                            name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4, id: '423456452',
                             price: 210000, discount: 15, image: pasta_alferedo, tags: []
                         },
                         {
-                            name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,id:'42354232',
+                            name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4, id: '42354232',
                             price: 210000, discount: 15, image: pasta_alferedo, tags: []
                         }
                     ]
                 },
                 {
-                    type: 'Slider',name: 'جدید ترین رزروی ها',
+                    type: 'Slider', name: 'جدید ترین رزروی ها',
                     items: [
                         {
                             name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
                             details: [
-                                {title: 'نوع میز',value: 'میز و آلاچیق'},
-                                {title: 'مدت زمان تاخیر',value: '15 دقیقه'},
-                                {title: 'قابلیت مراسم',value: 'تولد و VIP'}
+                                { title: 'نوع میز', value: 'میز و آلاچیق' },
+                                { title: 'مدت زمان تاخیر', value: '15 دقیقه' },
+                                { title: 'قابلیت مراسم', value: 'تولد و VIP' }
                             ],
                             tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
                         },
                         {
                             name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
                             details: [
-                                {title: 'نوع میز',value: 'میز و آلاچیق'},
-                                {title: 'مدت زمان تاخیر',value: '15 دقیقه'},
-                                {title: 'قابلیت مراسم',value: 'تولد و VIP'}
+                                { title: 'نوع میز', value: 'میز و آلاچیق' },
+                                { title: 'مدت زمان تاخیر', value: '15 دقیقه' },
+                                { title: 'قابلیت مراسم', value: 'تولد و VIP' }
                             ],
                             tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
                         },
                         {
                             name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
                             details: [
-                                {title: 'نوع میز',value: 'میز و آلاچیق'},
-                                {title: 'مدت زمان تاخیر',value: '15 دقیقه'},
-                                {title: 'قابلیت مراسم',value: 'تولد و VIP'}
+                                { title: 'نوع میز', value: 'میز و آلاچیق' },
+                                { title: 'مدت زمان تاخیر', value: '15 دقیقه' },
+                                { title: 'قابلیت مراسم', value: 'تولد و VIP' }
                             ],
                             tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
                         },
                         {
                             name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
                             details: [
-                                {title: 'نوع میز',value: 'میز و آلاچیق'},
-                                {title: 'مدت زمان تاخیر',value: '15 دقیقه'},
-                                {title: 'قابلیت مراسم',value: 'تولد و VIP'}
+                                { title: 'نوع میز', value: 'میز و آلاچیق' },
+                                { title: 'مدت زمان تاخیر', value: '15 دقیقه' },
+                                { title: 'قابلیت مراسم', value: 'تولد و VIP' }
                             ],
                             tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
                         },
                         {
                             name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
                             details: [
-                                {title: 'نوع میز',value: 'میز و آلاچیق'},
-                                {title: 'مدت زمان تاخیر',value: '15 دقیقه'},
-                                {title: 'قابلیت مراسم',value: 'تولد و VIP'}
+                                { title: 'نوع میز', value: 'میز و آلاچیق' },
+                                { title: 'مدت زمان تاخیر', value: '15 دقیقه' },
+                                { title: 'قابلیت مراسم', value: 'تولد و VIP' }
                             ],
                             tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
                         }
@@ -831,26 +769,26 @@ export function getMock({helper,getState}){
                 return { ...o, date, time }
             })
         },
-        restoran_sort_options(){
+        restoran_sort_options() {
             return [
-                {text:'رستوران اقتصادی',value:'0'},
-                {text:'بالاترین امتیاز ',value:'1'},
-                {text:'نزدیک ترین ',value:'2'},
-                {text:'جدیدترین',value:'3'},
-                {text:'تایید شده در ایران فود',value:'4'},
-                {text:'گرانترین',value:'5'}
+                { text: 'رستوران اقتصادی', value: '0' },
+                { text: 'بالاترین امتیاز ', value: '1' },
+                { text: 'نزدیک ترین ', value: '2' },
+                { text: 'جدیدترین', value: '3' },
+                { text: 'تایید شده در ایران فود', value: '4' },
+                { text: 'گرانترین', value: '5' }
             ]
         },
-        jostojooye_restoran({pageSize,pageNumber,selectedCategories,selectedSort,searchValue}){
-            let restorans = mockStorage.load({name:'restorans',def:[]})
+        search_restorans({ pageSize, pageNumber, selectedCategories, selectedSort, searchValue }) {
+            let restorans = mockStorage.load({ name: 'restorans', def: [] })
             return restorans
 
         },
-        tarikhche_ye_jostojoo(){
-            return ['برگر','پیتزا','پاستا'] 
+        tarikhche_ye_jostojoo() {
+            return ['برگر', 'پیتزا', 'پاستا']
         },
-        hazfe_tarikhche_ye_jostojoo(){
-            return true 
+        hazfe_tarikhche_ye_jostojoo() {
+            return true
         },
         // restoran_menu(){
         //     return [
@@ -1231,27 +1169,27 @@ export function getMock({helper,getState}){
         //         }
         //     ]
         // },
-        restoran_comments({id,pageSize,pageNumber}){
+        restoran_comments({ id, pageSize, pageNumber }) {
             return [
-                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
-                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
-                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
-                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
-                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
-                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
-                {date:'1402/1/1/3/34',name:'رضا عباسی',comment:'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی'},
+                { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+                { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+                { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+                { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+                { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+                { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+                { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
             ]
         },
-        restoran_coupons(){
+        restoran_coupons() {
             return [
-                { id:'23423423',title:'کوپن 1',discountPercent: 10, minCartAmount:500000, maxDiscount:100000 },
-                { id:'75684564',title:'کوپن 2',discountPercent: 10, maxDiscount:100000 },
-                { id:'4235345',title:'کوپن 3',discountPercent: 10, minCartAmount:500000 },
-                { id:'56345234',title:'کوپن 4',discountPercent: 10 },
-                               
-                { id:'23426',title:'کوپن 5',discount: 100000, minCartAmount:500000 },
-                { id:'645634534',title:'کوپن 6',discount: 100000 },
-              ]
+                { id: '23423423', title: 'کوپن 1', discountPercent: 10, minCartAmount: 500000, maxDiscount: 100000 },
+                { id: '75684564', title: 'کوپن 2', discountPercent: 10, maxDiscount: 100000 },
+                { id: '4235345', title: 'کوپن 3', discountPercent: 10, minCartAmount: 500000 },
+                { id: '56345234', title: 'کوپن 4', discountPercent: 10 },
+
+                { id: '23426', title: 'کوپن 5', discount: 100000, minCartAmount: 500000 },
+                { id: '645634534', title: 'کوپن 6', discount: 100000 },
+            ]
         }
     }
 }

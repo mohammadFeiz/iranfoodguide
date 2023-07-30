@@ -1,0 +1,13 @@
+.restoran-page{
+    background:#f8f8f8;
+    height:100%;
+}
+.restoran-page-parts{
+    margin-bottom:12px;
+    background:none !important;
+}
+.restoran-page-part{
+    background:#fff;
+    margin:6px;
+    padding:6px 0;
+}

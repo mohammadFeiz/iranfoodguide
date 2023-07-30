@@ -29,3 +29,9 @@
 .admin-panel-restoran-card .aio-form{
     background: none;
 }
+.bo-restoran-card{
+    font-size:12px;
+    border-radius:6px;
+    background:#fff;
+    height:48px;
+}
