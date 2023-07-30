@@ -130,7 +130,7 @@ export default class Layout extends Component {
 class Caret extends Component {
     render() {
         let { caret } = this.props;
-        if (caret === false) { return null }
+        if (!caret) { return null }
         if (caret === true) { caret = <Icon path={mdiChevronDown} size={.8} /> }
         return (
             <div className='aio-input-caret'>{caret}</div>

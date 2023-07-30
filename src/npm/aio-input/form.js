@@ -228,7 +228,7 @@ export default class Form extends Component {
         return error;
     }
     render() {
-        let {rtl,style} = this.props;
+        let {rtl,style,className} = this.props;
         return (
             <RVD
                 getLayout={(obj, parent = {}) => {
@@ -245,7 +245,7 @@ export default class Form extends Component {
                 }}
                 layout={{
                     style,
-                    className: 'aio-input-form' + (rtl?' aio-input-form-rtl':''),
+                    className: 'aio-input-form' + (rtl?' aio-input-form-rtl':'') + (className?' ' + className:''),
                     column: [
                         this.header_layout(),
                         this.body_layout(),
