@@ -26,7 +26,7 @@ export default class Restorans extends Component {
     async add_or_edit_restoran(newRestoran,type) {
         let { apis } = this.context;
         apis({
-            api: 'add_or_edit_restoran', parameter: newRestoran,
+            api: 'add_or_edit_restoran', parameter: {restoran:newRestoran,type},
             name: `${type === 'add'?'افزودن':'ویرایش'} رستوران`,
             callback: async (result) => {
                 let id = type === 'add'?result.id:newRestoran.id;

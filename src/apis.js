@@ -120,7 +120,7 @@ export function getResponse({ getState }) {
             let result = MapRestorans(data);
             return { response,result }
         },
-        async add_or_edit_restoran(restoran,type) {
+        async add_or_edit_restoran({restoran,type}) {
             //if (mock) { return { mock: true } }
             //parameters
             //restoran آبجکت رستوران برای افزودن
@@ -499,7 +499,7 @@ export function getMock({ helper, getState }) {
             let res = mockStorage.load({ name: 'restorans', def: [] })
             return res;
         },
-        add_or_edit_restoran(newRestoran,type) {
+        add_or_edit_restoran({newRestoran,type}) {
             if(type === 'add'){
                 let restorans = mockStorage.load({ name: 'restorans', def: [] });
                 let id = 'res' + Math.round(Math.random() * 1000000);
