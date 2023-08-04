@@ -49,6 +49,9 @@ export default class AIOLogin extends Component {
             errorMessage: 'اتصال خود را بررسی کنید',
         })
         this.mounted = true;
+        if(res === false){
+            this.tokenStorage.remove({name:'token'});
+        }
         this.setState({ isAutenticated: res });
     }
     logout() { this.tokenStorage.remove({ name: 'token' }); window.location.reload() }

@@ -48,6 +48,18 @@ export function getResponse({ getState }) {
     /************************************************************** */
 
     return {
+        async pardakht_online({deliveryType,foods,restoranId,amount,selectedCouponIds,addressId}){
+            //deliveryType => 'ارسال با پیک' | 'دریافت حضوری'
+            //foods => [{foodId:Any,count:Number},...]
+            //restoranId => آی دی رستوران
+            //amount => Number مبلغ قابل پرداخت
+            //selectedCouponIds => آرایه ای از آی دی کوپن های انتخاب شده
+            //addressId => آی دی آدرس انتخاب شده ی کاربر
+            debugger
+            let response;
+            let result;
+            return {response,result}
+        },
         //در یافت لیست تگ های رستوران و تگ های غذا بسته به تایپ ورودی
         async get_tags({ type }) {
             //if (mock) { return { mock: true } }

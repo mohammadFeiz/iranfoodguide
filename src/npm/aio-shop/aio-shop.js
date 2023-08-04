@@ -17,7 +17,7 @@ import './aio-shop.css';
 export default function AIOShop(obj = {}) {
     let { 
         id, update, cartCache,checkDiscountCode, getDiscounts = () => { return [] },
-        getExtras = () => [], getShippingOptions = () => [],getIconByKey = ()=>'',unit,addText='افزودن به سبد خرید',getProductById,
+        getExtras = () => [], getShippingOptions = () => [],getIconByKey = ()=>'',unit,addText='افزودن به سبد خرید',getProductById,payment
     } = obj
     if (!id) { return }
     let $$ = {
@@ -243,6 +243,9 @@ export default function AIOShop(obj = {}) {
             return (
                 <Shipping
                     unit={unit}
+                    onSubmit={()=>{
+                        payment({factor:$$.factor,shipping:$$.shipping,cart:$$.cart})
+                    }}
                     getActions={({updateShippingByParent})=>{
                         $$.updateShippingByParent = updateShippingByParent;
                     }}

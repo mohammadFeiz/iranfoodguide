@@ -168,6 +168,20 @@ export default class RestoranPage extends Component {
       getExtras:({shipping})=>{
         if(shipping.paymentType === 'پرداخت حضوری'){return 0}
         return {amount:53000,title:'هزینه ارسال'}
+      },
+      payment:async ({shipping,factor,cart})=>{
+        let {restoran} = this.props;
+        let {deliveryType,addressId,selectedCouponIds} = shipping;
+        let foods = Object.keys(cart).map((o)=>{return {foodId:o,count:cart[o].count}})
+        let restoranId = restoran.id;
+        let {amount} = factor;
+        let res = await apis({
+          api:'pardakht_online',
+          name:'پرداخت آنلاین',
+          parameter:{
+            deliveryType,foods,restoranId,amount,selectedCouponIds,addressId
+          }
+        })
       }
     })
     this.setState({Shop})

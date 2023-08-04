@@ -66,7 +66,6 @@ export default class App extends Component {
   }
   async onSubmit(model,mode){
     if(mode === 'OTPPhoneNumber'){
-      debugger;
       let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.OTPPhoneNumber })
       if (!response.data.isSuccess) { return {mode:'Error',error:response.data.message} }
       let isRegistered = !!response.data.data.isRegistered;
@@ -74,7 +73,6 @@ export default class App extends Component {
       return {mode:'OTPCode'}
     }
     else if (mode === 'OTPCode'){
-      debugger;
       let response = await Axios.post(`${this.baseUrl}/Users/TokenWithCode`, {mobileNumber: model.OTPPhoneNumber,code: model.OTPCode.toString()});
       if (response.data.isSuccess) {
         this.personId = response.data.data.personId
