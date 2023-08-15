@@ -34,9 +34,7 @@ function MapRestorans(data){
         }
     })
 }
-export function getResponse({ getState }) {
-    //let baseUrl = 'https://localhost:7203/api'
-    let baseUrl = 'https://iranfoodguide.ir/api'
+export function getResponse({ getState,baseUrl }) {
     let { mockStorage } = getState();
     let mock = !!mockStorage;
     /**********************restoran data model**************************************** */
@@ -50,12 +48,16 @@ export function getResponse({ getState }) {
     return {
         async pardakht_online({deliveryType,foods,restoranId,amount,selectedCouponIds,addressId}){
             //deliveryType => 'ارسال با پیک' | 'دریافت حضوری'
-            //foods => [{foodId:Any,count:Number},...]
+            //لیست غذا ها که یک نمونه از اون در لیست زیر نمایش داده شده
+            //foods => [
+            //    {foodId:Any,count:Number},
+            //    ...
+            //]
             //restoranId => آی دی رستوران
             //amount => Number مبلغ قابل پرداخت
             //selectedCouponIds => آرایه ای از آی دی کوپن های انتخاب شده
             //addressId => آی دی آدرس انتخاب شده ی کاربر
-            debugger
+            let callbackurl = window.location.href; //یو آر ال فعلی اپ
             let response;
             let result;
             return {response,result}

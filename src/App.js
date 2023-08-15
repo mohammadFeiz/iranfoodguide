@@ -98,7 +98,7 @@ export default class App extends Component {
     //return <IranFoodGuide/>
     let { isLogin, token, logout, userId } = this.state;
     if (isLogin) {
-      return <IranFoodGuide token={token} personId={this.personId} logout={logout} mobile={userId} roles={[]} />
+      return <IranFoodGuide token={token} personId={this.personId} logout={logout} mobile={userId} roles={[]} baseUrl={this.baseUrl}/>
     }
     let renderLogin = this.renderLogin()
     return (
@@ -159,6 +159,7 @@ class IranFoodGuide extends Component {
     }
     this.state.apis = AIOService({
       getState: () => this.state,
+      baseUrl:props.baseUrl + '/api',
       token: props.token,
       getResponse, getMock,
       id: 'iranfoodguid',
