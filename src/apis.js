@@ -47,6 +47,7 @@ export function getResponse({ getState,baseUrl }) {
 
     return {
         async pardakht_online({deliveryType,foods,restoranId,amount,selectedCouponIds,addressId}){
+            debugger
             //deliveryType => 'ارسال با پیک' | 'دریافت حضوری'
             //لیست غذا ها که یک نمونه از اون در لیست زیر نمایش داده شده
             //foods => [
@@ -58,7 +59,21 @@ export function getResponse({ getState,baseUrl }) {
             //selectedCouponIds => آرایه ای از آی دی کوپن های انتخاب شده
             //addressId => آی دی آدرس انتخاب شده ی کاربر
             let callbackurl = window.location.href; //یو آر ال فعلی اپ
-            let response;
+
+            let url = `${baseUrl}/Order/OrderTotal`;
+            //create from searchObject
+            let body = {
+  "customerId": 1,
+  "isPreOrder": false,
+  "serviceTypeId": 1,//delivery 1//takeaway 2
+  "addressId": addressId,
+  "paymentTypeId": 1,//online
+  "callback": "https://www.aaaaa.ir/callback",
+  "dinners": foods.map((o) => { return { restaurantFoodId: o.foodId,
+    restaurantId:restoranId} })
+            }
+            let response = await Axios.post(url, body);
+
             let result;
             return {response,result}
         },
