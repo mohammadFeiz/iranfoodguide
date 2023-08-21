@@ -59,18 +59,23 @@ export function getResponse({ getState,baseUrl }) {
             //selectedCouponIds => آرایه ای از آی دی کوپن های انتخاب شده
             //addressId => آی دی آدرس انتخاب شده ی کاربر
             let callbackurl = window.location.href; //یو آر ال فعلی اپ
-
+            let foodList = [];
+            for(let i = 0; i < foods.length; i++){
+                let {count,foodId} = foods[i];
+                for(let j = 0; j < count; j++){
+                    foodList.push({restaurantId:restoranId,restaurantFoodId:foodId})
+                }    
+            }
             let url = `${baseUrl}/Order/OrderTotal`;
             //create from searchObject
             let body = {
-  "customerId": 1,
-  "isPreOrder": false,
-  "serviceTypeId": 1,//delivery 1//takeaway 2
-  "addressId": addressId,
-  "paymentTypeId": 1,//online
-  "callback": "https://www.aaaaa.ir/callback",
-  "dinners": foods.map((o) => { return { restaurantFoodId: o.foodId,
-    restaurantId:restoranId} })
+                "customerId": 1,
+                "isPreOrder": false,
+                "serviceTypeId": {'ارسال با پیک':1,'دریافت حضوری':2}[deliveryType],//delivery 1//takeaway 2
+                "addressId": addressId,
+                "paymentTypeId": 1,//online
+                "callback": "https://www.aaaaa.ir/callback",
+                "dinners": foodList
             }
             let response = await Axios.post(url, body);
 
