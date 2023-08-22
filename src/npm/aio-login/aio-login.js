@@ -26,6 +26,9 @@ export default class AIOLogin extends Component {
                             let isAuthenticated = this.tokenStorage.load({ name: 'isAuthenticated', def: false });
                             if (!token || !isAuthenticated) { return { result: false } }
                             let result = await checkToken(token);
+                            if(result === false){
+                                this.tokenStorage.remove({name:'token'});
+                            }
                             return { result }
                         },
                         async onSubmit({model,mode}){

@@ -79,6 +79,10 @@ export function getResponse({ getState,baseUrl }) {
             }
             let response = await Axios.post(url, body);
 
+            //باز کردن صفحه درگاه
+            let paymentUrl = 'https://www.google.com/'
+            window.open(paymentUrl)
+            
             let result;
             return {response,result}
         },
