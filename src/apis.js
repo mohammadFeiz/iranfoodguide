@@ -71,16 +71,17 @@ export function getResponse({ getState,baseUrl }) {
             let body = {
                 "customerId": 1,
                 "isPreOrder": false,
+                'description':'',
                 "serviceTypeId": {'ارسال با پیک':1,'دریافت حضوری':2}[deliveryType],//delivery 1//takeaway 2
-                "addressId": addressId,
+                "addressId": 1,
                 "paymentTypeId": 1,//online
-                "callback": "https://www.aaaaa.ir/callback",
+                "callback": "https://www.iranfoodguide.com/callback",
                 "dinners": foodList
             }
             let response = await Axios.post(url, body);
 
             //باز کردن صفحه درگاه
-            let paymentUrl = 'https://www.google.com/'
+            let paymentUrl = response.data.data;
             window.open(paymentUrl)
             
             let result;
