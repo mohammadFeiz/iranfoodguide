@@ -61,7 +61,7 @@ export default class AIOLogin extends Component {
     render() {
         if (!this.valid) { return null }
         if (!this.mounted) { return null }
-        let { registerFields, layout, otpLength, COMPONENT, id, time = 16,methods,className,style } = this.props;
+        let { registerFields, layout, otpLength, COMPONENT, id, time = 16,methods,className,style,model } = this.props;
         let { isAutenticated,apis } = this.state;
         if (isAutenticated) {
             let props = {
@@ -79,7 +79,7 @@ export default class AIOLogin extends Component {
         }
         let html = (
             <LoginForm
-                time={time} fields={registerFields} otpLength={otpLength} id={id} methods={methods} className={className} style={style}
+                time={time} fields={registerFields} otpLength={otpLength} id={id} methods={methods} className={className} style={style} model={model}
                 onSubmit={async (model,mode)=>{
                     let name = {
                         "OTPPhoneNumber":'ارسال شماره همراه',
@@ -122,30 +122,30 @@ class LoginForm extends Component {
         super(props);
         this.dom = createRef()
         this.storage = AIOStorage(props.id + 'aio-login');
-        let { time = 30, fields = [],userId = {} } = props;
+        let { time = 30, fields = [],model = {} } = props;
         let mode = props.methods[0];
         this.state = {
             mode,fields, time, recode: false,
             formError: true,
-            userId: userId[mode],
+            userId: model[mode],
             model: this.getInitialModel(mode)
         }
     }
     changeMode(mode){
-        let { userId = {} } = this.props;
+        let { model = {} } = this.props;
         this.setState({
             mode,
             formError: true,
-            userId: userId[mode],
+            userId: model[mode],
             model: this.getInitialModel(mode)
         })
     }
     getInitialModel(mode) {
         if(!mode){mode = this.state.mode}
-        let { userId = {},methods } = this.props;
+        let { model = {},methods } = this.props;
         let obj = {password:'',OTPCode:''};
         for(let i = 0; i < methods.length; i++){
-            obj[methods[i]] = userId[methods[i]] || '';
+            obj[methods[i]] = model[methods[i]] || '';
         }
         return obj;
     }
@@ -195,6 +195,7 @@ class LoginForm extends Component {
     }
     getInputs() {
         let { fields, mode, model, userId } = this.state;
+        let {model:InitialModel} = this.props;
         let {otpLength} = this.props;
         if (mode === 'Register') {
             return [...fields.map((o) => { return { input:{...o,label:undefined},label:o.label, field: 'value.register.' + o.field, validations: o.required ? [['required']] : undefined } })]
@@ -203,7 +204,7 @@ class LoginForm extends Component {
             {
                 show:mode === 'UserName',field: 'value.UserName',label: 'نام کاربری', 
                 input:{
-                    type: 'text',placeholder: 'نام کاربری',disabled: !!userId,before: <Icon path={mdiAccount} size={0.8} />,
+                    type: 'text', disabled:!!InitialModel.UserName,placeholder: 'نام کاربری',before: <Icon path={mdiAccount} size={0.8} />,
                     style:{direction:'ltr'}
                 },
                 validations: [['function', () => errorHandler('UserName', model.UserName)]]
@@ -211,14 +212,14 @@ class LoginForm extends Component {
             {
                 show:mode === 'OTPPhoneNumber' || mode === 'PhoneNumber',field: `value.${mode}`,label: 'شماره همراه',
                 input:{
-                    type: 'text',justNumber: true,before: <Icon path={mdiCellphone} size={0.8} />, 
-                    placeholder: '09...',disabled: !!userId,maxLength:11,style:{direction:'ltr'}
+                    type: 'text',disabled:!!InitialModel.OTPPhoneNumber || !! InitialModel.PhoneNumber,justNumber: true,before: <Icon path={mdiCellphone} size={0.8} />, 
+                    placeholder: '09...',maxLength:11,style:{direction:'ltr'}
                 },  
                 validations: [['function', () => errorHandler('PhoneNumber', model[mode])]]
             },
             {
                 show:mode === 'Email',field: 'value.Email',label: 'ایمیل', 
-                input:{type: 'text',before: <Icon path={mdiAccount} size={0.8} />,disabled: !!userId,style:{direction:'ltr'}}, 
+                input:{type: 'text', disabled:!!InitialModel.Email,before: <Icon path={mdiAccount} size={0.8} />,style:{direction:'ltr'}}, 
                 validations: [['function', () => errorHandler('Email', model.Email)]],
             },
             {
@@ -306,7 +307,7 @@ class LoginForm extends Component {
             let key = methods[i];
             if (mode === key) { continue }
             if(mode === 'OTPCode' && key === 'OTPPhoneNumber'){continue}
-            let title = {OTPPhoneNumber:'رمز یکبار مصرف',UserName:'نام کاربری',Email:'آدرس ایمیل',PhoneNumber:'شماره همراه'}[key];
+            let title = {OTPPhoneNumber:'رمز یکبار مصرف',UserName:'نام کاربری و رمز عبور',Email:'آدرس ایمیل و رمز عبور',PhoneNumber:'شماره همراه و رمز عبور'}[key];
             let icon = {OTPPhoneNumber: mdiAccount,PhoneNumber: mdiCellphone,UserName: mdiAccountBoxOutline,Email:mdiEmail}[key]
             others.push({
                 flex: 1,
@@ -332,7 +333,7 @@ class LoginForm extends Component {
                     ]
                 },
                 { size: 12 },
-                { grid: others, gridCols: 2, gridRow: { gap: 12 } }
+                { grid: others, gridCols: 1, gridRow: { gap: 12 } }
             ]
         }
     }
