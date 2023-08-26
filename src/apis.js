@@ -369,7 +369,6 @@ export function getResponse({ getState,baseUrl }) {
             return { response, result }
         },
         async getAddresses() {//لیست آدرس ها
-            return { mock: true }
             let { personId } = getState();
             let url = `${baseUrl}/People/GetPeopleAddress`
             let body = {
