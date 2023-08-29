@@ -46,6 +46,15 @@ export function getResponse({ getState,baseUrl }) {
     /************************************************************** */
 
     return {
+        async peygiriye_sefaresh(orderNumber){
+            let response;
+            let result = {
+                success:true,
+                message:'',
+                orderNumber
+            }; 
+            return {response,result}
+        },
         async pardakht_online({deliveryType,foods,restoranId,amount,selectedCouponIds,addressId}){
             debugger
             //deliveryType => 'ارسال با پیک' | 'دریافت حضوری'
