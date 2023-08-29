@@ -82,7 +82,7 @@ export function getResponse({ getState,baseUrl }) {
                 "isPreOrder": false,
                 'description':'',
                 "serviceTypeId": {'ارسال با پیک':1,'دریافت حضوری':2}[deliveryType],//delivery 1//takeaway 2
-                "addressId": 1,
+                "addressId": addressId,
                 "paymentTypeId": 1,//online
                 "callback": "https://www.iranfoodguide.com/callback",
                 "dinners": foodList
@@ -151,8 +151,11 @@ export function getResponse({ getState,baseUrl }) {
             let url = `${baseUrl}/Restaurant/Search`;
             //create from searchObject
             let body = {
-                //pageSize تعداد ریزالت در هر صفحه
-                //pageNumber شماره صفحه
+
+                RecordsPerPage:searchObject.pageSize,// تعداد ریزالت در هر صفحه
+                pageNumber:searchObject.pageNumber,// شماره صفحه
+                TypesId:searchObject.selected_tags,// array id tags
+                Title:searchObject.searchValue
                 //selected_tags لیستی از آی دی تگ های انتخاب شده برای سرچ توسط کاربر
                 //searchValue متن سرچ شده توسط کاربر
             }
