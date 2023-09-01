@@ -13,7 +13,7 @@ import shandiz_image from './images/shandiz_image.png';
 import pasta_alferedo from './images/pasta_alferedo.png';
 import ghaem_image from './images/ghaem_image.png';
 import ghaem_logo from './images/ghaem_logo.png';
-function MapRestorans(data){
+function MapRestorans(data) {
     return data.map((o) => {
         let { address, types, workingTimes = {} } = o;
         if (!types || types === null) { types = [] }
@@ -34,7 +34,7 @@ function MapRestorans(data){
         }
     })
 }
-export function getResponse({ getState,baseUrl }) {
+export function getResponse({ getState, baseUrl }) {
     let { mockStorage } = getState();
     let mock = !!mockStorage;
     /**********************restoran data model**************************************** */
@@ -46,17 +46,25 @@ export function getResponse({ getState,baseUrl }) {
     /************************************************************** */
 
     return {
-        async peygiriye_sefaresh(orderNumber){
-            let response;
-            let result = {
-                success:true,
-                message:'',
-                orderNumber
-            }; 
-            return {response,result}
-        },
-        async pardakht_online({deliveryType,foods,restoranId,amount,selectedCouponIds,addressId}){
+        async peygiriye_sefaresh(orderId) {
+            let url = `${baseUrl}/Order/InquiryOrder`;
+            //create from searchObject
+            let body = {
+                "OrderId": orderId
+            }
+            let response = await Axios.post(url, body);
+            let result = response.data.data.items[0];
+            if (!result) { return }
             debugger
+            //id:59,
+            //paymentId:0
+            //statusId:1,
+            //statusTitle:"در انتظار پرداخت"
+            //title:"شماره سفارش: "
+            //totalPrice:200022
+            return { response, result }
+        },
+        async pardakht_online({ deliveryType, foods, restoranId, amount, selectedCouponIds, addressId }) {
             //deliveryType => 'ارسال با پیک' | 'دریافت حضوری'
             //لیست غذا ها که یک نمونه از اون در لیست زیر نمایش داده شده
             //foods => [
@@ -69,32 +77,31 @@ export function getResponse({ getState,baseUrl }) {
             //addressId => آی دی آدرس انتخاب شده ی کاربر
             let callbackurl = window.location.href; //یو آر ال فعلی اپ
             let foodList = [];
-            for(let i = 0; i < foods.length; i++){
-                let {count,foodId} = foods[i];
-                for(let j = 0; j < count; j++){
-                    foodList.push({restaurantId:restoranId,restaurantFoodId:foodId})
-                }    
+            for (let i = 0; i < foods.length; i++) {
+                let { count, foodId } = foods[i];
+                for (let j = 0; j < count; j++) {
+                    foodList.push({ restaurantId: restoranId, restaurantFoodId: foodId })
+                }
             }
             let url = `${baseUrl}/Order/OrderTotal`;
             //create from searchObject
             let body = {
                 "customerId": 1,
                 "isPreOrder": false,
-                'description':'',
-                "serviceTypeId": {'ارسال با پیک':1,'دریافت حضوری':2}[deliveryType],//delivery 1//takeaway 2
+                'description': '',
+                "serviceTypeId": { 'ارسال با پیک': 1, 'دریافت حضوری': 2 }[deliveryType],//delivery 1//takeaway 2
                 "addressId": addressId,
                 "paymentTypeId": 1,//online
-                "callback": "https://www.iranfoodguide.com/callback",
+                "callback": "https://localhost:3000",
                 "dinners": foodList
             }
             let response = await Axios.post(url, body);
-
             //باز کردن صفحه درگاه
             let paymentUrl = response.data.data;
             window.open(paymentUrl)
-            
+
             let result;
-            return {response,result}
+            return { response, result }
         },
         //در یافت لیست تگ های رستوران و تگ های غذا بسته به تایپ ورودی
         async get_tags({ type }) {
@@ -146,16 +153,17 @@ export function getResponse({ getState,baseUrl }) {
             let response = await Axios.delete(url);
             return { response, result: true }
         },
-        async get_restorans(searchObject) {
+        async get_restorans(searchObject = {}) {
             //if (mock) { return { mock: true } }
             let url = `${baseUrl}/Restaurant/Search`;
             //create from searchObject
+            let { pageSize = 1000, pageNumber = 1, selected_tags = [], searchValue } = searchObject;
             let body = {
 
-                RecordsPerPage:searchObject.pageSize,// تعداد ریزالت در هر صفحه
-                pageNumber:searchObject.pageNumber,// شماره صفحه
-                TypesId:searchObject.selected_tags,// array id tags
-                Title:searchObject.searchValue
+                RecordsPerPage: pageSize,// تعداد ریزالت در هر صفحه
+                pageNumber: pageNumber,// شماره صفحه
+                TypesId: selected_tags,// array id tags
+                Title: searchValue
                 //selected_tags لیستی از آی دی تگ های انتخاب شده برای سرچ توسط کاربر
                 //searchValue متن سرچ شده توسط کاربر
             }
@@ -165,13 +173,13 @@ export function getResponse({ getState,baseUrl }) {
             return { response, result }
         },
         async search_restorans() {
-            
+
             let response;
             let data = [];
             let result = MapRestorans(data);
-            return { response,result }
+            return { response, result }
         },
-        async add_or_edit_restoran({restoran,type}) {
+        async add_or_edit_restoran({ restoran, type }) {
             //if (mock) { return { mock: true } }
             //parameters
             //restoran آبجکت رستوران برای افزودن
@@ -190,8 +198,8 @@ export function getResponse({ getState,baseUrl }) {
             //     tags:Array of ids آرایه ای از تگ های رستوران
             // }
             let body = {
-                "id": type === 'edit'?restoran.id:undefined,
-                "Id": type === 'edit'?restoran.id:undefined,
+                "id": type === 'edit' ? restoran.id : undefined,
+                "Id": type === 'edit' ? restoran.id : undefined,
                 "Title": restoran.name,
                 "LatinTitle": restoran.name,
                 "Tax": restoran.tax,
@@ -217,15 +225,15 @@ export function getResponse({ getState,baseUrl }) {
                 ],
                 "types": restoran.tags.map((o) => { return { typeId: o } })
             }
-            let response,result;
-            if(type === 'add'){
+            let response, result;
+            if (type === 'add') {
                 response = await Axios.post(`${baseUrl}/Restaurant/Create`, body);
-                result = {id:response.data.data}
+                result = { id: response.data.data }
             }
-            else if(type === 'edit'){
+            else if (type === 'edit') {
                 response = await Axios.put(`${baseUrl}/Restaurant/Edit`, body);
                 result = true
-            }             
+            }
             return { response, result }
         },
         async remove_restoran(restoranId) {
@@ -246,14 +254,14 @@ export function getResponse({ getState,baseUrl }) {
                 return {
                     id: o.id, //String آی دی غذا
                     name: o.name, //String نام غذا
-                    parentId:o.parentFoodId === null?undefined:o.parentFoodId,// آی دی غذایی که این غذا زیر مجموعه ی آن است 
-                    menuCategory:o.menuCategoryTitle,// نام دسته بندی منو برای تفکیک غذا ها در یو آی
+                    parentId: o.parentFoodId === null ? undefined : o.parentFoodId,// آی دی غذایی که این غذا زیر مجموعه ی آن است 
+                    menuCategory: o.menuCategoryTitle,// نام دسته بندی منو برای تفکیک غذا ها در یو آی
                     image: o.image, //String یو آر ال تصویر غذا
                     price: o.price, //Number قیمت غذا
                     discountPercent: o.discountPercent, //Number درصد تخفیف غذا
                     description: o.description, //String توضیحات مختصر در مورد غذا
                     review: o.description, //String توضیحات مفصل در مورد غذا
-                    tags:[],
+                    tags: [],
                     //tags: o.tags //Array آرایه ای از آی دی های دسته بندی
                 }
             })
@@ -283,7 +291,7 @@ export function getResponse({ getState,baseUrl }) {
                 "title": food.name,
                 "food": {
                     //"types": food.tags.map((o) => { return { typeId: o } }),
-                    "types":[],
+                    "types": [],
                     "title": food.name,
                     "latinTitle": food.name,
                     "description": food.description
@@ -313,7 +321,7 @@ export function getResponse({ getState,baseUrl }) {
         },
         //ویرایش تصویر غذا
         async edit_food_image({ foodId, imageFile }) {
-            if(!imageFile){return {result:true}}
+            if (!imageFile) { return { result: true } }
             //if (mock) { return { mock: true } }
             let url = `${baseUrl}/RestaurantFood/AddLogoImage?RestaurantFoodId=${foodId}&Title=${'msf'}`;
             let formData = new FormData()
@@ -469,7 +477,7 @@ export function getResponse({ getState,baseUrl }) {
         async restoran_sort_options() {
             return { mock: true }
         },
-        
+
         async tarikhche_ye_jostojoo() {
             return { mock: true }
         },
@@ -549,16 +557,16 @@ export function getMock({ helper, getState }) {
             let res = mockStorage.load({ name: 'restorans', def: [] })
             return res;
         },
-        add_or_edit_restoran({newRestoran,type}) {
-            if(type === 'add'){
+        add_or_edit_restoran({ newRestoran, type }) {
+            if (type === 'add') {
                 let restorans = mockStorage.load({ name: 'restorans', def: [] });
                 let id = 'res' + Math.round(Math.random() * 1000000);
                 newRestoran = { ...newRestoran, id }
                 let newRestorans = [newRestoran, ...restorans];
                 mockStorage.save({ name: 'restorans', value: newRestorans })
-                return { id };     
+                return { id };
             }
-            else if(type === 'edit'){
+            else if (type === 'edit') {
                 let restorans = mockStorage.load({ name: 'restorans', def: [] });
                 restorans = restorans.map((o) => {
                     if (o.id === newRestoran.id) { return newRestoran }

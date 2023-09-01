@@ -77,7 +77,7 @@ export default function AIOShop(obj = {}) {
             }
             let newCart = {};
             for (let pid in $$.cart) { 
-                if(pid !== productId){newCart[pid] = $$.cart[pid];}
+                if(pid.toString() !== productId.toString()){newCart[pid] = $$.cart[pid];}
             }
             $$.cart = newCart;
         },
@@ -103,6 +103,7 @@ export default function AIOShop(obj = {}) {
             $$.cart = newCart;
         },
         setCartCount({count,product,variantId}) {
+            debugger
             if (count === 0) {$$.removeCartItem({productId:product.id,variantId});}
             else { 
                 let newCart = {};

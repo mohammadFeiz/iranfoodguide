@@ -17,6 +17,7 @@ import { icons } from './icons';
 import Sefareshe_ghaza from './pages/sefareshe_ghaza';
 import Profile from './pages/profile';
 import RestoranPage from './components/restoran-page';
+import URL_to_JSON from './npm/aio-functions/url-to-json';
 
 import './App.css';
 
@@ -177,8 +178,25 @@ class IranFoodGuide extends Component {
   ChangeState(obj) {
     this.setState(obj);
   }
+  checkOrderId(){
+    let url = 'https://iranfoodguide.ir?orderId=90';
+    let json = URL_to_JSON(url);
+    if(json.orderId){
+      let { apis } = this.state;
+      apis({
+        api:'peygiriye_sefaresh',
+        name:'پیگیری سفارش',
+        parameter:json.orderId,
+        callback:(obj)=>{
+
+        }
+      }) 
+    }
+    
+  }
   componentDidMount() {
     let { apis } = this.state;
+    this.checkOrderId()
     apis({
       api: 'getProfile',
       callback: ({ firstName, lastName, sheba, email, id }) => {
@@ -219,6 +237,7 @@ class IranFoodGuide extends Component {
       name: 'دریافت آپشن های مرتب سازی رستوران',
       callback: (restoran_sort_options) => this.setState({ restoran_sort_options })
     })
+    
   }
   getContext() {
     return {
