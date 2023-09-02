@@ -92,7 +92,7 @@ export function getResponse({ getState, baseUrl }) {
                 "serviceTypeId": { 'ارسال با پیک': 1, 'دریافت حضوری': 2 }[deliveryType],//delivery 1//takeaway 2
                 "addressId": addressId,
                 "paymentTypeId": 1,//online
-                "callback": "https://localhost:3000",
+                "callback": "http://localhost:3000",
                 "dinners": foodList
             }
             let response = await Axios.post(url, body);
