@@ -47,6 +47,7 @@ export function getResponse({ getState, baseUrl }) {
 
     return {
         async peygiriye_sefaresh(orderId) {
+            return {result:{statusId:1,totalPrice:12344444,id:88678}}
             let url = `${baseUrl}/Order/InquiryOrder`;
             //create from searchObject
             let body = {

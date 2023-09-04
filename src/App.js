@@ -17,7 +17,7 @@ import { icons } from './icons';
 import Sefareshe_ghaza from './pages/sefareshe_ghaza';
 import Profile from './pages/profile';
 import RestoranPage from './components/restoran-page';
-import URL_to_JSON from './npm/aio-functions/url-to-json';
+import URL from './npm/aio-functions/url';
 
 import './App.css';
 
@@ -179,8 +179,9 @@ class IranFoodGuide extends Component {
     this.setState(obj);
   }
   checkOrderId(){
-    let url = 'https://iranfoodguide.ir?orderId=90';
-    let json = URL_to_JSON(url);
+    let urlInstance = new URL();
+    let url = window.location.href;
+    let json = urlInstance.toJson(url);
     if(json.orderId){
       let { apis } = this.state;
       apis({
@@ -188,10 +189,19 @@ class IranFoodGuide extends Component {
         name:'پیگیری سفارش',
         parameter:json.orderId,
         callback:(obj)=>{
-
+          let dic = {
+            '1':"در انتظار پرداخت می باشد",
+            '2':"با موفقیت پرداخت شد",
+            '3':"در انتظار پرداخت حضوری می باشد"
+          }
+          let text = `سفارش با شماره ${obj.id} به مبلغ ${`${obj.totalPrice} ریال`} ${dic[obj.statusId.toString()]}`
+          alert(text)
+          urlInstance.setPageUrl(urlInstance.remove(urlInstance.getPageUrl(),'orderId'))      
         }
       }) 
     }
+    
+    
     
   }
   componentDidMount() {
