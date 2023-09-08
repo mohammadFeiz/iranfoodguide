@@ -129,13 +129,14 @@ function Service(config) {
   async function fetchData(obj){
     let {
       api,parameter,
-      getMock = config.getMock[api]
+      getMock = config.getMock[api],
+      token = obj.token,
     } = obj;
     let cache = getFromCache(obj);
     if(cache !== undefined){return cache}
     handleLoading(obj,true);
-    if(obj.token){
-      let tokenResult = typeof obj.token === 'function'?obj.token():obj.token;
+    if(token){
+      let tokenResult = typeof token === 'function'?token():token;
       Axios.defaults.headers.common['Authorization'] = `Bearer ${tokenResult}`;
     }
     else if(config.token){

@@ -90,7 +90,7 @@ export default class AIOLogin extends Component {
                         "Register":'عملیات ثبت نام'
                     }[mode];
                     let {token,Mode} = await apis({
-                        api:'onSubmit', parameter: {model,mode}, name,loading:false
+                        api:'onSubmit', parameter: {model,mode}, name,loading:false,token:mode === 'OTPPhoneNumber'?'':undefined
                     })
                     let modes = [];
                     if(mode === 'OTPPhoneNumber'){modes = ['Error','OTPCode','Authenticated']}
@@ -286,14 +286,14 @@ class LoginForm extends Component {
         }
     }
     recode_layout() {
-        let { mode ,userId} = this.state;
+        let { mode ,model} = this.state;
         if (mode !== 'OTPCode') { return false }
         let waitingTime = this.getWaitingTime();
         if(!!waitingTime){return false}
         return {
             className: 'aio-login-text m-b-12', html: `ارسال مجدد کد`, align: 'vh',
             onClick: () => {
-                this.setState({mode:'OTPPhoneNumber'})
+                this.setState({mode:'OTPPhoneNumber',model:{...model,OTPCode:''}})
 
             }
         }    
