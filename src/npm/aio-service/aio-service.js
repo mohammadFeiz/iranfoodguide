@@ -130,19 +130,13 @@ function Service(config) {
     let {
       api,parameter,
       getMock = config.getMock[api],
-      token = obj.token,
+      token = config.token,
     } = obj;
     let cache = getFromCache(obj);
     if(cache !== undefined){return cache}
     handleLoading(obj,true);
-    if(token){
-      let tokenResult = typeof token === 'function'?token():token;
-      Axios.defaults.headers.common['Authorization'] = `Bearer ${tokenResult}`;
-    }
-    else if(config.token){
-      let tokenResult = typeof config.token === 'function'?config.token():config.token;
-      Axios.defaults.headers.common['Authorization'] = `Bearer ${tokenResult}`;
-    }
+    let tokenResult = typeof token === 'function'?token():token;
+    Axios.defaults.headers.common['Authorization'] = tokenResult?`Bearer ${tokenResult}`:'';
     let res;
     try{
       let result = await getResultByResponse(obj,getMock); 

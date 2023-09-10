@@ -228,6 +228,9 @@ button,input{
   background:none !important;
   
 }
+.aio-login-register-button{
+  color:#fff;
+}
 .login-page .aio-input-form-error{
   color:orange;
 }

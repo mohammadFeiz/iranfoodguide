@@ -362,8 +362,8 @@ export function getResponse({ getState, baseUrl }) {
             let response = await Axios.post(url, body);
             return { response, result: true }
         },
-        async setProfile({ profile, mobile, registered }) {
-            let url = `${baseUrl}/People/${registered ? 'UpdateProfile' : 'CreateProfile'}`
+        async setProfile({ profile, isRegistered }) {
+            let url = `${baseUrl}/People/${isRegistered ? 'UpdateProfile' : 'CreateProfile'}`
             let body = {
                 "Id": profile.id,
                 "firstName": profile.firstName,//نام
@@ -381,7 +381,6 @@ export function getResponse({ getState, baseUrl }) {
             return { response }
         },
         async getProfile() {
-            return { mock: true }
             let { personId } = getState();
             let url = `${baseUrl}/People/search`
             let body = { "Id": personId }

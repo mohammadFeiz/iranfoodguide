@@ -85,7 +85,7 @@ export default class Profile extends Component {
                     column: [
                         { flex: 1 },
                         { html: `${profile.firstName} ${profile.lastName}`, className: 'fs-14 bold' },
-                        { html: mobile, className: 'fs-12' },
+                        { html: profile.mobile, className: 'fs-12' },
                         { flex: 1 }
                     ]
                 },
@@ -127,16 +127,18 @@ class Ettelaate_shakhsi extends Component {
     static contextType = AppContext;
     constructor(props) {
         super(props);
-        this.state = { model: {} }
+        this.state = { profile: {} }
     }
     componentDidMount() {
         let { profile } = this.context;
-        let {firstName,lastName,sheba,email} = profile;
-        this.setState({ model: {firstName,lastName,sheba,email} })
+        this.setState({ profile })
     }
     form_layout() {
-        let { model } = this.state;
-        let { profile } = this.context;
+        let { profile } = this.state;
+        let { appSetting } = this.context;
+        let inputs = appSetting.profileFields.filter(({editable})=>editable).map(({type,label,clientField})=>{
+            return { input:{type}, label, field: `value.${clientField}` }
+        })
         return {
             flex: 1, className: 'ofy-auto',
             column: [
@@ -150,18 +152,8 @@ class Ettelaate_shakhsi extends Component {
                 {
                     html: (
                         <AIOInput
-                            type='form' model={model}
-                            onChange={(model) => this.setState({ model })}
-                            inputs={{
-                                props:{gap:12},
-                                column:[
-                                    { input:{type: 'text'}, label: 'نام', field: 'value.firstName' },
-                                    { input:{type: 'text'}, label: 'نام خانوادگی', field: 'value.lastName' },
-                                    //{ input:{type: 'text'}, label: 'موبایل', field: 'value.mobile' },
-                                    { input:{type: 'text'}, label: 'ایمیل', field: 'value.email' },
-                                    { input:{type: 'text'}, label: 'شماره شبا', field: 'value.sheba' },
-                                ]
-                            }}
+                            type='form' value={profile} onChange={(profile) => this.setState({ profile })}
+                            inputs={{props:{gap:12},column:inputs}}
                         />
                     )
                 }
@@ -169,22 +161,18 @@ class Ettelaate_shakhsi extends Component {
         }
     }
     footer_layout() {
-        let {apis,rsa_actions,mobile,profile,ChangeState} = this.context;
+        let {apis,rsa_actions,changeStore,isRegistered} = this.context;
         return {
             align: 'vh',
             className: 'p-24',
             html: (
                 <button className= 'button-1 w-100 h-36' onClick={()=>{
-                    let {model} = this.state;
-                    let {firstName,lastName,sheba,email} = model;
+                    let {profile} = this.state;
                     apis({
                         api:'setProfile',
-                        parameter:{
-                            profile:{firstName,lastName,sheba,email,id:profile.id,mobile},
-                            registered:true
-                        },
+                        parameter:{profile,isRegistered},
                         callback:()=>{
-                            ChangeState({profile:{...profile,...model}})
+                            changeStore({profile},'<Ettelaate_shakhsi/> => footer_layout')
                             rsa_actions.removePopup()
                         },
                         name:'ثبت اطلاعات پروفایل',
@@ -213,14 +201,14 @@ class Ettelaate_shakhsi extends Component {
 class Address_ha extends Component {
     static contextType = AppContext;
     async onSubmit(address,type){
-        let {ChangeState,rsa_actions,apis,addresses} = this.context;
+        let {changeStore,rsa_actions,apis,addresses} = this.context;
         await apis({
             api:'addressForm',
             parameter:{address,type},
             callback:()=>{
                 if(type === 'add'){addresses.push(address);}
                 else{addresses = addresses.map((o)=>address.id === o.id?address:o)}
-                ChangeState({addresses},`Address_ha Component => onSubmit type:${type}`);
+                changeStore({addresses},`<Address_ha/> => onSubmit`);
                 rsa_actions.removePopup()
             },
             name:()=>`${type === 'add'?'افزودن':'ویرایش'} آدرس `,

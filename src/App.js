@@ -55,16 +55,6 @@ export default class App extends Component {
       catch { return 'error' }
     }
   }
-  async onRegister({ registerModel, mode, userId }) {//return string or true
-    let apis = getResponse({})
-    let { firstName, lastName, email, sheba } = registerModel;
-    let { response } = await apis.setProfile({
-      profile: { firstName, lastName, email, sheba,mobile:userId },
-      registered: false
-    })
-    if (response.data.isSuccess) { return true }
-    else { return response.data.message }
-  }
   async onSubmit(model,mode){
     if(mode === 'OTPPhoneNumber'){
       let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.OTPPhoneNumber })
@@ -81,25 +71,28 @@ export default class App extends Component {
       }
       else {return {mode:'Error',error:response.data.message};} 
     }
+    else if (mode === 'PhoneNumber'){
+      let {PhoneNumber,password} = model;
+    }
   }
   renderLogin() {
     let { registerFields } = this.state;
     return (
       <AIOLogin
-        id='iranfoodguide' otpLength={6} methods={['OTPPhoneNumber']}
+        //registerButton='ثبت نام در ایران فود'
+        id='iranfoodguide' otpLength={6} methods={['OTPPhoneNumber','PhoneNumber']}
         COMPONENT={({ token, logout, userId }) => this.setState({ token, logout, userId, isLogin: true })}
         registerFields={registerFields}
         checkToken={async (token) => await this.checkToken(token)}
-        onRegister={async (obj) => await this.onRegister(obj)}
         onSubmit={this.onSubmit.bind(this)}
       />
     )
   }
   render() {
     //return <IranFoodGuide/>
-    let { isLogin, token, logout, userId } = this.state;
+    let { isLogin, token, logout, userId,isRegistered } = this.state;
     if (isLogin) {
-      return <IranFoodGuide token={token} personId={this.personId} logout={logout} mobile={userId} roles={[]} baseUrl={this.baseUrl}/>
+      return <IranFoodGuide isRegistered={isRegistered} token={token} personId={this.personId} logout={logout} mobile={userId} roles={[]} baseUrl={this.baseUrl}/>
     }
     let renderLogin = this.renderLogin()
     return (
@@ -138,11 +131,25 @@ export default class App extends Component {
     )
   }
 }
-
+function appSetting(){
+  return {
+    profileFields:[
+      {serverField:'id',clientField:'id',type:'text',label:'آی دی',editable:false},
+      {serverField:'mobileNumber',clientField:'mobile',type:'text',label:'شماره همراه',editable:false},
+      {serverField:'firstName',clientField:'firstName',type:'text',label:'نام',editable:true},
+      {serverField:'lastName',clientField:'lastName',type:'text',label:'نام خانوادگی',editable:true},
+      {serverField:'sheba',clientField:'sheba',type:'text',label:'ایمیل',editable:true},
+      {serverField:'email',clientField:'email',type:'text',label:'شماره شبا',editable:true},
+      {serverField:'password',clientField:'password',type:'text',label:'رمز ورود',editable:true}
+    ]
+  }
+}
 class IranFoodGuide extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      appSetting:appSetting(),
+      isRegistered:props.isRegistered,
       mockStorage:AIOStorage('ifMock'),
       comming_soon: false,
       restoran_tags:[],
@@ -153,7 +160,7 @@ class IranFoodGuide extends Component {
       profile: {},
       discounts: [],
       addresses: [],
-      ChangeState: this.ChangeState.bind(this),
+      changeStore: this.changeStore.bind(this),
       mojoodiye_kife_pool: 0,
       restoran_tags: [],
       restoran_sort_options: [],
@@ -175,7 +182,7 @@ class IranFoodGuide extends Component {
       }
     })
   }
-  ChangeState(obj) {
+  changeStore(obj,caller) {
     this.setState(obj);
   }
   checkOrderId(){
@@ -200,23 +207,29 @@ class IranFoodGuide extends Component {
         }
       }) 
     }
-    
-    
-    
+  }
+  getProfile(){
+    let { apis,appSetting } = this.state;
+    apis({
+      api: 'getProfile',
+      callback: (obj) => {
+        let fields = appSetting.profileFields;
+        let profile = {};
+        for(let i = 0; i < fields.length; i++){
+          let {serverField,clientField} = fields[i];
+          let serverValue;
+          eval(`serverValue = obj.${serverField}`);
+          profile[clientField] = serverValue; 
+        }
+        this.setState({ profile })
+      },
+      name: 'دریافت اطلاعات پروفایل'
+    });
   }
   componentDidMount() {
     let { apis } = this.state;
     this.checkOrderId()
-    apis({
-      api: 'getProfile',
-      callback: ({ firstName, lastName, sheba, email, id }) => {
-        this.ChangeState(
-          { profile: { firstName, lastName, sheba, email, id } },
-          'IranFoodGuide Component => getProfile'
-        )
-      },
-      name: 'دریافت اطلاعات پروفایل'
-    });
+    this.getProfile()
     apis({
       api: 'mojoodiye_kife_pool',
       callback: (res) => this.setState({ mojoodiye_kife_pool: res }),

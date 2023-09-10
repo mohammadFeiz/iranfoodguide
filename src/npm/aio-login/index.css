@@ -139,3 +139,9 @@
     text-align: center;
     direction:ltr;
 }
+.aio-login-register-button{
+    color:#1265db;
+    background:none;
+    border:none;
+    margin-top:24px;
+}
