@@ -23,9 +23,10 @@ export default class AIOLogin extends Component {
                     return {
                         checkToken: async () => {
                             let token = this.tokenStorage.load({ name: 'token', def: false });
+                            let userId = this.tokenStorage.load({ name: 'userId', def: '' });
                             let isAuthenticated = this.tokenStorage.load({ name: 'isAuthenticated', def: false });
                             if (!token || !isAuthenticated) { return { result: false } }
-                            let result = await checkToken(token);
+                            let result = await checkToken(token,userId);
                             if(result === false){
                                 this.tokenStorage.remove({name:'token'});
                             }
