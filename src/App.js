@@ -24,8 +24,8 @@ import './App.css';
 export default class App extends Component {
   constructor(props) {
     super(props);
-    //this.baseUrl = 'https://localhost:7203'
-   this.baseUrl = 'https://iranfoodguide.ir'
+    this.baseUrl = 'https://localhost:7203'
+   //this.baseUrl = 'https://iranfoodguide.ir'
     this.state = {
       isLogin: false,
       isRegistered:false,
@@ -73,6 +73,11 @@ export default class App extends Component {
     }
     else if (mode === 'PhoneNumber'){
       let {PhoneNumber,password} = model;
+      let response = await Axios.post(`${this.baseUrl}/Users/Token`, {Username: PhoneNumber,Password: password,grant_type:"password"});
+      if (response.data.isSuccess) {
+        this.personId = response.data.data.personId
+        return { mode:'Authenticated',token: response.data.data.access_token };
+      }
     }
   }
   renderLogin() {
