@@ -177,7 +177,7 @@ class Ettelaate_shakhsi extends Component {
                         parameter:{profile,isRegistered,mobile},
                         callback:()=>{
                             changeStore({profile},'<Ettelaate_shakhsi/> => footer_layout')
-                            rsa_actions.removePopup()
+                            window.location.reload();
                         },
                         name:'ثبت اطلاعات پروفایل',
                         successMessage:true
