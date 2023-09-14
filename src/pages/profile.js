@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import RVD from './../npm/react-virtual-dom/react-virtual-dom';
 import SplitNumber from "../npm/aio-functions/split-number";
 import { Icon } from '@mdi/react';
-import { mdiAccount, mdiAccountCircleOutline, mdiChevronRight, mdiMapMarker, mdiPlusCircle, mdiPlusThick } from '@mdi/js';
+import { mdiAccount, mdiAccountCircleOutline, mdiChevronRight, mdiLock, mdiMapMarker, mdiPlusCircle, mdiPlusThick } from '@mdi/js';
 import AIOInput from "../npm/aio-input/aio-input";
 import Map from './../npm/map/map';
 import Timer from "../components/timer";
@@ -17,6 +17,7 @@ export default class Profile extends Component {
         this.state = {
             items: [
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'اطلاعات شخصی', id: 'ettelaate_shakhsi' },
+                { icon: <Icon path={mdiLock} size={1} />, text: 'تنظیم یا ویرایش رمز عبور', id: 'password' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'آدرس ها', id: 'address_ha' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'تخفیف ها',id:'takhfif_ha' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'رستوران های محبوب',id:'restoran_haye_mahboob' },
@@ -60,6 +61,9 @@ export default class Profile extends Component {
         }
         if (key === 'ettelaate_shakhsi') {
             addPopup({ type:'fullscreen',header: false, body: () => <Ettelaate_shakhsi /> })
+        }
+        if (key === 'password') {
+            addPopup({ type:'fullscreen',header: false, body: () => <Passwrod /> })
         }
         if (key === 'address_ha') {
             addPopup({ type:'fullscreen',header: false, body: () => <Address_ha /> })
@@ -197,7 +201,68 @@ class Ettelaate_shakhsi extends Component {
         )
     }
 }
-
+class Passwrod extends Component {
+    static contextType = AppContext;
+    constructor(props) {
+        super(props);
+        this.state = { model:{password: ''} }
+    }
+    form_layout() {
+        let { model } = this.state;
+        let inputs = [
+            { input:{type:'password'}, label:'رمز عبور', field: `value.password` }
+        ]
+        return {
+            flex: 1, className: 'ofy-auto',
+            column: [
+                {
+                    html: (
+                        <AIOInput
+                            type='form' value={model} onChange={(model) => this.setState({ model })}
+                            inputs={{props:{gap:12},column:inputs}}
+                        />
+                    )
+                }
+            ]
+        }
+    }
+    footer_layout() {
+        let {apis,rsa_actions,changeStore,isRegistered,profile} = this.context;
+        let {model} = this.state;
+        return {
+            align: 'vh',
+            className: 'p-24',
+            html: (
+                <button className= 'button-1 w-100 h-36' onClick={()=>{
+                    let {profile} = this.state;
+                    apis({
+                        api:'setProfile',
+                        parameter:{mobile:profile.mobile,password:model.password},
+                        callback:()=>{
+                            rsa_actions.removePopup()
+                        },
+                        name:'ثبت رمز عبور',
+                        successMessage:true
+                    })
+                }}>ثبت تغییرات</button>
+            )
+        }
+    }
+    render() {
+        return (
+            <RVD
+                layout={{
+                    className: 'app-popup',
+                    column: [
+                        { html: <PopupHeader title='تغییر رمز عبور' /> },
+                        this.form_layout(),
+                        this.footer_layout()
+                    ]
+                }}
+            />
+        )
+    }
+}
 class Address_ha extends Component {
     static contextType = AppContext;
     async onSubmit(address,type){
