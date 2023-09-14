@@ -380,6 +380,15 @@ export function getResponse({ getState, baseUrl }) {
             let response = await Axios.post(url, body);
             return { response }
         },
+        async setPassword( {mobile,password}) {
+            let url = `${baseUrl}/User/ChangePasswordByAdmin`
+            let body = {
+                "MobileNumber": MobileNumber,
+                "NewPassword": password,
+            }
+            let response = await Axios.post(url, body);
+            return { response }
+        },
         async getProfile() {
             let { personId } = getState();
             let url = `${baseUrl}/People/search`
