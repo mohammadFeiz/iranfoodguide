@@ -63,12 +63,14 @@ export default class App extends Component {
       if (!response.data.isSuccess) { return {mode:'Error',error:response.data.message} }
       let isRegistered = !!response.data.data.isRegistered;
       this.setState({isRegistered});
+      this.mobile=model.OTPPhoneNumber;
       return {mode:'OTPCode'}
     }
     else if (mode === 'OTPCode'){
       let response = await Axios.post(`${this.baseUrl}/Users/TokenWithCode`, {mobileNumber: model.OTPPhoneNumber,code: model.OTPCode.toString()});
       if (response.data.isSuccess) {
         this.personId = response.data.data.personId
+        this.mobile=model.OTPPhoneNumber;
         return { mode:'Authenticated',token: response.data.data.access_token };
       }
       else {return {mode:'Error',error:response.data.message};} 
@@ -77,7 +79,8 @@ export default class App extends Component {
       let {PhoneNumber,password} = model;
       let response = await Axios.post(`${this.baseUrl}/Users/Token`, {Username: PhoneNumber,Password: password,grant_type:"password"});
       if (response.data.isSuccess) {
-        this.personId = response.data.data.personId
+        this.personId = response.data.data.personId;
+        this.mobile=model.PhoneNumber;
         return { mode:'Authenticated',token: response.data.data.access_token };
       }
     }
@@ -99,7 +102,7 @@ export default class App extends Component {
     //return <IranFoodGuide/>
     let { isLogin, token, logout, userId,isRegistered } = this.state;
     if (isLogin) {
-      return <IranFoodGuide isRegistered={isRegistered} token={token} personId={this.personId} logout={logout} mobile={userId} roles={[]} baseUrl={this.baseUrl}/>
+      return <IranFoodGuide isRegistered={isRegistered} token={token} personId={this.personId} logout={logout} mobile={this.mobile} roles={[]} baseUrl={this.baseUrl}/>
     }
     let renderLogin = this.renderLogin()
     return (
@@ -171,6 +174,7 @@ class IranFoodGuide extends Component {
       restoran_tags: [],
       restoran_sort_options: [],
     }
+    debugger
     this.state.apis = AIOService({
       getState: () => this.state,
       baseUrl:props.baseUrl + '/api',
