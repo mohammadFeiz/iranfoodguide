@@ -231,24 +231,26 @@ class IranFoodGuide extends Component {
     });
   }
   componentDidMount() {
-    let { apis } = this.state;
+    let { apis,isRegistered } = this.state;
     this.checkOrderId()
-    this.getProfile()
-    apis({
-      api: 'mojoodiye_kife_pool',
-      callback: (res) => this.setState({ mojoodiye_kife_pool: res }),
-      name: 'دریافت موجودی کیف پول'
-    });
-    apis({
-      api: 'takhfif_ha',
-      callback: (res) => { this.setState({ takhfif_ha: res }) },
-      name: 'دریافت اطلاعات تخفیف ها'
-    });
-    apis({
-      api: 'getAddresses',
-      callback: (res) => this.setState({ addresses: res }),
-      name: 'دریافت آدرس ها'
-    });
+    if(isRegistered){
+      this.getProfile()
+      apis({
+        api: 'mojoodiye_kife_pool',
+        callback: (res) => this.setState({ mojoodiye_kife_pool: res }),
+        name: 'دریافت موجودی کیف پول'
+      });
+      apis({
+        api: 'takhfif_ha',
+        callback: (res) => { this.setState({ takhfif_ha: res }) },
+        name: 'دریافت اطلاعات تخفیف ها'
+      });
+      apis({
+        api: 'getAddresses',
+        callback: (res) => this.setState({ addresses: res }),
+        name: 'دریافت آدرس ها'
+      });
+    }
     apis({
       api: 'get_tags',
       parameter:{type:'restoran'},
