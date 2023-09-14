@@ -38,6 +38,7 @@ export default class App extends Component {
     }
   }
   async checkToken(token) {
+    debugger
     Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     try {
       let response = await Axios.get(`${this.baseUrl}/Users/WhoAmI`);
