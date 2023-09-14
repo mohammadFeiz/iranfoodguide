@@ -144,8 +144,7 @@ function appSetting(){
       {serverField:'firstName',clientField:'firstName',type:'text',label:'نام',editable:true},
       {serverField:'lastName',clientField:'lastName',type:'text',label:'نام خانوادگی',editable:true},
       {serverField:'sheba',clientField:'sheba',type:'text',label:'ایمیل',editable:true},
-      {serverField:'email',clientField:'email',type:'text',label:'شماره شبا',editable:true},
-      {serverField:'password',clientField:'password',type:'text',label:'رمز ورود',editable:true}
+      {serverField:'email',clientField:'email',type:'text',label:'شماره شبا',editable:true}
     ]
   }
 }

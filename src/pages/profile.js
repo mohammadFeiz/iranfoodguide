@@ -228,15 +228,14 @@ class Passwrod extends Component {
     }
     footer_layout() {
         let {apis,rsa_actions,changeStore,isRegistered,profile} = this.context;
-        let {model} = this.state;
         return {
             align: 'vh',
             className: 'p-24',
             html: (
                 <button className= 'button-1 w-100 h-36' onClick={()=>{
-                    let {profile} = this.state;
+                    let {model} = this.state;
                     apis({
-                        api:'setProfile',
+                        api:'setPassword',
                         parameter:{mobile:profile.mobile,password:model.password},
                         callback:()=>{
                             rsa_actions.removePopup()

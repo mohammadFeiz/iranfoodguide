@@ -381,9 +381,10 @@ export function getResponse({ getState, baseUrl }) {
             return { response }
         },
         async setPassword( {mobile,password}) {
+
             let url = `${baseUrl}/User/ChangePasswordByAdmin`
             let body = {
-                "MobileNumber": MobileNumber,
+                "MobileNumber": mobile,
                 "NewPassword": password,
             }
             let response = await Axios.post(url, body);
