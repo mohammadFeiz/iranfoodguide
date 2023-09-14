@@ -42,7 +42,8 @@ export default class App extends Component {
     Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     try {
       let response = await Axios.get(`${this.baseUrl}/Users/WhoAmI`);
-      this.personId = response.data.data.id;
+      try{this.personId = response.data.data.id;}
+      catch{}
       return !!response.data.isSuccess
     }
     catch (err) {
