@@ -89,7 +89,7 @@ export default class Profile extends Component {
                     column: [
                         { flex: 1 },
                         { html: `${profile.firstName} ${profile.lastName}`, className: 'fs-14 bold' },
-                        { html: profile.mobile, className: 'fs-12' },
+                        { html: mobile, className: 'fs-12' },
                         { flex: 1 }
                     ]
                 },
@@ -138,7 +138,7 @@ class Ettelaate_shakhsi extends Component {
         this.setState({ profile })
     }
     form_layout() {
-        let { profile } = this.state;
+        let { profile,mobile } = this.state;
         let { appSetting } = this.context;
         let inputs = appSetting.profileFields.filter(({editable})=>editable).map(({type,label,clientField})=>{
             return { input:{type}, label, field: `value.${clientField}` }
@@ -150,7 +150,7 @@ class Ettelaate_shakhsi extends Component {
                     column: [
                         { html: <Icon path={mdiAccountCircleOutline} size={2.8} />, style: { color: '#888' }, align: 'vh' },
                         { html: `${profile.firstName} ${profile.lastName}`, align: 'vh', className: 'fs-14 bold' },
-                        { html: profile.mobile, align: 'vh', className: 'fs-12' }
+                        { html: mobile, align: 'vh', className: 'fs-12' }
                     ]
                 },
                 {
@@ -227,7 +227,7 @@ class Passwrod extends Component {
         }
     }
     footer_layout() {
-        let {apis,rsa_actions,changeStore,isRegistered,profile} = this.context;
+        let {apis,rsa_actions,changeStore,isRegistered,profile,mobile} = this.context;
         return {
             align: 'vh',
             className: 'p-24',
@@ -236,7 +236,7 @@ class Passwrod extends Component {
                     let {model} = this.state;
                     apis({
                         api:'setPassword',
-                        parameter:{mobile:profile.mobile,password:model.password},
+                        parameter:{mobile,password:model.password},
                         callback:()=>{
                             rsa_actions.removePopup()
                         },

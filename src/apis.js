@@ -362,7 +362,7 @@ export function getResponse({ getState, baseUrl }) {
             let response = await Axios.post(url, body);
             return { response, result: true }
         },
-        async setProfile({ profile, isRegistered }) {
+        async setProfile({ profile, mobile,isRegistered }) {
             let url = `${baseUrl}/People/${isRegistered ? 'UpdateProfile' : 'CreateProfile'}`
             let body = {
                 "Id": profile.id,
@@ -372,7 +372,7 @@ export function getResponse({ getState, baseUrl }) {
                 "sheba": profile.sheba,
                 "mobileNumbers": [
                     {
-                        "mobileNumber": profile.mobile,
+                        "mobileNumber": mobile,
                         "isDefault": true
                     }
                 ]
