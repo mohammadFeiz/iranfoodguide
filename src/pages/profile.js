@@ -165,7 +165,7 @@ class Ettelaate_shakhsi extends Component {
         }
     }
     footer_layout() {
-        let {apis,rsa_actions,changeStore,isRegistered} = this.context;
+        let {apis,rsa_actions,changeStore,isRegistered,mobile} = this.context;
         return {
             align: 'vh',
             className: 'p-24',
@@ -174,7 +174,7 @@ class Ettelaate_shakhsi extends Component {
                     let {profile} = this.state;
                     apis({
                         api:'setProfile',
-                        parameter:{profile,isRegistered},
+                        parameter:{profile,isRegistered,mobile},
                         callback:()=>{
                             changeStore({profile},'<Ettelaate_shakhsi/> => footer_layout')
                             rsa_actions.removePopup()
