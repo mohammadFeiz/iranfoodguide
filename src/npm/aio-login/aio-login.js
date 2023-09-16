@@ -3,7 +3,7 @@ import RVD from './../react-virtual-dom/react-virtual-dom';
 import AIOStorage from './../aio-storage/aio-storage';
 import AIOInput from './../aio-input/aio-input';
 import { Icon } from '@mdi/react';
-import { mdiCellphone, mdiLock, mdiLoading, mdiAccount, mdiAccountBoxOutline, mdiEmail, mdiChevronRight, mdiCashRegister, mdiAccountPlus } from '@mdi/js';
+import { mdiCellphone, mdiLock, mdiLoading, mdiAccount, mdiAccountBoxOutline, mdiEmail, mdiChevronRight } from '@mdi/js';
 import AIOService from './../aio-service/aio-service';
 
 import './index.css';
@@ -83,7 +83,6 @@ export default class AIOLogin extends Component {
             <LoginForm
                 time={time} fields={registerFields} otpLength={otpLength} id={id} methods={methods} className={className} style={style} model={model} registerButton={registerButton}
                 onSubmit={async (model,mode)=>{
-                    debugger
                     let name = {
                         "OTPPhoneNumber":'ارسال شماره همراه',
                         "OTPCode":'ارسال کد یکبار مصرف',
@@ -93,7 +92,7 @@ export default class AIOLogin extends Component {
                         "Register":'عملیات ثبت نام'
                     }[mode];
                     let {token,Mode} = await apis({
-                        api:'onSubmit', parameter: {model,mode}, name,loading:false,token:mode === 'OTPPhoneNumber'?'':undefined
+                        api:'onSubmit', parameter: {model,mode}, name,loading:false
                     })
                     let modes = [];
                     if(mode === 'OTPPhoneNumber'){modes = ['Error','OTPCode','Authenticated']}
@@ -278,9 +277,7 @@ class LoginForm extends Component {
                     html: (
                         <SubmitButton
                             text={text}
-                            disabled={() => {
-                                return !!formError || !!waitingTime
-                            }}
+                            disabled={() => !!formError || !!waitingTime}
                             onClick={() => this.onSubmit()}
                             loading={loading}
                         />
