@@ -66,7 +66,6 @@ export default class App extends Component {
       let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.OTPPhoneNumber })
       if (!response.data.isSuccess) { return {mode:'Error',error:response.data.message} }
       let isRegistered = !!response.data.data.isRegistered;
-      debugger
       this.setState({isRegistered});
       this.mobile=model.OTPPhoneNumber;
       return {mode:'OTPCode'}
