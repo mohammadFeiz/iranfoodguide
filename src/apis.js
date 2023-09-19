@@ -381,7 +381,6 @@ export function getResponse({ getState, baseUrl }) {
             return { response }
         },
         async setPassword( {mobile,password}) {
-debugger
        var baseUrl1 = 'https://localhost:7203'
 
             let url = `${baseUrl1}/Users/ChangePasswordByAdmin`
@@ -393,7 +392,6 @@ debugger
             return { response }
         },
         async getProfile() {
-            debugger
             let { personId } = getState();
             let url = `${baseUrl}/People/search`
             let body = { "Id": personId }

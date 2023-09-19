@@ -7,12 +7,29 @@ import { mdiCellphone, mdiLock, mdiLoading, mdiAccount, mdiAccountBoxOutline, md
 import AIOService from './../aio-service/aio-service';
 
 import './index.css';
-export default class AIOLogin extends Component {
+export default class AIOlogin{
+    getActions = ({removeToken,getToken,setToken,getUserId})=>{
+        this.removeToken = removeToken;
+        this.getToken = getToken;
+        this.setToken = setToken;
+        this.getUserId = getUserId;
+    }
+    render = (props)=>{
+        return <AIOLOGIN {...props} getActions={(obj)=>this.getActions(obj)}/>
+    }
+}
+class AIOLOGIN extends Component {
     constructor(props) {
         super(props);
         let {id, checkToken,COMPONENT,onSubmit} = props;
         if (!id) { console.error(`aio-login error=> missing id props`) }
         if (!COMPONENT) { console.error(`aio-login error=> missing COMPONENT props`) }
+        props.getActions({
+            removeToken:this.removeToken.bind(this),
+            getToken:this.getToken.bind(this),
+            setToken:this.setToken.bind(this),
+            getUserId:this.getUserId.bind(this),
+        })
         this.valid = true
         this.tokenStorage = AIOStorage(`${id}-token`);
         this.state = {
@@ -22,18 +39,14 @@ export default class AIOLogin extends Component {
                 getResponse: () => {
                     return {
                         checkToken: async () => {
-                            let token = this.tokenStorage.load({ name: 'token', def: false });
-                            let userId = this.tokenStorage.load({ name: 'userId', def: '' });
-                            let isAuthenticated = this.tokenStorage.load({ name: 'isAuthenticated', def: false });
+                            let {token,userId,isAuthenticated} = this.getStorage();
                             if (!token || !isAuthenticated) { return { result: false } }
                             let result = await checkToken(token,userId);
-                            if(result === false){
-                                this.tokenStorage.remove({name:'token'});
-                            }
+                            if(result === false){this.removeToken()}
                             return { result }
                         },
                         onSubmit:async ({model,mode}) =>{
-                            this.tokenStorage.remove({name:'token'});
+                            this.removeToken();
                             let {mode:Mode,error = 'خطایی رخ داد',token} = await onSubmit(model,mode);
                             if(Mode === 'Error'){return {result:error}}
                             return {result:{Mode,token}}
@@ -47,6 +60,17 @@ export default class AIOLogin extends Component {
             })
         }
     }
+    getStorage(){
+        let token = this.tokenStorage.load({ name: 'token', def: false });
+        let userId = this.tokenStorage.load({ name: 'userId', def: '' });
+        let isAuthenticated = this.tokenStorage.load({ name: 'isAuthenticated', def: false });
+        return {token,userId,isAuthenticated}                    
+    }
+    setStorage(key,value){this.tokenStorage.save({name:key,value});}
+    removeToken(){this.tokenStorage.remove({name:'token'});}
+    getToken(){return this.getStorage().token;}
+    getUserId(){return this.getStorage().userId}
+    setToken(token){this.setStorage('token',token)}
     async componentDidMount() {
         if (!this.valid) { return }
         let res = await this.state.apis({
@@ -54,24 +78,18 @@ export default class AIOLogin extends Component {
             errorMessage: 'اتصال خود را بررسی کنید',
         })
         this.mounted = true;
-        if(res === false){
-            this.tokenStorage.remove({name:'token'});
-        }
+        if(res === false){this.removeToken()}
         this.setState({ isAutenticated: res });
     }
-    logout() { this.tokenStorage.remove({ name: 'token' }); window.location.reload() }
+    logout() { this.removeToken(); window.location.reload() }
     render() {
         if (!this.valid) { return null }
         if (!this.mounted) { return null }
         let { registerFields, layout, otpLength, COMPONENT, id, time = 16,methods,className,style,model,registerButton } = this.props;
         let { isAutenticated,apis } = this.state;
         if (isAutenticated) {
-            let props = {
-                token: this.tokenStorage.load({ name: 'token' }),
-                userId: this.tokenStorage.load({ name: 'userId' }),
-                logout: this.logout.bind(this)
-            }
-            COMPONENT(props)
+            let {token,userId} = this.getStorage();
+            COMPONENT({token,userId,logout: this.logout.bind(this)})
             return null
         }
         if (registerFields) {
@@ -103,12 +121,12 @@ export default class AIOLogin extends Component {
                         return
                     }
                     if (token) { 
-                        this.tokenStorage.save({ value: token, name: 'token' });
-                        this.tokenStorage.save({ value:model[mode], name: 'userId' });
+                        this.setStorage('token',token);
+                        this.setStorage('userId',model[mode]);
                         this.setState({ token})
                     }
                     if(Mode === 'Authenticated'){
-                        this.tokenStorage.save({name:'isAuthenticated',value:true})
+                        this.setStorage('isAuthenticated',true);
                         this.setState({isAutenticated:true})
                     }
                     else {return Mode}

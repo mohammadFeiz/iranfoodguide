@@ -24,9 +24,10 @@ import './App.css';
 export default class App extends Component {
   constructor(props) {
     super(props);
-    this.baseUrl = 'https://localhost:7203'
-   //this.baseUrl = 'https://iranfoodguide.ir'
+    //this.baseUrl = 'https://localhost:7203'
+   this.baseUrl = 'https://iranfoodguide.ir'
     this.state = {
+      loginClass:new AIOLogin(),
       isLogin: false,
       isRegistered:false,
       registerFields: [
@@ -41,6 +42,7 @@ export default class App extends Component {
     Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     try {
       let response = await Axios.get(`${this.baseUrl}/Users/WhoAmI`);
+      debugger
       try{this.personId = response.data.data.id;}
       catch{}
       if(response.data.isSuccess){
@@ -64,6 +66,7 @@ export default class App extends Component {
       let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.OTPPhoneNumber })
       if (!response.data.isSuccess) { return {mode:'Error',error:response.data.message} }
       let isRegistered = !!response.data.data.isRegistered;
+      debugger
       this.setState({isRegistered});
       this.mobile=model.OTPPhoneNumber;
       return {mode:'OTPCode'}
@@ -88,22 +91,23 @@ export default class App extends Component {
     }
   }
   renderLogin() {
-    let { registerFields } = this.state;
+    let { loginClass,registerFields } = this.state;
     return (
-      <AIOLogin
-        //registerButton='ثبت نام در ایران فود'
-        id='iranfoodguide' otpLength={6} methods={['OTPPhoneNumber','PhoneNumber']}
-        COMPONENT={({ token, logout, userId }) => this.setState({ token, logout, userId, isLogin: true })}
-        registerFields={registerFields}
-        checkToken={async (token) => await this.checkToken(token)}
-        onSubmit={this.onSubmit.bind(this)}
-      />
+      loginClass.render({
+        //registerButton:'ثبت نام در ایران فود'
+        id:'iranfoodguide',otpLength:6,methods:['OTPPhoneNumber','PhoneNumber'],
+        COMPONENT:({ token, logout, userId }) => this.setState({ token, logout, userId, isLogin: true }),
+        registerFields,
+        checkToken:async (token) => await this.checkToken(token),
+        onSubmit:this.onSubmit.bind(this)
+      })
     )
   }
   render() {
     //return <IranFoodGuide/>
-    let { isLogin, token, logout, userId,isRegistered } = this.state;
+    let { loginClass,isLogin, token, logout, userId,isRegistered } = this.state;
     if (isLogin) {
+      if(!isRegistered){loginClass.removeToken()}
       return <IranFoodGuide isRegistered={isRegistered} token={token} personId={this.personId} logout={logout} mobile={this.mobile} roles={[]} baseUrl={this.baseUrl}/>
     }
     let renderLogin = this.renderLogin()

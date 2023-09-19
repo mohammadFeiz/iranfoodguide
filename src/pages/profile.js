@@ -17,7 +17,7 @@ export default class Profile extends Component {
         this.state = {
             items: [
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'اطلاعات شخصی', id: 'ettelaate_shakhsi' },
-                { icon: <Icon path={mdiLock} size={1} />, text: 'تنظیم یا ویرایش رمز عبور', id: 'password' },
+                { icon: <Icon path={mdiLock} size={1} />, text: 'تنظیم یا ویرایش رمز عبور', id: 'password',show:()=>this.context.isRegistered },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'آدرس ها', id: 'address_ha' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'تخفیف ها',id:'takhfif_ha' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'رستوران های محبوب',id:'restoran_haye_mahboob' },
@@ -101,7 +101,7 @@ export default class Profile extends Component {
         let { items } = this.state;
         return {
             flex: 1, className: 'ofy-auto',
-            column: items.map(({ icon, text, id }) => {
+            column: items.filter(({show = ()=>true})=>show()).map(({ icon, text, id }) => {
                 return {
                     size: 48,
                     onClick: () => this.openPopup(id),
@@ -166,6 +166,7 @@ class Ettelaate_shakhsi extends Component {
     }
     footer_layout() {
         let {apis,rsa_actions,changeStore,isRegistered,mobile} = this.context;
+        
         return {
             align: 'vh',
             className: 'p-24',
@@ -177,7 +178,7 @@ class Ettelaate_shakhsi extends Component {
                         parameter:{profile,isRegistered,mobile},
                         callback:()=>{
                             changeStore({profile},'<Ettelaate_shakhsi/> => footer_layout')
-                            window.location.reload();
+                            //window.location.reload();
                         },
                         name:'ثبت اطلاعات پروفایل',
                         successMessage:true
