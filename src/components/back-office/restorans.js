@@ -14,7 +14,7 @@ export default class Restorans extends Component {
     static contextType = BOContext;
     constructor(props) {
         super(props);
-        this.state = { restorans: [], popup: false, searchValue: '',restoran_tags:[], restoran_tags_dic: {}, food_tags: [] }
+        this.state = { restorans: [], popup: new AIOPopup(), searchValue: '',restoran_tags:[], restoran_tags_dic: {}, food_tags: [] }
     }
     async get_restorans() {
         let {apis} = this.context;
@@ -51,7 +51,7 @@ export default class Restorans extends Component {
                    newRestorans = restorans.map((o) => o.id === id ? newRestoran : o);
                 }
                 this.setState({ restorans: newRestorans });
-                popup.removePopup();
+                popup.removeModal();
             }
         })
     }
@@ -63,7 +63,7 @@ export default class Restorans extends Component {
                 let { restorans, popup } = this.state;
                 let newRestorans = restorans.filter((o) => o.id !== id)
                 this.setState({ restorans: newRestorans });
-                popup.removePopup();
+                popup.removeModal();
             }
         })
     }
@@ -104,7 +104,7 @@ export default class Restorans extends Component {
             className: 'p-h-12',
             gap:12,
             row: [
-                { size: 96, align: 'vh', html: 'افزودن رستوران', onClick: () => this.openPopup('add'), className: 'fs-12', style: { background: 'orange', color: '#fff'} },
+                { size: 96, align: 'vh', html: 'افزودن رستوران', onClick: () => this.openModal('add'), className: 'fs-12', style: { background: 'orange', color: '#fff'} },
                 {
                     flex: 1,
                     html: (
@@ -128,13 +128,13 @@ export default class Restorans extends Component {
         return {
             flex: 1, className: 'ofy-auto p-12', gap: 6,
             column: list.map((restoran) => {
-                let onClick = ()=>this.openPopup('edit',restoran);
+                let onClick = ()=>this.openModal('edit',restoran);
                 let onRemove = ()=>this.remove_restoran(restoran.id);
                 return {html:<RestoranCard key={restoran.id} onClick={onClick} onRemove={onRemove} restoran={restoran}/>}
             })
         }
     }
-    openPopup(type, restoran) {
+    openModal(type, restoran) {
         let { popup } = this.state;
         if (type === 'add') {
             restoran = {
@@ -142,9 +142,9 @@ export default class Restorans extends Component {
                 address: '', ifRate: 0, ifComment: '', tags: [], phone: '',
             }
         }
-        popup.addPopup({
-            title: type === 'add' ? 'افزودن رستوران' : 'ویرایش رستوران', type: 'fullscreen',
-            body: () => <RestoranForm type={type} restoran={restoran} />
+        popup.addModal({
+            header:{title: type === 'add' ? 'افزودن رستوران' : 'ویرایش رستوران'}, position: 'fullscreen',
+            body: {render:() => <RestoranForm type={type} restoran={restoran} />}
         })
     }
     getContext() {
@@ -152,16 +152,17 @@ export default class Restorans extends Component {
         let { food_tags,restoran_tags,restoran_tags_dic } = this.state;
         return {
             apis, food_tags,restoran_tags,restoran_tags_dic,
-            openPopup:this.openPopup.bind(this),
+            openModal:this.openModal.bind(this),
             remove_restoran: this.remove_restoran.bind(this),
             add_or_edit_restoran: this.add_or_edit_restoran.bind(this)
         }
     }
     render() {
+        let {popup} = this.state;
         return (
             <RestoranContext.Provider value={this.getContext()}>
                 <RVD layout={{ column: [this.header_layout(), this.body_layout()] }} />
-                <AIOPopup getActions={({ addPopup, removePopup }) => this.setState({ popup: { addPopup, removePopup } })} />
+                {popup.render()}
             </RestoranContext.Provider>
         )
     }
@@ -192,7 +193,7 @@ class RestoranForm extends Component {
     constructor(props) {
         super(props);
         this.timeOptions = this.getTimeOptions();
-        this.state = { model: { ...props.restoran }, popup: false, foods: [] }
+        this.state = { model: { ...props.restoran }, popup: new AIOPopup(), foods: [] }
     }
     getTimeOptions() {
         return new Array(24).fill(0).map((o, i) => {
@@ -421,49 +422,52 @@ class RestoranForm extends Component {
     }
     openMap() {
         let { popup, model } = this.state;
-        popup.addPopup({
-            title: 'انتخاب موقعیت', type: 'fullscreen',
+        popup.addModal({
+            header:{title: 'انتخاب موقعیت'}, position: 'fullscreen',
             animate: false,
-            body: () => {
-                return (
-                    <Map
-                        apiKey='web.c6d5b589faf947e1b6143fa8977eb9b7'
-                        style={{ width: '100%', height: '100%' }}
-                        latitude={model.latitude}
-                        longitude={model.longitude}
-                        onSubmit={(latitude, longitude, address) => {
-                            this.setState({ model: { ...model, latitude, longitude, address } });
-                            popup.removePopup();
-                        }}
-                    />
-                )
+            body: {
+                render:() => {
+                    return (
+                        <Map
+                            apiKey='web.c6d5b589faf947e1b6143fa8977eb9b7'
+                            style={{ width: '100%', height: '100%' }}
+                            latitude={model.latitude}
+                            longitude={model.longitude}
+                            onSubmit={(latitude, longitude, address) => {
+                                this.setState({ model: { ...model, latitude, longitude, address } });
+                                popup.removeModal();
+                            }}
+                        />
+                    )
+                }
             }
         })
     }
     openFoods() {
         let { popup, model} = this.state;
-        popup.addPopup({
-            title: `منوی رستوران ${model.name}`, type: 'fullscreen',
+        popup.addModal({
+            header:{title: `منوی رستوران ${model.name}`}, position: 'fullscreen',
             animate: false,
-            body: () => {
-                let { model, foods } = this.state;
-                return (
-                    <div style={{ height: '100%', background: '#fff' }}>
-                        <Foods foods={foods} onChange={(newFoods) => {
-                            this.setState({foods:newFoods})
-                        }} restoranId={model.id} onClose={() => popup.removePopup()} />
-                    </div>
-                )
+            body: {
+                render:() => {
+                    let { model, foods } = this.state;
+                    return (
+                        <div style={{ height: '100%', background: '#fff' }}>
+                            <Foods foods={foods} onChange={(newFoods) => {
+                                this.setState({foods:newFoods})
+                            }} restoranId={model.id} onClose={() => popup.removeModal()} />
+                        </div>
+                    )
+                }
             }
         })
     }
     render() {
+        let {popup} = this.state;
         return (
             <>
                 <RVD layout={this.form_layout()} />
-                <AIOPopup
-                    getActions={({ addPopup, removePopup }) => this.setState({ popup: { addPopup, removePopup } })}
-                />
+                {popup.render()}
             </>
         )
     }

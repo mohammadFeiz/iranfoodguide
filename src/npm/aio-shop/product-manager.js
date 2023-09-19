@@ -9,7 +9,7 @@ import './product-manager.css';
 export default class ProductManager extends Component {
     constructor(props) {
         super(props);
-        this.state = { popup: false }
+        this.state = { popup: new AIOPopup() }
     }
     header_layout() {
         return { gap:12,className: 'product-manager-header', row: [this.add_layout(), this.search_layout()] }
@@ -40,29 +40,24 @@ export default class ProductManager extends Component {
         let { products} = this.props;
         return Search(products, searchValue, (o) => `${o.name} ${o.id}`)
     }
+    removeModal(){
+        let { popup } = this.state;
+        popup.removeModal();
+    }
     async add(newProduct){
         let {onAdd = ()=>'id' + Math.round(Math.random() * 1000000)} = this.props;
         let res = await onAdd(newProduct)
-        if(res === true){
-            let { popup } = this.state;
-            popup.removePopup();
-        }
+        if(res === true){this.removeModal();}
     }
     async remove(id) {
         let {onRemove = ()=>true} = this.props;
         let res = await onRemove(id);
-        if(res === true){
-            let { popup } = this.state;
-            popup.removePopup()
-        }
+        if(res === true){this.removeModal()}
     }
     async edit(newProduct) {
         let {onEdit = ()=>true} = this.props;
         let res = await onEdit(newProduct);
-        if(res === true){
-            let { popup } = this.state;
-            popup.removePopup()
-        }
+        if(res === true){this.removeModal()}
     }
     body_layout() {
         return {
@@ -107,34 +102,37 @@ export default class ProductManager extends Component {
         let product = o || { name: '', image: false, review: '', description: '', details: [],price: 0 ,discountPercent:0}
         let type = !!o ? 'edit' : 'add';
         let title = !!o ? 'ویرایش محصول' : 'افزودن محصول'
-        popup.addPopup({
-            title, type: 'fullscreen',
-            body: () => (
-                <RVD
-                    layout={{
-                        style: { height: '100%', background: '#fff', display: 'flex' },
-                        column: [
-                            {
-                                flex: 1,
-                                html: (
-                                    <ProductCard
-                                        variantMode={variantMode}
-                                        extraOptions={extraOptions}
-                                        product={product}
-                                        type={type}
-                                        onAdd={(newProduct) => this.add(newProduct)}
-                                        onEdit={(newProduct) => this.edit(newProduct)}
-                                        onRemove={() => this.remove(o.id)}
-                                    />
-                                )
-                            }
-                        ]
-                    }}
-                />
-            )
+        popup.addModal({
+            header:{title}, position: 'fullscreen',
+            body: {
+                render:() => (
+                    <RVD
+                        layout={{
+                            style: { height: '100%', background: '#fff', display: 'flex' },
+                            column: [
+                                {
+                                    flex: 1,
+                                    html: (
+                                        <ProductCard
+                                            variantMode={variantMode}
+                                            extraOptions={extraOptions}
+                                            product={product}
+                                            type={type}
+                                            onAdd={(newProduct) => this.add(newProduct)}
+                                            onEdit={(newProduct) => this.edit(newProduct)}
+                                            onRemove={() => this.remove(o.id)}
+                                        />
+                                    )
+                                }
+                            ]
+                        }}
+                    />
+                )
+            }
         })
     }
     render() {
+        let {popup} = this.state;
         return (
             <>
                 <RVD
@@ -146,9 +144,7 @@ export default class ProductManager extends Component {
                         ]
                     }}
                 />
-                <AIOPopup
-                    getActions={({ addPopup, removePopup }) => this.setState({ popup: { addPopup, removePopup } })}
-                />
+                {popup.render()}
             </>
         )
     }
@@ -159,7 +155,6 @@ class ProductCard extends Component {
         super(props);
         this.state = {
             model: { ...props.product },
-            popup: false,
         }
     }
     image_layout() {
@@ -318,9 +313,6 @@ class ProductCard extends Component {
                         style: { background: '#eee' },
                         html: this.form()
                     }}
-                />
-                <AIOPopup
-                    getActions={({ addPopup, removePopup }) => this.setState({ popup: { addPopup, removePopup } })}
                 />
             </>
         )

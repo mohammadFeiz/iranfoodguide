@@ -79,19 +79,10 @@ export default class Sefareshe_ghaza extends Component {
             />
         )
     }
-    openPopup(){
-        let {rsa_actions} = this.context;
-        rsa_actions.addPopup({
-            type:'fullscreen',
-            title:'جستجو',
-            body:()=>{
-                return <Search/>
-            }
-        })
-    }
     search_layout(){
+        let {rsa} = this.context;
         return {
-            className:'p-12',html:<SearchBox onClick={()=>this.openPopup()}/>
+            className:'p-12',html:<SearchBox onClick={()=>rsa.addModal({position:'fullscreen',header:{title:'جستجو'},body:{render:()=><Search/>}})}/>
         }
     }
     content_layout(){

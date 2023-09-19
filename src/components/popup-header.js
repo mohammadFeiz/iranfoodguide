@@ -6,8 +6,8 @@ import { mdiChevronRight } from "@mdi/js";
 export default class PopupHeader extends Component {
     static contextType = AppContext;
     onClose() {
-        let { rsa_actions } = this.context;
-        rsa_actions.removePopup();
+        let { rsa } = this.context;
+        rsa.removeModal();
     }
     render() {
         let { title } = this.props;

@@ -31,10 +31,10 @@ export default class Profile extends Component {
         }
     }
     kife_pool_layout(){
-        let { mojoodiye_kife_pool,rsa_actions } = this.context;
+        let { mojoodiye_kife_pool,rsa } = this.context;
         return {
             onClick:()=>{
-                rsa_actions.addPopup({ header: false, body: () => <Kife_pool /> })
+                rsa.addModal({ header: false, body: {render:() => <Kife_pool />} })
             },
             column: [
                 { flex: 1 },
@@ -53,26 +53,26 @@ export default class Profile extends Component {
             ]
         }
     }
-    openPopup(key) {
-        let { rsa_actions,logout } = this.context;
-        let { addPopup } = rsa_actions;
+    openModal(key) {
+        let { rsa,logout } = this.context;
+        let { addModal } = rsa;
         if(key === 'exit'){
             logout();
         }
         if (key === 'ettelaate_shakhsi') {
-            addPopup({ type:'fullscreen',header: false, body: () => <Ettelaate_shakhsi /> })
+            addModal({ position:'fullscreen',header: false, body: {render:() => <Ettelaate_shakhsi /> }})
         }
         if (key === 'password') {
-            addPopup({ type:'fullscreen',header: false, body: () => <Passwrod /> })
+            addModal({ position:'fullscreen',header: false, body: {render:() => <Passwrod /> }})
         }
         if (key === 'address_ha') {
-            addPopup({ type:'fullscreen',header: false, body: () => <Address_ha /> })
+            addModal({ position:'fullscreen',header: false, body: {render:() => <Address_ha /> }})
         }
         if (key === 'takhfif_ha') {
-            addPopup({ type:'fullscreen',header: false, body: () => <Takhfif_ha /> })
+            addModal({ position:'fullscreen',header: false, body: {render:() => <Takhfif_ha /> }})
         }
         if (key === 'restoran_haye_mahboob') {
-            addPopup({ type:'fullscreen',header: false, body: () => <Restoran_haye_mahboob /> })
+            addModal({ position:'fullscreen',header: false, body: {render:() => <Restoran_haye_mahboob /> }})
         }
     }
     header_layout() {
@@ -104,7 +104,7 @@ export default class Profile extends Component {
             column: items.filter(({show = ()=>true})=>show()).map(({ icon, text, id }) => {
                 return {
                     size: 48,
-                    onClick: () => this.openPopup(id),
+                    onClick: () => this.openModal(id),
                     row: [
                         { size: 48, html: icon, align: 'vh' },
                         { flex: 1, html: text, align: 'v' }
@@ -165,8 +165,7 @@ class Ettelaate_shakhsi extends Component {
         }
     }
     footer_layout() {
-        let {apis,rsa_actions,changeStore,isRegistered,mobile} = this.context;
-        
+        let {apis,changeStore,isRegistered,mobile} = this.context; 
         return {
             align: 'vh',
             className: 'p-24',
@@ -178,7 +177,7 @@ class Ettelaate_shakhsi extends Component {
                         parameter:{profile,isRegistered,mobile},
                         callback:()=>{
                             changeStore({profile},'<Ettelaate_shakhsi/> => footer_layout')
-                            //window.location.reload();
+                            window.location.reload();
                         },
                         name:'ثبت اطلاعات پروفایل',
                         successMessage:true
@@ -228,7 +227,7 @@ class Passwrod extends Component {
         }
     }
     footer_layout() {
-        let {apis,rsa_actions,changeStore,isRegistered,profile,mobile} = this.context;
+        let {apis,rsa,changeStore,isRegistered,profile,mobile} = this.context;
         return {
             align: 'vh',
             className: 'p-24',
@@ -238,9 +237,7 @@ class Passwrod extends Component {
                     apis({
                         api:'setPassword',
                         parameter:{mobile,password:model.password},
-                        callback:()=>{
-                            rsa_actions.removePopup()
-                        },
+                        callback:()=>rsa.removeModal(),
                         name:'ثبت رمز عبور',
                         successMessage:true
                     })
@@ -266,7 +263,7 @@ class Passwrod extends Component {
 class Address_ha extends Component {
     static contextType = AppContext;
     async onSubmit(address,type){
-        let {changeStore,rsa_actions,apis,addresses} = this.context;
+        let {changeStore,rsa,apis,addresses} = this.context;
         await apis({
             api:'addressForm',
             parameter:{address,type},
@@ -274,7 +271,7 @@ class Address_ha extends Component {
                 if(type === 'add'){addresses.push(address);}
                 else{addresses = addresses.map((o)=>address.id === o.id?address:o)}
                 changeStore({addresses},`<Address_ha/> => onSubmit`);
-                rsa_actions.removePopup()
+                rsa.removeModal()
             },
             name:()=>`${type === 'add'?'افزودن':'ویرایش'} آدرس `,
             successMessage:true
@@ -284,10 +281,10 @@ class Address_ha extends Component {
         return {
             size: 48, className: 'p-h-12',
             onClick:()=>{
-                let { rsa_actions } = this.context;
-                rsa_actions.addPopup({
+                let { rsa } = this.context;
+                rsa.addModal({
                     header: false,
-                    body: () => <Address_form onSubmit={(address) => this.onSubmit(address,'add')} />
+                    body: {render:() => <Address_form onSubmit={(address) => this.onSubmit(address,'add')} />}
                 })
             },
             row: [
@@ -306,10 +303,10 @@ class Address_ha extends Component {
                     size: 72, className: 'm-12 m-t-0 br-12',
                     style: { border: '1px solid #aaa' },
                     onClick: () => {
-                        let { rsa_actions } = this.context;
-                        rsa_actions.addPopup({
-                            type:'fullscreen',header: false,
-                            body: () => <Address_form model={o} onSubmit={(model) => this.onSubmit(model,'edit')} />
+                        let { rsa } = this.context;
+                        rsa.addModal({
+                            position:'fullscreen',header: false,
+                            body: {render:() => <Address_form model={o} onSubmit={(model) => this.onSubmit(model,'edit')} />}
                         })
                     },
                     row: [
@@ -357,24 +354,25 @@ class Address_form extends Component {
     }
     onMapClick() {
         let {model} = this.state;
-        let { rsa_actions } = this.context;
-        let { addPopup } = rsa_actions;
-        addPopup({
+        let { rsa } = this.context;
+        rsa.addModal({
             header: false,
-            type: 'fullscreen',
-            body: () => (
-                <Add_address_map 
-                    onSubmit={(latitude, longitude, address) => {
-                        let { model } = this.state;
-                        model.latitude = latitude;
-                        model.longitude = longitude;
-                        model.address = address;
-                        this.setState({ model })
-                    }}
-                    latitude={model.latitude}
-                    longitude={model.longitude} 
-                />
-            )
+            position: 'fullscreen',
+            body: {
+                render:() => (
+                    <Add_address_map 
+                        onSubmit={(latitude, longitude, address) => {
+                            let { model } = this.state;
+                            model.latitude = latitude;
+                            model.longitude = longitude;
+                            model.address = address;
+                            this.setState({ model })
+                        }}
+                        latitude={model.latitude}
+                        longitude={model.longitude} 
+                    />
+                )
+            }
         })
     }
     onSubmit(){
@@ -441,7 +439,7 @@ class Add_address_map extends Component {
     body_layout() {
         let { latitude, longitude } = this.props;
         let { onSubmit } = this.props;
-        let { rsa_actions } = this.context;
+        let { rsa } = this.context;
         return {
             flex: 1,
             html: (
@@ -451,7 +449,7 @@ class Add_address_map extends Component {
                     style={{ width: '100%', height: '100%', position: 'absolute' }}
                     onChange={(latitude, longitude, address) => {
                         onSubmit(latitude, longitude, address);
-                        rsa_actions.removePopup()
+                        rsa.removeModal()
                     }}
                     search={true}
                 />

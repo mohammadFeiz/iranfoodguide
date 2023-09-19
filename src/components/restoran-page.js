@@ -199,7 +199,7 @@ export default class RestoranPage extends Component {
             image={image}
             icons={[
               {icon:<Icon path={mdiClose} size={1}/>,onClick:()=>onClose()},
-              {icon:SVG_Cart(),onClick:()=>Shop.openPopup('cart'),badge:cartLength,show:!cartTab},
+              {icon:SVG_Cart(),onClick:()=>Shop.openModal('cart'),badge:cartLength,show:!cartTab},
             ]}
           />
         )
@@ -252,25 +252,21 @@ export default class RestoranPage extends Component {
         let html;
         if(items.length){
           html = (
-            <button className='joziate-ghaza button-2' onClick={()=>this.openPopup('subFoods',o)}>جزییات</button>
+            <button className='joziate-ghaza button-2' onClick={()=>this.openModal('subFoods',o)}>جزییات</button>
           )
         }
         return { className: 'p-h-12 of-visible', html: Shop.renderProductCard({product:o,config:{changeCart:true,html}}) }
       })
     }
   }
-  openPopup(key,parameter){
+  openModal(key,parameter){
     let {Shop,subFoods} = this.state;
-    let {rsa_actions} = this.context;
-    let {addPopup} = rsa_actions;
+    let {rsa} = this.context;
+    let {addModal} = rsa;
     if(key === 'subFoods'){
-      addPopup({
-        type:'fullscreen',title:`انواع ${parameter.name}`,
-        body:()=>{
-          return (
-            <SubFoods food={parameter} subFoods={subFoods} Shop={Shop}/>
-          )
-        }
+      addModal({
+        position:'fullscreen',header:{title:`انواع ${parameter.name}`},
+        body:{render:()=><SubFoods food={parameter} subFoods={subFoods} Shop={Shop}/>}
       })
     }
   }
@@ -316,7 +312,7 @@ export default class RestoranPage extends Component {
             ]
           }}
         />
-        {Shop && Shop.renderPopups()}
+        {Shop && Shop.renderModals()}
       </>
     )
   }

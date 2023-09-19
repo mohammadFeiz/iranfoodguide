@@ -21,6 +21,7 @@ export default function AIOShop(obj = {}) {
     } = obj
     if (!id) { return }
     let $$ = {
+        popup:new AIOPopup(),
         factor: {},
         changesOfCart:{},
         storage: AIOStorage('aioshop' + id),
@@ -166,60 +167,44 @@ export default function AIOShop(obj = {}) {
             $$.factor = factor;
             return factor;
         },
-        openPopup({type,parameter,popupConfig}){
-            popupConfig = {
-                style:{maxWidth:772},
-                ...popupConfig
+        openModal({type,parameter,modalConfig}){
+            modalConfig = {
+                attrs:{style:{maxWidth:772}},
+                ...modalConfig
             }
             if(type === 'cart'){
-                $$.popup.addPopup({
-                    type:'fullscreen',title:'سبد خرید',
-                    body:()=>$$.renderCart(),
-                    ...popupConfig
+                $$.popup.addModal({
+                    position:'fullscreen',header:{title:'سبد خرید'},
+                    body:{render:()=>$$.renderCart()},
+                    ...modalConfig
                 })
             }
             if(type === 'shipping'){
-                $$.popup.addPopup({
-                    type:'fullscreen',title:'ثبت نهایی خرید',
-                    body:()=>$$.renderShipping(),
-                    ...popupConfig
+                $$.popup.addModal({
+                    position:'fullscreen',header:{title:'ثبت نهایی خرید'},
+                    body:{render:()=>$$.renderShipping()},
+                    ...modalConfig
                 })
             }
             if(type === 'product'){
-                $$.popup.addPopup({
-                    type:'fullscreen',title:'ثبت نهایی خرید',
-                    body:()=>{
-                        return (
-                            <div className='h-100'>{$$.renderProductPage(parameter)}</div>
-                        )
-                    },
-                    ...popupConfig
+                $$.popup.addModal({
+                    position:'fullscreen',header:{title:'ثبت نهایی خرید'},
+                    body:{render:()=><div className='h-100'>{$$.renderProductPage(parameter)}</div>},
+                    ...modalConfig
                 })
             }
             if(type === 'list'){
-                $$.popup.addPopup({
-                    type:'fullscreen',title:'لیست',
-                    body:()=>{
-                        return (
-                            <div className='h-100'>{$$.renderList(parameter)}</div>
-                        )
-                    },
-                    ...popupConfig
+                $$.popup.addModal({
+                    position:'fullscreen',header:{title:'لیست'},
+                    body:{render:()=><div className='h-100'>{$$.renderList(parameter)}</div>},
+                    ...modalConfig
                 })
             }
         },
         renderList({items,config = {}}){
             return <List items={items} config={config} renderProductCard={$$.renderProductCard.bind($$)}/>
         },
-        renderPopups(){
-            return (
-                <AIOPopup
-                    getActions={({addPopup,removePopup})=>{
-                        $$.popup = {addPopup,removePopup}
-                    }}
-                />
-            )
-        },
+        renderModals(){return $$.popup.render()},
         renderCartCountButton({product,variantId, config = {}}) {
             let count = $$.getCartCount({productId:product.id,variantId});
             if(config.msf){debugger}
@@ -272,7 +257,7 @@ export default function AIOShop(obj = {}) {
                     renderProductCard={$$.renderProductCard.bind($$)}
                     cartItems={$$.getCartItems()}
                     getFactor={()=>$$.factor}
-                    onSubmit={()=>$$.openPopup({type:'shipping'})}
+                    onSubmit={()=>$$.openModal({type:'shipping'})}
                     getIconByKey={getIconByKey}
                 />
             )
@@ -294,7 +279,7 @@ export default function AIOShop(obj = {}) {
         renderCartButton(obj = {}){
             let {render} = obj;
             let cartLength = $$.getCartItems().length
-            let onClick = ()=>$$.openPopup({type:'cart'});
+            let onClick = ()=>$$.openModal({type:'cart'});
             if(render && $$.validation('renderCartButton render',render) !== false){return render({cartLength,onClick})} 
             return (
                 <div onClick={onClick} className='as-cart-button'>
@@ -322,10 +307,10 @@ export default function AIOShop(obj = {}) {
             return (
                 <ProductCard
                     onClick={()=>{
-                        $$.openPopup({
+                        $$.openModal({
                             type:'product',
                             parameter:{product,variantId,config},
-                            popupConfig:{title:product.name,id:product.id} 
+                            modalConfig:{header:{title:product.name},id:product.id} 
                         })
                     }}
                     key={product.id + ' ' + variantId}
@@ -392,8 +377,8 @@ export default function AIOShop(obj = {}) {
         renderCartButton:$$.renderCartButton.bind($$),
         changeShipping:$$.changeShipping.bind($$),
         renderProductPage:$$.renderProductPage.bind($$),
-        renderPopups:$$.renderPopups.bind($$),
-        openPopup:$$.openPopup.bind($$),
+        renderModals:$$.renderModals.bind($$),
+        openModal:$$.openModal.bind($$),
         removeCartItem:$$.removeCartItem.bind($$),
         renderList:$$.renderList.bind($$)
     }

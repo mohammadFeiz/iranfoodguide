@@ -42,7 +42,6 @@ export default class App extends Component {
     Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     try {
       let response = await Axios.get(`${this.baseUrl}/Users/WhoAmI`);
-      debugger
       try{this.personId = response.data.data.id;}
       catch{}
       if(response.data.isSuccess){
@@ -106,7 +105,7 @@ export default class App extends Component {
     //return <IranFoodGuide/>
     let { loginClass,isLogin, token, logout, userId,isRegistered } = this.state;
     if (isLogin) {
-      if(!isRegistered){loginClass.removeToken()}
+      //if(!isRegistered){loginClass.removeToken()}
       return <IranFoodGuide isRegistered={isRegistered} token={token} personId={this.personId} logout={logout} mobile={this.mobile} roles={[]} baseUrl={this.baseUrl}/>
     }
     let renderLogin = this.renderLogin()
@@ -162,6 +161,7 @@ class IranFoodGuide extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      rsa:new RSA({rtl:true}),
       appSetting:appSetting(),
       isRegistered:props.isRegistered,
       mockStorage:AIOStorage('ifMock'),
@@ -179,7 +179,6 @@ class IranFoodGuide extends Component {
       restoran_tags: [],
       restoran_sort_options: [],
     }
-    debugger
     this.state.apis = AIOService({
       getState: () => this.state,
       baseUrl:props.baseUrl + '/api',
@@ -285,32 +284,30 @@ class IranFoodGuide extends Component {
     }
   }
   render() {
+    let {rsa} = this.state;
     return (
       <AppContext.Provider value={this.getContext()}>
-        <RSA
-          title={false}
-          navs={[
-            { id: 'sefareshe_ghaza', text: dictionary('سفارش غذا'), icon: () => icons('sefareshe_ghaza') },
-            { id: 'sabade_kharid', text: dictionary('سبد خرید'), icon: () => icons('sabade_kharid') },
-            { id: 'sefaresh_ha', text: dictionary('سفارش ها'), icon: () => icons('sefaresh_ha') },
-            { id: 'ertebate_online', text: dictionary('ارتباط آنلاین'), icon: () => icons('ertebate_online') },
-            { id: 'profile', text: dictionary('پروفایل'), icon: () => icons('profile') },
-            { id: 'admin_panel', text: dictionary('پنل ادمین'), icon: () => icons('profile') },
-            
-          ]}
-          navId='sefareshe_ghaza'
-          body={({ navId }) => {
-            if (navId === 'sefareshe_ghaza') {return <Sefareshe_ghaza />}
-            if (navId === 'profile') {return <Profile />}
-            if (navId === 'admin_panel') {return <BackOffice />}
-          }}
-          getActions={({ addPopup, removePopup }) => {
-            let obj = { addPopup, removePopup }
-            this.state.rsa_actions = obj;
-            this.setState({ rsa_actions: obj })
-          }}
-          header={() => <AppHeader SetState={(obj)=>this.setState(obj)}/>}
-        />
+        {
+          rsa.render({
+            title:false,
+            navs:[
+              { id: 'sefareshe_ghaza', text: dictionary('سفارش غذا'), icon: () => icons('sefareshe_ghaza') },
+              { id: 'sabade_kharid', text: dictionary('سبد خرید'), icon: () => icons('sabade_kharid') },
+              { id: 'sefaresh_ha', text: dictionary('سفارش ها'), icon: () => icons('sefaresh_ha') },
+              { id: 'ertebate_online', text: dictionary('ارتباط آنلاین'), icon: () => icons('ertebate_online') },
+              { id: 'profile', text: dictionary('پروفایل'), icon: () => icons('profile') },
+              { id: 'admin_panel', text: dictionary('پنل ادمین'), icon: () => icons('profile') },
+              
+            ],
+            navId:'sefareshe_ghaza',
+            body:({ navId }) => {
+              if (navId === 'sefareshe_ghaza') {return <Sefareshe_ghaza />}
+              if (navId === 'profile') {return <Profile />}
+              if (navId === 'admin_panel') {return <BackOffice />}
+            },
+            header:() => <AppHeader SetState={(obj)=>this.setState(obj)}/>
+          })
+        }
       </AppContext.Provider>
     )
   }

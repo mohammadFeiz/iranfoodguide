@@ -87,13 +87,10 @@ export default class Search extends Component{
         }
     }
     openRestoranPage(restoran){
-        let {rsa_actions} = this.context;
-        rsa_actions.addPopup({
-            type:'fullscreen',
-            header:false,
-            body:()=>{
-                return <RestoranPage restoran={restoran} onClose={()=>rsa_actions.removePopup()}/>
-            }
+        let {rsa} = this.context;
+        rsa.addModal({
+            position:'fullscreen',header:false,
+            body:{render:()=><RestoranPage restoran={restoran} onClose={()=>rsa.removeModal()}/>}
         })
     }
     items_layout(){
