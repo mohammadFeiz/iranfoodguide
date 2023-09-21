@@ -381,8 +381,8 @@ export function getResponse({ getState, baseUrl }) {
             return { response }
         },
         async setPassword( {mobile,password}) {
-       var baseUrl1 = 'https://localhost:7203'
-
+       //var baseUrl1 = 'https://localhost:7203'
+         var baseUrl1 = 'https://iranfoodguide.ir'
             let url = `${baseUrl1}/Users/ChangePasswordByAdmin`
             let body = {
                 "MobileNumber": mobile,
