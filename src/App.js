@@ -17,6 +17,7 @@ import { icons } from './icons';
 import Sefareshe_ghaza from './pages/sefareshe_ghaza';
 import Profile from './pages/profile';
 import RestoranPage from './components/restoran-page';
+import ReservePanel from './components/reserve-panel/reserve-panel';
 import URL from './npm/aio-functions/url';
 
 import './App.css';
@@ -29,7 +30,6 @@ export default class App extends Component {
     this.state = {
       loginClass:new AIOLogin(),
       isLogin: false,
-      isRegistered:false,
       registerFields: [
         { type: 'text', label: 'نام', field: 'firstName', required: true },
         { type: 'text', label: 'نام خانوادگی', field: 'lastName', required: true },
@@ -45,7 +45,8 @@ export default class App extends Component {
       try{this.personId = response.data.data.id;}
       catch{}
       if(response.data.isSuccess){
-        this.mobile = userId
+        this.mobile = userId;
+        this.isRegistered = true
       }
       return !!response.data.isSuccess
     }
@@ -65,7 +66,7 @@ export default class App extends Component {
       let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.OTPPhoneNumber })
       if (!response.data.isSuccess) { return {mode:'Error',error:response.data.message} }
       let isRegistered = !!response.data.data.isRegistered;
-      this.setState({isRegistered});
+      this.isRegistered = isRegistered;
       this.mobile=model.OTPPhoneNumber;
       return {mode:'OTPCode'}
     }
@@ -96,17 +97,17 @@ export default class App extends Component {
         id:'iranfoodguide',otpLength:6,methods:['OTPPhoneNumber','PhoneNumber'],
         COMPONENT:({ token, logout, userId }) => this.setState({ token, logout, userId, isLogin: true }),
         registerFields,
-        checkToken:async (token) => await this.checkToken(token),
+        checkToken:async (token,userId) => await this.checkToken(token,userId),
         onSubmit:this.onSubmit.bind(this)
       })
     )
   }
   render() {
     //return <IranFoodGuide/>
-    let { loginClass,isLogin, token, logout, userId,isRegistered } = this.state;
+    let { loginClass,isLogin, token, logout, userId } = this.state;
     if (isLogin) {
-      //if(!isRegistered){loginClass.removeToken()}
-      return <IranFoodGuide isRegistered={isRegistered} token={token} personId={this.personId} logout={logout} mobile={this.mobile} roles={[]} baseUrl={this.baseUrl}/>
+      if(!this.isRegistered){loginClass.removeToken()}
+      return <IranFoodGuide isRegistered={this.isRegistered} token={token} personId={this.personId} logout={logout} mobile={this.mobile} roles={[]} baseUrl={this.baseUrl}/>
     }
     let renderLogin = this.renderLogin()
     return (
@@ -241,7 +242,7 @@ class IranFoodGuide extends Component {
     });
   }
   componentDidMount() {
-    let { apis,isRegistered } = this.state;
+    let { apis,isRegistered,rsa } = this.state;
     this.checkOrderId()
     if(isRegistered){
       this.getProfile()
@@ -261,6 +262,17 @@ class IranFoodGuide extends Component {
         name: 'دریافت آدرس ها'
       });
     }
+    //else {
+      rsa.addSnakebar({
+        type:'warning',
+        text:'شما ثبت نام نکرده اید',
+        subtext:'برای استفاده از بخش های مختلف از منوی پروفایل ثبت نام کنید',
+        action:{
+          text:'ثبت نام',
+          onClick:()=>rsa.setNavId('profile')
+        }
+      })
+    //}
     apis({
       api: 'get_tags',
       parameter:{type:'restoran'},
@@ -277,6 +289,20 @@ class IranFoodGuide extends Component {
       callback: (restoran_sort_options) => this.setState({ restoran_sort_options })
     })
     
+  }
+  openModal(key,parameter){
+    let {rsa} = this.state;
+    if(key === 'back_office'){
+      rsa.addModal({
+        header:{title:'پنل مدیریت'},
+        body:{
+          render:()=>{
+            return <BackOffice />
+          }
+        }
+      })
+      
+    }
   }
   getContext() {
     return {
@@ -295,15 +321,31 @@ class IranFoodGuide extends Component {
               { id: 'sabade_kharid', text: dictionary('سبد خرید'), icon: () => icons('sabade_kharid') },
               { id: 'sefaresh_ha', text: dictionary('سفارش ها'), icon: () => icons('sefaresh_ha') },
               { id: 'ertebate_online', text: dictionary('ارتباط آنلاین'), icon: () => icons('ertebate_online') },
-              { id: 'profile', text: dictionary('پروفایل'), icon: () => icons('profile') },
-              { id: 'admin_panel', text: dictionary('پنل ادمین'), icon: () => icons('profile') },
-              
+              { id: 'profile', text: dictionary('پروفایل'), icon: () => icons('profile') },              
             ],
+            side:{
+              items:[
+                {id:'back-office',text:'پنل مدیریت',icon:icons('back_office'),onClick:()=>this.openModal('back_office')}
+              ],
+              header:()=>{
+                return (
+                  <RVD
+                    layout={{
+                      style:{height:72},
+                      align:'vh',
+                      column:[
+                        {html:icons('logo', { fill: '#fff', style: { transform: 'translateY(-4px)' } })}
+                      ]
+                    }}
+                  />
+                )
+              }
+            },
             navId:'sefareshe_ghaza',
             body:({ navId }) => {
+              return <ReservePanel/>
               if (navId === 'sefareshe_ghaza') {return <Sefareshe_ghaza />}
               if (navId === 'profile') {return <Profile />}
-              if (navId === 'admin_panel') {return <BackOffice />}
             },
             header:() => <AppHeader SetState={(obj)=>this.setState(obj)}/>
           })
@@ -314,6 +356,7 @@ class IranFoodGuide extends Component {
 }
 
 class AppHeader extends Component {
+  static contextType = AppContext
   renderIcon(icon,badge){
     return (
       <>
@@ -321,6 +364,14 @@ class AppHeader extends Component {
         {!!badge && <div className='header-badge'>{badge}</div>}
       </>
     )
+  }
+  side_layout(){
+    let {rsa} = this.context;
+    return {
+      className: 'of-visible', align: 'vh',
+      onClick:()=>rsa.openSide(),
+      html: icons('side')
+    }
   }
   profile_layout(){
     let {SetState} = this.props;
@@ -344,6 +395,7 @@ class AppHeader extends Component {
         layout={{
           className: 'of-visible p-h-12 w-100', gap: 6,
           row: [
+            this.side_layout(),
             this.profile_layout(),
             { flex: 1 },
             this.logo_layout(),

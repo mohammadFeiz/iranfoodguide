@@ -1,6 +1,14 @@
 import React from "react";
+import {mdiCogs, mdiMenu} from '@mdi/js';
+import {Icon} from '@mdi/react';
 export function icons(key, p = {}) {
     let obj = {
+        side(){
+            return <Icon path={mdiMenu} size={1.2} style={{color:'#fff',margin:'0 6px'}}/>
+        },
+        back_office(){
+            return <Icon path={mdiCogs} size={1}/>
+        },
         logo() {
             return (
                 <svg width="120" height="36" style={p.style} viewBox="0 0 159 60" fill="none" xmlns="http://www.w3.org/2000/svg">

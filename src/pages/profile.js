@@ -88,7 +88,7 @@ export default class Profile extends Component {
                     flex: 1,
                     column: [
                         { flex: 1 },
-                        { html: `${profile.firstName} ${profile.lastName}`, className: 'fs-14 bold' },
+                        { html: profile.firstName && profile.lastName?`${profile.firstName} ${profile.lastName}`:'شما ثبت نام نشده اید', className: 'fs-14 bold' },
                         { html: mobile, className: 'fs-12' },
                         { flex: 1 }
                     ]
@@ -209,7 +209,9 @@ class Passwrod extends Component {
     }
     form_layout() {
         let { model } = this.state;
+        let {mobile} = this.context;
         let inputs = [
+            { input:{type:'text',disabled:true}, label:'شماره همراه', field: mobile },
             { input:{type:'password'}, label:'رمز عبور', field: `value.password` }
         ]
         return {
@@ -218,6 +220,7 @@ class Passwrod extends Component {
                 {
                     html: (
                         <AIOInput
+                            inputAttrs={{style:{height:36}}}
                             type='form' value={model} onChange={(model) => this.setState({ model })}
                             inputs={{props:{gap:12},column:inputs}}
                         />

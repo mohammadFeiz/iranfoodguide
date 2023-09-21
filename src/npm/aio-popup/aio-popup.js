@@ -424,7 +424,16 @@ class SnackebarItem extends Component{
             <div>{text}</div>
             {!!subtext && <div className='aio-popup-snakebar-item-subtext'>{subtext}</div>}
           </div>
-          {!!action.text && <button className='aio-popup-snakebar-item-action' onClick={(e)=>{e.stopPropagation(); action.onClick()}}>{action.text}</button>}
+          {
+            !!action.text && 
+            <button 
+              className='aio-popup-snakebar-item-action' 
+              onClick={(e)=>{
+                e.stopPropagation(); 
+                action.onClick();
+                this.remove()
+              }}
+            >{action.text}</button>}
           <div className={`aio-popup-snakebar-bar`} style={{transition:`${time}s linear`,right:rtl?0:'unset',left:rtl?'unset':0}}></div>  
         </div>
       </div>

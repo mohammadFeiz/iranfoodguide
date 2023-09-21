@@ -94,7 +94,7 @@ class ReactSuperApp extends Component {
     return navs.filter(({ show = () => true }) => show())[0].id;
   }
   header_layout(nav) {
-    let { header, side, title = () => nav.text } = this.props;
+    let { header,headerContent, side, title = () => nav.text } = this.props;
     if (header === false) { return false }
     if(typeof header === 'function'){
       return {
@@ -107,7 +107,7 @@ class ReactSuperApp extends Component {
       row: [
         { size: 60, show: !!side, html: <Icon path={mdiMenu} size={1} />, align: 'vh', attrs: { onClick: () => this.openSide() } },
         { show: title !== false, html: () => title(nav), className: 'rsa-header-title' },
-        { flex: 1, show: !!header, html: () => header(this.state), className: 'of-visible' },
+        { flex: 1, show: !!headerContent, html: () => headerContent(), className: 'of-visible' },
       ]
     }
   }
@@ -275,7 +275,7 @@ class SideMenu extends Component {
         return {
           show: Show !== false, size: 36, className: 'rsa-sidemenu-item' + (className ? ' ' + className : ''), onClick: () => { onClick(o); onClose() },
           row: [
-            { size: 48, html: icon(), align: 'vh' },
+            { size: 48, html: typeof icon === 'function'?icon():icon, align: 'vh' },
             { html: text, align: 'v' }
           ]
         }

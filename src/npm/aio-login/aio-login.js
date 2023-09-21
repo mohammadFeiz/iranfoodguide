@@ -120,9 +120,12 @@ class AIOLOGIN extends Component {
                         console.error(`aio-login error => onSubmit props should returns an object contain mode(${modes.join(' | ')})`)
                         return
                     }
+                    if(['OTPPhoneNumber','PhoneNumber','UserName','Email'].indexOf(mode) !== -1){
+                        this.setStorage('userId',model[mode]);
+                    }
                     if (token) { 
                         this.setStorage('token',token);
-                        this.setStorage('userId',model[mode]);
+                        
                         this.setState({ token})
                     }
                     if(Mode === 'Authenticated'){

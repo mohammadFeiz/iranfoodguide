@@ -26,17 +26,6 @@ export default class BackOffice extends Component {
             scores: []
         }
     }
-    header_layout() {
-        let {onClose} = this.props;
-        return {
-            className: 'p-h-12 bold fs-14',
-            size: 48, align: 'v',
-            row:[
-                {flex:1,html: 'پنل مدیریت محتوا',align:'v'},
-                {html:<Icon path={mdiClose} size={1}/>,onClick:()=>onClose(),align:'vh'}
-            ]
-        }
-    }
     tabs_layout() {
         let { activeTabId, tabs } = this.state;
         return {
@@ -98,7 +87,6 @@ export default class BackOffice extends Component {
                     layout={{
                         style:{},
                         column: [
-                            this.header_layout(),
                             this.tabs_layout(),
                             { size: 12 },
                             this.body_layout()

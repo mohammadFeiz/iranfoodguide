@@ -105,6 +105,7 @@
   background:#fff;
   border-bottom:1px solid #ddd;
   color:#323130;
+  padding:0 12px;
 }
 .rsa-header-title {
   font-size: 16px;
@@ -134,7 +135,6 @@
 .rsa-sidemenu-item{
   border-radius:6px;
   font-size:14px;
-  color:#605E5C;
 }
 
 .rsa-navigation-item{
