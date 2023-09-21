@@ -225,7 +225,7 @@ class Popup extends Component {
 function ModalHeader({rtl,header,handleClose}){
   if(typeof header !== 'object'){return null}
   let {title,subtitle,buttons = [],onClose,backButton,attrs = {}} = header;
-  function close(){if(onClose){onClose()} else{handleClose()}}
+  function close(e){if(onClose){onClose(e)} else{handleClose()}}
   function backButton_layout(){
     if(!backButton || onClose === false){return false}
     let path,style;
@@ -262,7 +262,7 @@ function ModalHeader({rtl,header,handleClose}){
   }
   function close_layout(){
     if(backButton || onClose === false){return false}
-    return { html: <Icon path={mdiClose} size={0.8} />, align: 'vh', onClick: () => close(),className:'aio-popup-header-close-button' }
+    return { html: <Icon path={mdiClose} size={0.8} />, align: 'vh', onClick: (e) => close(e),className:'aio-popup-header-close-button' }
   }
   let className = 'aio-popup-header' + (attrs.className?' ' + attrs.className:'')
   let style = attrs.style;

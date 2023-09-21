@@ -1,4 +1,4 @@
-import React, { Component, createRef, useContext, createContext, Fragment } from 'react';
+import React, { Component, createRef, useContext, createContext, Fragment,useState,useEffect } from 'react';
 import AIODate from './../aio-date/aio-date';
 import RVD from './../react-virtual-dom/react-virtual-dom';
 import AIOValidation from "../aio-validation/aio-validation";
@@ -6,7 +6,7 @@ import Search from '../aio-functions/search';
 import ExportToExcel from '../aio-functions/export-to-excel';
 import DownloadUrl from '../aio-functions/download-url';
 import { Icon } from '@mdi/react';
-import { mdiChevronDown, mdiLoading, mdiAttachment, mdiChevronRight, mdiClose, mdiCircleMedium, mdiArrowUp, mdiArrowDown, mdiSort, mdiFileExcel, mdiMagnify, mdiPlusThick, mdiChevronLeft } from "@mdi/js";
+import { mdiChevronDown, mdiLoading, mdiAttachment, mdiChevronRight, mdiClose, mdiCircleMedium, mdiArrowUp, mdiArrowDown, mdiSort, mdiFileExcel, mdiMagnify, mdiPlusThick, mdiChevronLeft, mdiImage } from "@mdi/js";
 import AIOSwip from '../aio-swip/aio-swip';
 import AIOPopup from './../../npm/aio-popup/aio-popup';
 import $ from 'jquery';
@@ -227,6 +227,7 @@ export default class AIOInput extends Component {
     render_tabs() { return <Layout text={<Options />} /> }
     render_checkbox() { return <Layout /> }
     render_datepicker() { return <Layout /> }
+    render_image() { return <Layout text={<Image/>} /> }
     render_table() { return <Table {...this.props} /> }
     render_text() { return <Layout text={<Input value={this.getProp('value')} />} /> }
     render_password() { return <Layout text={<Input value={this.getProp('value')} />} /> }
@@ -245,6 +246,79 @@ export default class AIOInput extends Component {
             </AIContext.Provider>
         )
     }
+}
+function Image(){
+    let {getProp} = useContext(AIContext);
+    let [popup] = useState(new AIOPopup())
+    let dom = createRef()
+    let value = getProp('value');
+    let width = getProp('width');
+    let height = getProp('height');
+    let onChange = getProp('onChange');
+    let onRemove = getProp('onRemove');
+    let placeholder = getProp('placeholder')
+    let preview = getProp('preview')
+    // if(typeof value === 'object'){
+    //     let fr = new FileReader();
+    //     fr.onload = function () {
+    //         $(dom.current).attr('src',fr.result)
+    //     }
+    //     fr.readAsDataURL(value);
+    // }
+    useEffect(()=>{
+        let src = $(dom.current).attr('src');
+        if(src === '[object File]'){
+            let fr = new FileReader();
+            fr.onload = function () {
+                $(dom.current).attr('src',fr.result)
+            }
+            fr.readAsDataURL(value);
+        }
+        
+    })
+    function openPopup(){
+        popup.addModal({
+            header:{
+                title:'',
+                onClose:(e)=>{ 
+                    e.stopPropagation();
+                    e.preventDefault();
+                    popup.removeModal();
+                }
+            },
+            body:{
+                render:()=>{
+                    let src = $(dom.current).attr('src')
+                    return (
+                        <div className='aio-input-image-preview-popup'>
+                            <img src={src} alt=''/>
+                        </div>
+                    )
+                }
+            }
+        })
+    }
+    let IMG = value?(
+        <>
+            <img ref={dom} src={value} width={width} height={height} alt={''}/>
+            {onRemove && <div onClick={(e)=>{e.stopPropagation(); e.preventDefault(); onRemove()}} className='aio-input-image-remove'><Icon path={mdiClose} size={1}/></div>}
+            {preview && <div onClick={(e)=>{e.stopPropagation(); e.preventDefault(); openPopup()}} className='aio-input-image-preview'><Icon path={mdiImage} size={1}/></div>}
+            {popup.render()}
+        </>
+    ):<span className='aio-input-image-placeholder'>{placeholder}</span>
+    return (
+        <AIOInput
+            type='file'
+            center={true}
+            text={IMG}
+            style={{width:'100%',height:'100%',padding:0}}
+            onChange={onChange?(files)=>{
+                onChange(files[0].file)
+            }:undefined}
+        />
+    )
+    
+    
 }
 class InputSlider extends Component {
     static contextType = AIContext;
@@ -975,7 +1049,7 @@ function TableRows() {
             })
         }
         let { placeholder = 'there is not any items' } = props;
-        return <div style={{ width: '100%', textAlign: 'center', padding: 12 }}>{placeholder}</div>
+        return <div style={{ width: '100%', textAlign: 'center', padding: 12,boxSizing:'border-box' }}>{placeholder}</div>
     }
     return <div className='aio-input-table-rows'>{getContent()}</div>
 }
@@ -987,7 +1061,7 @@ function TableToolbar() {
     return (
         <>
             <div {...toolbarAttrs} className={'aio-input-table-toolbar' + (toolbarAttrs.className ? ' ' + toolbarAttrs.className : '')}>
-                {toolbar && <div className='aio-input-table-toolbar-content'>{toolbar}</div>}
+                {toolbar && <div className='aio-input-table-toolbar-content'>{typeof toolbar === 'function'?toolbar():toolbar}</div>}
                 <div className='aio-input-table-search'>
                     {!!onSearch && <AIOInput type='text' onChange={(value) => search(value)} after={<Icon path={mdiMagnify} size={1} />} />}
                 </div>
@@ -1301,9 +1375,9 @@ class CheckIcon extends Component {
 export class InputFile extends Component {
     static contextType = AIContext;
     change(e) {
-        let { value = [], onChange = () => { } } = this.context;
+        let { value = [], onChange = () => { },multiple } = this.context;
         let Files = e.target.files;
-        let result = [...value];
+        let result = multiple?[...value]:[];
         let names = result.map(({ name }) => name);
         for (let i = 0; i < Files.length; i++) {
             let file = Files[i];
