@@ -63,7 +63,7 @@ export default class App extends Component {
   }
   async onSubmit(model,mode){
     if(mode === 'OTPPhoneNumber'){
-      let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.OTPPhoneNumber })
+      let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.OTPPhoneNumber },{headers:{Authorization:false}})
       if (!response.data.isSuccess) { return {mode:'Error',error:response.data.message} }
       let isRegistered = !!response.data.data.isRegistered;
       this.isRegistered = isRegistered;
@@ -81,7 +81,7 @@ export default class App extends Component {
     }
     else if (mode === 'PhoneNumber'){
       let {PhoneNumber,password} = model;
-      let response = await Axios.post(`${this.baseUrl}/Users/Token`, {Username: PhoneNumber,Password: password,grant_type:"password"});
+      let response = await Axios.post(`${this.baseUrl}/Users/Token`, {Username: PhoneNumber,Password: password,grant_type:"password"},{headers:{Authorization:false}});
       if (response.data.isSuccess) {
         this.personId = response.data.data.personId;
         this.mobile=model.PhoneNumber;
@@ -262,7 +262,7 @@ class IranFoodGuide extends Component {
         name: 'دریافت آدرس ها'
       });
     }
-    //else {
+    else {
       rsa.addSnakebar({
         type:'warning',
         text:'شما ثبت نام نکرده اید',
@@ -272,7 +272,7 @@ class IranFoodGuide extends Component {
           onClick:()=>rsa.setNavId('profile')
         }
       })
-    //}
+    }
     apis({
       api: 'get_tags',
       parameter:{type:'restoran'},

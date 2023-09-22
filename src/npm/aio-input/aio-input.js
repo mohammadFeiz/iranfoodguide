@@ -487,7 +487,9 @@ class Form extends Component {
         this.errors = {}
     }
     getValue() { return this.props.onChange ? (this.props.value || {}) : this.state.value }
-    getErrors() { return [...Object.keys(this.errors).filter((o) => !!this.errors[o]).map((o) => this.errors[o])] }
+    getErrors() { 
+        return [...Object.keys(this.errors).filter((o) => !!this.errors[o]).map((o) => this.errors[o])] 
+    }
     removeError(field) {
         let newErrors = {}
         for (let prop in this.errors) { if (prop !== field) { newErrors[prop] = this.errors[prop] } }
@@ -605,7 +607,7 @@ class Form extends Component {
     }
     componentDidMount() {
         let { onChange = () => { } } = this.props;
-        onChange(this.getValue(), this.errors)
+        onChange(this.getValue(), this.getErrors(),true)
     }
     getAttrs(propsAttrs = {}, ownAttrs = {}) {
         let style = { ...propsAttrs.style, ...ownAttrs.style }
@@ -617,7 +619,7 @@ class Form extends Component {
         let step = this.getValueByField(attrs.step, 1);
         return { start, step, end }
     }
-    input_layout(obj) {
+    input_layout(obj) { 
         let { rtl, inputAttrs } = this.props;
         let { label, footer, inlineLabel, input, flex, size, field } = obj;
         let value = this.getValueByField(field, this.getDefault(input));

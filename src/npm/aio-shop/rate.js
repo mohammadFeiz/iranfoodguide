@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import RVD from '../react-virtual-dom/react-virtual-dom';
-import AIOSlider from './../aio-slider/aio-slider';
+import AIOInput from './../aio-input/aio-input';
 import { Icon } from '@mdi/react';
 import { mdiStar,mdiStarOutline,mdiStarHalfFull, mdiCircleSmall } from '@mdi/js';
 import './rate.css';
@@ -57,8 +57,9 @@ export class RateItems extends Component{
                 {
                     align:'v',className:'as-rate-item-slider',flex:1,
                     html:(
-                        <AIOSlider
-                            start={0} end={5} step={0.1} points={[value]} direction='left'
+                        <AIOInput
+                            type='slider'
+                            start={0} end={5} step={0.1} value={[value]} direction='left'
                             fillStyle={(index)=>{
                                 if(index === 0){
                                     return {

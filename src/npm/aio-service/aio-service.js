@@ -1,11 +1,14 @@
 import Axios from "axios";
 import AIODate from "./../../npm/aio-date/aio-date";
 import AIOStorage from './../../npm/aio-storage/aio-storage';
-import AIOMessage from "../aio-message/aio-message";
+import AIOPopup from "../aio-popup/aio-popup";
 import './index.css';
 import $ from "jquery";
 export let helper = {
-  showAlert(obj = {}){AIOMessage(obj)},
+  showAlert(obj = {}){
+    let inst = new AIOPopup();
+    inst.addAlert(obj)
+  },
   getDateAndTime(value){
     try{
       let res = AIODate().toJalali({date:value});
@@ -39,7 +42,7 @@ export default function services(obj = {}) {
   if(typeof id !== 'string'){console.error('aio-storage => id should be an string, but id is:',id); return;}
   return Service({
     getState,token,loader,id,onCatch,getError,baseUrl,
-    getResponse:getResponse({getState,token,helper,baseUrl}),
+    getResponse:getResponse({getState,token,helper,baseUrl,Axios}),
     getMock:getMock({getState,token,helper,baseUrl}) 
   })
 }
@@ -90,11 +93,10 @@ function Service(config) {
       }
     }
   }
-  function getFromCache({cache,cacheName,api}){
+  function getFromCache({cache}){
     if (cache) {
-      if(isNaN(cache)){console.error('aio-storage => cache should be a number, but cache is:',cache); return;}
       let storage = AIOStorage(config.id);
-      return storage.load({name:cacheName ? 'storage-' + cacheName : 'storage-' + api,time:cache})
+      return storage.load({name:cache.name,time:cache.time})
     }
   }
   async function getResultByResponse(obj,getMock){//return undefined(getResponse not set) or string(error) or response
@@ -129,14 +131,19 @@ function Service(config) {
   async function fetchData(obj){
     let {
       api,parameter,
-      getMock = config.getMock[api],
-      token = config.token,
+      getMock = config.getMock[api]
     } = obj;
     let cache = getFromCache(obj);
     if(cache !== undefined){return cache}
     handleLoading(obj,true);
-    let tokenResult = typeof token === 'function'?token():token;
-    Axios.defaults.headers.common['Authorization'] = tokenResult?`Bearer ${tokenResult}`:'';
+    if(obj.token){
+      let tokenResult = typeof obj.token === 'function'?obj.token():obj.token;
+      Axios.defaults.headers.common['Authorization'] = `Bearer ${tokenResult}`;
+    }
+    else if(config.token){
+      let tokenResult = typeof config.token === 'function'?config.token():config.token;
+      Axios.defaults.headers.common['Authorization'] = `Bearer ${tokenResult}`;
+    }
     let res;
     try{
       let result = await getResultByResponse(obj,getMock); 
@@ -150,16 +157,27 @@ function Service(config) {
     return res;
   }
   return async (obj) => {
-    let { callback,cache,cacheName,api,onError} = obj;
+    let { callback,cache,api,onError} = obj;
     if(!api){
       helper.showAlert({type:'error',text:`aio-service error => missing api property`});
       return;
     }
     let result = await fetchData(obj);
     result = validate(result,obj);
-    if (cache) {AIOStorage(config.id).save({name:cacheName ? 'storage-' + cacheName : 'storage-' + api,value:result})}
+    if(cache){AIOStorage(config.id).save({name:cache.name,value:result})}
     if(callback && typeof result !== 'string'){callback(result);}
     if(onError && typeof result === 'string'){onError(result);}
     return result;
   }
+}
+
+export function RemoveCache(id,name){
+  if(id === undefined){return}
+  let storage = AIOStorage(id);
+  storage.remove({name})
+}
+export function GetCache(id){
+  if(id === undefined){return}
+  let storage = AIOStorage(id);
+  return storage.getModel()
 }
