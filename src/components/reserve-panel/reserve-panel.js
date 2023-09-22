@@ -18,12 +18,14 @@ export default class Profile extends Component {
         }]})
         this.state = {
             storage:AIOStorage('ifgreservemockserver'),
-            tab:'user_panel',
+            tab:'admin_panel',
             priceTypes:[
-                {text:'مبلغ کلی',value:'static'},
-                {text:'به ازای هر نفر',value:'person'},
-                {text:'به ازای هر ساعت',value:'hour'},
-                {text:'به ازای هر روز',value:'day'},
+                {text:'مبلغ کلی',value:'static',priceText:'قیمت'},
+                {text:'نفر',value:'person',priceText:'قیمت به ازای هر نفر'},
+                {text:'ساعت',value:'hour',priceText:'قیمت به ازای هر ساعت'},
+                {text:'روز',value:'day',priceText:'قیمت به ازای هر روز'},
+                {text:'نفر ساعت',value:'personhour',priceText:'قیمت به ازای هر نفر در هر ساعت'},
+                {text:'نفر روز',value:'personday',priceText:'قیمت به ازای هر نفر در هر روز'},
                 
             ],
             openId:false,
@@ -32,7 +34,7 @@ export default class Profile extends Component {
     }
     addItem(){
         let addItem = {
-            id:Math.round(Math.random() * 100000),image1:'',image2:'',image3:'',isSubmited:false,added:false,name:'',persons:'',description:'',
+            id:Math.round(Math.random() * 100000),image1:'',image2:'',image3:'',isSubmited:false,added:false,name:'',description:'',
             priceType:'',price:'',persons:'',preOrderTime:{type:'day',amount:''},timeLimits:[[],[],[],[],[],[],[]],hasError:true
         }
         let {items} = this.state;
@@ -133,7 +135,7 @@ export default class Profile extends Component {
         let open = openId === item.id;
         let {isSubmited} = item;
         return {
-            className:'m-12',
+            className:'m-3',
             style:{border:'1px solid orange'},
             column:[
                 {
@@ -197,13 +199,8 @@ export default class Profile extends Component {
                                     this.form_name(),
                                     this.form_description(),
                                     this.form_priceType(),
+                                    this.form_price(item),
                                     this.form_preOrderTime(),
-                                    {
-                                        row:[
-                                            this.form_persons(),
-                                            this.form_price()
-                                        ]
-                                    },
                                     this.form_timeLimits(item,index)
                                 ]
                             }}
@@ -224,8 +221,11 @@ export default class Profile extends Component {
             input:{type:'radio',options:priceTypes},field:'value.priceType',label:'نحوه محاسبه',validations:[['required']]
         }
     }
-    form_price(){
-        return {input:{type:'number',after:this.getAfter('تومان')},field:'value.price',label:'قیمت',validations:[['required']]}
+    form_price(item){
+        if(!item.priceType){return false}
+        let {priceTypes} = this.state;
+        let label = priceTypes.find(({value})=>value === item.priceType).priceText;
+        return {input:{type:'number',after:this.getAfter('تومان')},field:'value.price',label,validations:[['required']]}
     }
     form_preOrderTime(){
         return {
@@ -240,18 +240,15 @@ export default class Profile extends Component {
             ]
         }
     }
-    form_persons(){
-        return {input:{type:'number',after:this.getAfter('نفر')},field:'value.persons',label:'تعداد نفرات قابل استفاده',validations:[['required']]}
-    }
     form_timeLimits(item,index){
-        if(item.priceType !== 'hour' && item.priceType !== 'day'){return false}
+        if(['hour','day','personhour','personday'].indexOf(item.priceType) === -1){return false}
        return {
         props:{gap:1},
         column:[
             {size:12},
             {
                 row:[
-                    {html:'محدودیت سرویس بر اساس ساعت و روز هفته'},
+                    {html:'محدودیت ساعات هفته'},
                     {size:6},{size:24,style:{background:'red'}},{size:6},{html:'غیر قابل رزرو'},{size:12},
                     {size:24,style:{background:'green'}},{size:6},{html:'قابل رزرو'},
                 ]
@@ -274,7 +271,7 @@ export default class Profile extends Component {
         return {
             size:24,props:{gap:1},
             row:[
-                {size:60,html:days[dayIndex],onClick:()=>this.changeTimeLimitByDay(index,dayIndex)},
+                {size:40,html:days[dayIndex],onClick:()=>this.changeTimeLimitByDay(index,dayIndex),className:'fs-10'},
                 {
                     flex:1,
                     row:new Array(24).fill(0).map((o,i)=>{
@@ -314,6 +311,8 @@ export default class Profile extends Component {
         }
     }
     reserveCard_layout(item){
+        let {tab} = this.state;
+        if(tab !== 'user_panel'){return false}
         return {
             style:{padding:12,background:'orange',color:'#fff'},
             row:[
@@ -326,8 +325,14 @@ export default class Profile extends Component {
                     column:[
                         {html:item.name,className:'bold',align:'v'},
                         {html:`قابل استفاده برای ${item.persons} نفر`,size:24,align:'v'},
-                        {html:item.description,style:{width:'100%',border:'1px solid #fff',maxHeight:100,overflowY:'auto',borderRadius:6}}
-                        
+                        {size:6},
+                        {html:item.description,style:{width:'100%',border:'1px solid #fff',maxHeight:100,overflowY:'auto',borderRadius:6,padding:6,boxSizing:'border-box'}},
+                        {size:12},
+                        {
+                            html:(
+                                <button>سفارش رزرو</button>
+                            )
+                        } 
                     ]
                 }
             ]
