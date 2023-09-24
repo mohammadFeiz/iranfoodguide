@@ -49,6 +49,7 @@
     flex-direction: column;
     width: 100%;
     align-items: flex-start;
+    position: relative;
 }
 
 .aio-input-subtext {
@@ -1095,7 +1096,19 @@
     cursor: pointer;
     height: 50px;
 }
-
+.aio-slider.disabled:after{
+    content:'';
+    position:absolute;
+    left:0;
+    top:0;
+    z-indeX:100;
+    width: 100%;
+    height:100%;
+    cursor: not-allowed;
+}
+.aio-slider.disabled{
+    opacity:0.2;
+}
 .aio-slider.horizontal {
     width: 100%;
 

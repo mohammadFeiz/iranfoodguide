@@ -1,9 +1,12 @@
 .reserve-panel-image{
     border:3px dashed #aaa !important;
-    width:96px !important;
-    height:96px;
+    width:100px !important;
+    height:100px;
 }
 .reserve-form-input{
     border:1px solid #aaa !important;
     min-height:36px !important;
+}
+.reserve-page-input{
+    background:#fff;
 }

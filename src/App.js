@@ -62,8 +62,9 @@ export default class App extends Component {
     }
   }
   async onSubmit(model,mode){
-    if(mode === 'OTPPhoneNumber'){
-      let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.OTPPhoneNumber },{headers:{Authorization:false}})
+      Axios.defaults.headers.common['Authorization'] = ``;
+      if(mode === 'OTPPhoneNumber'){
+      let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.OTPPhoneNumber })
       if (!response.data.isSuccess) { return {mode:'Error',error:response.data.message} }
       let isRegistered = !!response.data.data.isRegistered;
       this.isRegistered = isRegistered;
@@ -81,7 +82,7 @@ export default class App extends Component {
     }
     else if (mode === 'PhoneNumber'){
       let {PhoneNumber,password} = model;
-      let response = await Axios.post(`${this.baseUrl}/Users/Token`, {Username: PhoneNumber,Password: password,grant_type:"password"},{headers:{Authorization:false}});
+      let response = await Axios.post(`${this.baseUrl}/Users/Token`, {Username: PhoneNumber,Password: password,grant_type:"password"});
       if (response.data.isSuccess) {
         this.personId = response.data.data.personId;
         this.mobile=model.PhoneNumber;

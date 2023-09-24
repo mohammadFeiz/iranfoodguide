@@ -505,7 +505,6 @@ function Align(dom,target,config = {}){
         overflowY = 'auto';
       }
       let finalStyle = {left:domLimit.left,top:domLimit.top,width:domLimit.width,overflowY,...style}
-        console.log(finalStyle)
         return fixStyle(finalStyle,{targetLimit,pageLimit})
     }
   }

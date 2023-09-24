@@ -142,25 +142,25 @@ export default function AIOValidation(props) {
       },
       less(target,validation,value,a,exact){
         if(exact){return this.getMessage(target,{validation,be:'should be less than'})}
-        if(value >= target){
+        if(typeof value === 'number' && typeof target === 'number' && value >= target){
           return this.getMessage(target,{validation,be:'should be less than'})
         }
       },
       lessEqual(target,validation,value,a,exact){
         if(exact){return this.getMessage(target,{validation,be:'could not be more than'})}
-        if(value > target){
+        if(typeof value === 'number' && typeof target === 'number' && value > target){
           return this.getMessage(target,{validation,be:'could not be more than'})
         }
       },
       more(target,validation,value,a,exact){
         if(exact){return this.getMessage(target,{validation,be:'should be more than'})}
-        if(value <= target){
+        if(typeof value === 'number' && typeof target === 'number' && value <= target){
           return this.getMessage(target,{validation,be:'should be more than'})
         }
       },
       moreEqual(target,validation,value,a,exact){
         if(exact){return this.getMessage(target,{validation,be:'could not be less than'})}
-        if(value < target){
+        if(typeof value === 'number' && typeof target === 'number' && value < target){
           return this.getMessage(target,{validation,be:'could not be less than'})
         }
       },

@@ -137,8 +137,8 @@ export default class AIOInput extends Component {
             if (Pattern) { pattern = Pattern }
             else if (unit === 'month') { pattern = `{year}${splitter}{month}` }
             else if (unit === 'day') { pattern = `{year}${splitter}{month}${splitter}{day}` }
-            else if (unit === 'hour') { pattern = `{year}${splitter}{month}${splitter}{day} {hour} : 00` }
-            return AIODate().getDateByPattern({ date: list, pattern })
+            else if (unit === 'hour') { pattern = `{year}${splitter}{month}${splitter}{day} - {hour} : 00` }
+            return <div style={{direction:'ltr'}}>{AIODate().getDateByPattern({ date: list, pattern })}</div>
         }
         let calendarType = this.getProp('calendarType', 'gregorian')
         return this.getProp('placeholder', calendarType === 'gregorian' ? 'Select Date' : 'انتخاب تاریخ')
@@ -249,9 +249,10 @@ export default class AIOInput extends Component {
 }
 function Image(){
     let {getProp} = useContext(AIContext);
-    let [popup] = useState(new AIOPopup())
+    let [popup] = useState(new AIOPopup());
+    let value = getProp('value','');
+    let [url,setUrl] = useState();
     let dom = createRef()
-    let value = getProp('value');
     let width = getProp('width');
     let height = getProp('height');
     let onChange = getProp('onChange');
@@ -266,16 +267,24 @@ function Image(){
     //     fr.readAsDataURL(value);
     // }
     useEffect(()=>{
-        let src = $(dom.current).attr('src');
-        if(src === '[object File]'){
-            let fr = new FileReader();
-            fr.onload = function () {
-                $(dom.current).attr('src',fr.result)
-            }
-            fr.readAsDataURL(value);
+        if(typeof value === 'object'){
+            changeUrl(value)
+        }
+        else if(typeof value === 'string'){
+            if(url !== value){setUrl(value)}
         }
         
     })
+    function changeUrl(file,callback = ()=>{}){
+        let fr = new FileReader();
+        fr.onload = function () {
+            if(url !== fr.result){
+                setUrl(fr.result);
+                callback(fr.result)
+            }
+        }
+        fr.readAsDataURL(file);
+    }
     function openPopup(){
         popup.addModal({
             header:{
@@ -298,23 +307,27 @@ function Image(){
             }
         })
     }
-    let IMG = value?(
+    let IMG = url?(
         <>
-            <img ref={dom} src={value} width={width} height={height} alt={''}/>
+            <img ref={dom} src={url} alt={''} style={{objectFit:'cover'}} width={width} height={height}/>
             {onRemove && <div onClick={(e)=>{e.stopPropagation(); e.preventDefault(); onRemove()}} className='aio-input-image-remove'><Icon path={mdiClose} size={1}/></div>}
             {preview && <div onClick={(e)=>{e.stopPropagation(); e.preventDefault(); openPopup()}} className='aio-input-image-preview'><Icon path={mdiImage} size={1}/></div>}
             {popup.render()}
         </>
     ):<span className='aio-input-image-placeholder'>{placeholder}</span>
+    if(!onChange){
+        return IMG
+    }
     return (
         <AIOInput
             type='file'
             center={true}
             text={IMG}
             style={{width:'100%',height:'100%',padding:0}}
-            onChange={onChange?(files)=>{
-                onChange(files[0].file)
-            }:undefined}
+            onChange={(files)=>{
+                let file = files[0].file
+                changeUrl(file,(url)=>onChange({file,url}));
+            }}
         />
     )
     
@@ -331,11 +344,13 @@ class InputSlider extends Component {
         let { getProp } = this.context;
         let value = getProp('value'), rtl = getProp('rtl');
         if(!Array.isArray(value)){value = [value]}
+        let disabled = getProp('disabled',false)
         let props = {
+            disabled,
             value,rtl,start:getProp('start'),end:getProp('end'),step:getProp('step'),min:getProp('min'),max:getProp('max'),
-            direction:getProp('direction',rtl ? 'left' : 'right'),showValue:getProp('showValue'),onChange:this.change.bind(this),
+            direction:getProp('direction',rtl ? 'left' : 'right'),showValue:getProp('showValue'),onChange:disabled?undefined:this.change.bind(this),
             pointStyle:getProp('pointStyle'),lineStyle:getProp('lineStyle'),fillStyle:getProp('fillStyle'),
-            labelStep:getProp('labelStep'),editLabel:getProp('editLabel'),labelRotate:getProp('labelRotate'),labelStyle:getProp('labelStyle'),
+            labelStep:getProp('labelStep'),editLabel:getProp('editLabel'),editValue:getProp('editValue'),labelRotate:getProp('labelRotate'),labelStyle:getProp('labelStyle'),
             scaleStep:getProp('scaleStep'),scaleStyle:getProp('scaleStyle'),getScaleHTML:getProp('getScaleHTML'),
             valueStyle:getProp('valueStyle')
         }
@@ -606,8 +621,19 @@ class Form extends Component {
         return { html: error, attrs, style, className: 'aio-input-form-error' + (className ? ' ' + className : '') }
     }
     componentDidMount() {
-        let { onChange = () => { } } = this.props;
-        onChange(this.getValue(), this.getErrors(),true)
+        this.reportErrors()
+    }
+    componentDidUpdate(){
+        this.reportErrors()
+    }
+    reportErrors(){
+        let { getErrors} = this.props;
+        if(!getErrors){return}
+        let errors = this.getErrors();
+        if(JSON.stringify(errors) !== this.reportedErrors){
+            getErrors(errors);
+            this.reportedErrors = JSON.stringify(errors)
+        }
     }
     getAttrs(propsAttrs = {}, ownAttrs = {}) {
         let style = { ...propsAttrs.style, ...ownAttrs.style }
@@ -619,7 +645,7 @@ class Form extends Component {
         let step = this.getValueByField(attrs.step, 1);
         return { start, step, end }
     }
-    input_layout(obj) { 
+    input_layout(obj) {
         let { rtl, inputAttrs } = this.props;
         let { label, footer, inlineLabel, input, flex, size, field } = obj;
         let value = this.getValueByField(field, this.getDefault(input));
@@ -1757,6 +1783,8 @@ class DPHeader extends Component {
 class DPHeaderDropdown extends Component {
     static contextType = DPContext;
     render() {
+        //این شرط فقط در حالت سال رخ میدهد در شرایطی که فقط یک سال قابل انتخاب است
+        if(this.props.options.length === 1){return this.props.options[0]}
         let { size, theme = [] } = this.context;
         let props = {
             ...this.props, search: false,
@@ -1982,8 +2010,8 @@ export class Slider extends Component{
     return obj
   }
   getClassName(){
-    let {attrs} = this.props,{className} = attrs;
-    return `aio-slider ${this.context.oriention}${className?' ' + className:''}`;
+    let {attrs,disabled} = this.props,{className} = attrs;
+    return `aio-slider ${this.context.oriention}${className?' ' + className:''}${disabled?' disabled':''}`;
   }
   render(){
     this.value = this.getValidValue();
