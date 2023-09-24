@@ -344,7 +344,7 @@ class IranFoodGuide extends Component {
             },
             navId:'sefareshe_ghaza',
             body:({ navId }) => {
-              return <ReservePanel/>
+              //return <ReservePanel/>
               if (navId === 'sefareshe_ghaza') {return <Sefareshe_ghaza />}
               if (navId === 'profile') {return <Profile />}
             },
