@@ -683,7 +683,7 @@ class Tags extends Component{
             html:(
                 <AIOInput
                     type='table'
-                    header={this.header()}
+                    toolbar={this.header()}
                     rows={tags}
                     remove={this.remove.bind(this)}
                     columns={[
