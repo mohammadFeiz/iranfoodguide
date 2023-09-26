@@ -85,6 +85,7 @@ export default class App extends Component {
       let response = await Axios.post(`${this.baseUrl}/Users/Token`, {Username: PhoneNumber,Password: password,grant_type:"password"});
       if (response.data.isSuccess) {
         this.personId = response.data.data.personId;
+        this.isRegistered = !!this.personId;
         this.mobile=model.PhoneNumber;
         return { mode:'Authenticated',token: response.data.data.access_token };
       }
