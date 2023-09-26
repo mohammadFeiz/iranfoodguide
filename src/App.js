@@ -88,6 +88,7 @@ export default class App extends Component {
         this.mobile=model.PhoneNumber;
         return { mode:'Authenticated',token: response.data.data.access_token };
       }
+      else {return {mode:'Error',error:response.data.message};} 
     }
   }
   renderLogin() {
