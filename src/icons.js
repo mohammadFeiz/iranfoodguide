@@ -9,6 +9,9 @@ export function icons(key, p = {}) {
         back_office(){
             return <Icon path={mdiCogs} size={1}/>
         },
+        reserve_admin(){
+            return <Icon path={mdiCogs} size={1}/>
+        },
         logo() {
             return (
                 <svg width="120" height="36" style={p.style} viewBox="0 0 159 60" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -306,6 +306,17 @@ class IranFoodGuide extends Component {
       })
       
     }
+    else if(key === 'reserve_admin'){
+      rsa.addModal({
+        header:{title:'پنل رزرو'},
+        body:{
+          render:()=>{
+            return <ReservePanel/>
+          }
+        }
+      })
+      
+    }
   }
   getContext() {
     return {
@@ -328,7 +339,8 @@ class IranFoodGuide extends Component {
             ],
             side:{
               items:[
-                {id:'back-office',text:'پنل مدیریت',icon:icons('back_office'),onClick:()=>this.openModal('back_office')}
+                {id:'back-office',text:'پنل مدیریت',icon:icons('back_office'),onClick:()=>this.openModal('back_office')},
+                {id:'reserve_admin',text:'پنل رزرو',icon:icons('reserve_admin'),onClick:()=>this.openModal('reserve_admin')}
               ],
               header:()=>{
                 return (
@@ -346,7 +358,6 @@ class IranFoodGuide extends Component {
             },
             navId:'sefareshe_ghaza',
             body:({ navId }) => {
-              //return <ReservePanel/>
               if (navId === 'sefareshe_ghaza') {return <Sefareshe_ghaza />}
               if (navId === 'profile') {return <Profile />}
             },
