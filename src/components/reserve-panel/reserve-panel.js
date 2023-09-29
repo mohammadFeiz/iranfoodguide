@@ -591,6 +591,7 @@ class ReservePage extends Component{
         let {countType,timeType} = item;
         if(!countType || timeType !== 'hour'){return false}
         let hoursCapacity = this.getHoursCapacity();
+        if(!hoursCapacity.length){return false}
         return {
             column:[
                 {html:'ساعات قابل رزرو برای تعداد انتخاب شده در روز انتخاب شده'},
