@@ -47,7 +47,6 @@ export default class Profile extends Component {
                 this.setState({reserveItems:newItems}) 
             }
         })
-        this.setState({items:newItems});
     }
     changeItem(newItem){
         let {reserveItems} = this.state;
