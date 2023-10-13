@@ -310,3 +310,6 @@ button,input{
 .aio-input-tabs{
   font-size:12px;
 }
+.aio-input-datepicker-today{
+  background:#FF5900;
+}

@@ -1,10 +1,10 @@
 import React, { Component, createContext } from "react";
 import AIOPopup from "../../npm/aio-popup/aio-popup";
 import AIOInput from './../../npm/aio-input/aio-input';
+import AIOSHOP from './../../npm/aio-shop/aio-shop';
 import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
 import Map from './../../npm/map/map';
 import BOContext from "./back-office-context";
-import ProductManager from './../../npm/aio-shop/product-manager';
 import { Icon } from "@mdi/react";
 import Search from './../../npm/aio-functions/search';
 import { mdiMagnify, mdiFormatListBulletedSquare, mdiMapMarkerAlert, mdiMapMarkerCheck, mdiClose } from '@mdi/js';
@@ -476,6 +476,12 @@ class RestoranForm extends Component {
 
 class Foods extends Component {
     static contextType = RestoranContext;
+    constructor(props){
+        super(props);
+        this.state = {
+            Shop:new AIOSHOP({id:'ifgfoodsbackoffice'})
+        }
+    }
     async add_or_edit_food(newFood,action) {
         let { apis } = this.context;
         let { restoranId,foods,onChange } = this.props;
@@ -515,23 +521,28 @@ class Foods extends Component {
         onClose()
     }
     render() {
-        let { foods } = this.props;
         let { food_tags } = this.context;
+        let { foods } = this.props;
+        let {Shop} = this.state;
+        let SHOPBACKOFFICE = Shop.renderBackOffice({
+            variantMode:false,
+            product:{
+                list:foods,
+                onAdd:async (newFood) => await this.add_or_edit_food(newFood,'add'),
+                onEdit:async (newFood) => await this.add_or_edit_food(newFood,'edit'),
+                onRemove:async (foodId) => await this.remove_food(foodId),
+                fields:[
+                    { input:{type: 'multiselect', options: food_tags.map((o) => { return { text: o.name, value: o.id } }) }, field: 'value.tags', label: 'تگ ها'},
+                    { input:{type: 'text'}, field: 'value.menuCategory', label: 'سر فصل منو' },
+                    { input:{type: 'select', options: [{ name: 'انتخاب نشده' }].concat(foods).map((o) => { return { text: o.name, value: o.id } })}, label: 'زیر مجموعه ی', field: 'value.parentId' }
+                ],
+            }
+        })
         return (
-            <ProductManager
-                variantMode={false}
-                subProductMode={true}
-                extraOptions={[
-                    { input:{type: 'multiselect', options: food_tags.map((o) => { return { text: o.name, value: o.id } }) }, field: 'value.tags', inlineLabel: 'تگ ها'},
-                    { input:{type: 'text'}, field: 'value.menuCategory', inlineLabel: 'سر فصل منو' },
-                    { input:{type: 'select', options: [{ name: 'انتخاب نشده' }].concat(foods).map((o) => { return { text: o.name, value: o.id } })}, inlineLabel: 'زیر مجموعه ی', field: 'value.parentId' }
-                ]}
-                products={foods}
-                onAdd={async (newFood) => await this.add_or_edit_food(newFood,'add')}
-                onEdit={async (newFood) => await this.add_or_edit_food(newFood,'edit')}
-                onRemove={async (foodId) => await this.remove_food(foodId)}
-                onSubmit={(newFoods) => this.submit(newFoods)}
-            />
+            <>
+                {SHOPBACKOFFICE}
+                {Shop.renderPopups()}
+            </>
         )
     }
 }

@@ -8,5 +8,17 @@
     min-height:36px !important;
 }
 .reserve-page-input{
-    background:#fff;
+    background:#f1f1f1;
+    border:none !important;
+    border-radius:8px;
+}
+.reserve-panel-input-after{
+    min-width:60px;
+    background:#FF5900;
+    color:#fff;
+    height:100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius:6px;
 }

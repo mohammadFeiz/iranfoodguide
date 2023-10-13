@@ -187,19 +187,21 @@ export default function AIOValidation(props) {
         
       },
       getValidation(){
-        let {lang = 'en',value,validations = []} = props; 
+        let {lang = 'en',validations = []} = props; 
+
         let unit = '';
-        if(Array.isArray(value)){unit = this.translate('item(s)')}
-        else if(typeof value === 'string'){unit = this.translate('character(s)')}
         for(let i = 0; i < validations.length; i++){
           let [type,target,params = {}] = validations[i];
+          let {title = props.title,value = props.value} = params;
+          if(Array.isArray(value)){unit = this.translate('item(s)')}
+          else if(typeof value === 'string'){unit = this.translate('character(s)')}
           let result;
+            
           if(type === 'function'){
             result = target(value);
           }
           else if(type === 'required'){
             if(value === undefined || value === null || value === '' || value === false || value.length === 0){
-              let {title = props.title} = params;
               if(lang === 'en'){return `${title} is required`}
               if(lang === 'fa'){return `وارد کردن ${title} ضروری است`}
             }
@@ -234,5 +236,6 @@ export default function AIOValidation(props) {
     let validation;
     try{validation = $$.getValidation()}
     catch{validation = ''}
+    if(validation){console.log(validation)}
     return validation; 
   }

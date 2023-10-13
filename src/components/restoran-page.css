@@ -11,3 +11,54 @@
     margin:6px;
     padding:6px 0;
 }
+
+.reserve-page-form .aio-slider-value{
+    background:#FF5900;
+}
+.reserve-page-form .aio-slider-fill-active{
+    background:#FF5900;
+}
+.reserve-page-form .aio-input-form-label{
+    font-size:12px;
+    font-weight:bold;
+}
+.reserve-page-hour-item{
+    border:1px solid #00C489;
+    border-radius:8px;
+    display:flex;
+    float:right;
+    align-items: center;
+    justify-content: center;
+    font-weight:bold;
+    direction:ltr;
+    width:60px;
+    height:36px;
+    margin:3px;
+}
+.reserve-page-hour-item.active{
+    background:#00C489;
+    color:#fff;
+}
+.reserve-page-hour-item.disabled{
+    background:#bbb;
+    color:#888;
+    border:1px solid #bbb;
+}
+.reserve-page-cart-button{
+    background:#FF5900;
+    padding:0 16px;
+    border-radius:8px;
+    height:36px;
+    color:#fff;
+    border:none;
+
+}
+.reserve-page-footer{
+    padding:0 12px;
+    height:60px;
+    box-shadow:0 0 8px 1px rgba(0,0,0,0.3)
+}
+.reserve-page-cart-button:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+}

@@ -1,4 +1,5 @@
 import Axios from 'axios';
+import AIOStorage from './npm/aio-storage/aio-storage';
 import frame210 from './images/Frame 210.png';
 import cat_irani_src from './images/cat-irani.png';
 import cat_sobhane_src from './images/cat-sobhane.png';
@@ -46,6 +47,74 @@ export function getResponse({ getState, baseUrl }) {
     /************************************************************** */
 
     return {
+        /////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////رزرو/////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////
+        //reserve item properties
+        // {
+        //     name:string, // نام آیتم
+        //     description:string, // توضیحات آیتم
+        //     countType:boolean, //سفارس بر اساس تعداد می باشد یا خیر
+        //     countUnit:string, //واحد تعداد مثل نفر یا عدد فقط برای نمایش یو آی
+        //     minCount:number, //حداقل تعداد قابل سفارش
+        //     maxCount:number, //حداکثر تعداد قابل سفارش
+        //     timeType:"hour"|"day", // واحد زمانی آیتم روز یا ساعت
+        //     price:number, // قیمت واحد
+        //     returnAmount:boolean, //آیا رقم روی فاکتور بر می گردد؟
+        //     preOrderTime:{//مدت زمانی که طول میکشه سفارش آماده بشه
+        //         type:"روز" | "ساعت",
+        //         amount:number,
+        //     }
+        // }
+        async get_restoran_reserve_items(){
+            return {mock:true}
+        },
+        async add_or_edit_restoran_reserve_item({restoranId,item,type}){
+            //restoranId آی دی رستوران
+            //item آیتم رزرو رستوران برای افزودن
+            //type "add" | "edit"
+            return {mock:true}
+        },
+        async remove_restoran_reserve_item({restoranId,itemId}){
+            return {mock:true}
+        },
+        async get_restoran_reserve_capacity({restoranId,itemId}){
+            return {mock:true}
+            
+            // let response = await Axios.get(url, body);
+            // let result = []; // ریزالت باید یک آرایه 24 تایی باشد که هر عضو اون عدد ظرفیت باقی مانده ی آیتم رزرو رو نشون میده  
+            // example of result
+            //[
+            //     0, //ساعت 0
+            //     0, //ساعت 1
+            //     0, //ساعت 2
+            //     0, //ساعت 3
+            //     0, //ساعت 4
+            //     0, //ساعت 5
+            //     0, //ساعت 6
+            //     0, //ساعت 7
+            //     0, //ساعت 8
+            //     0, //ساعت 9
+            //     0, //ساعت 10
+            //     0, //ساعت 11
+            //     0, //ساعت 12
+            //     0, //ساعت 13
+            //     0, //ساعت 14
+            //     0, //ساعت 15
+            //     0, //ساعت 16
+            //     0, //ساعت 17
+            //     0, //ساعت 18
+            //     0, //ساعت 19
+            //     0, //ساعت 20
+            //     0, //ساعت 21
+            //     0, //ساعت 22
+            //     0, //ساعت 23
+            // ]
+            // return {response,result}
+        },
+        ///////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////
         async peygiriye_sefaresh(orderId) {
             return {result:{statusId:1,totalPrice:12344444,id:88678}}
             let url = `${baseUrl}/Order/InquiryOrder`;
@@ -595,6 +664,60 @@ export function getMock({ helper, getState }) {
             })
             mockStorage.save({ name: 'restorans', value: restorans })
             return true;
+        },
+        get_restoran_reserve_items(){
+            let storage = AIOStorage('ifgreservemockserver');
+            return storage.load({name:'items',def:[]})
+        },
+        add_or_edit_restoran_reserve_item({restoranId,item,type}){
+            let storage = AIOStorage('ifgreservemockserver');
+            let items = storage.load({name:'items',def:[]})
+            if(type === 'add'){
+                let id = 'sss' + Math.round(Math.random() * 10000000)
+                item.id = id;
+                items = items.concat(items);
+                storage.save({name:'items',value:items})
+                return id
+            }
+            else {
+                items = items.map((o)=>o.id === item.id?item:o);
+                storage.save({name:'items',value:items})
+            }
+            
+        },
+        remove_restoran_reserve_item({restoranId,itemId}){
+            let storage = AIOStorage('ifgreservemockserver');
+            let items = storage.load({name:'items',def:[]})
+            items = items.filter((o)=>o.id !== itemId);
+            storage.save({name:'items',value:items})
+        },
+        get_restoran_reserve_capacity(){
+            return [
+                0,//ساعت 0
+                0,//ساعت 1
+                0,//ساعت 2
+                0,//ساعت 3
+                0,//ساعت 4
+                0,//ساعت 5
+                0,//ساعت 6
+                0,//ساعت 7
+                60,//ساعت 8
+                60,//ساعت 9
+                60,//ساعت 10
+                60,//ساعت 11
+                48,//ساعت 12
+                48,//ساعت 13
+                60,//ساعت 14
+                60,//ساعت 15
+                60,//ساعت 16
+                60,//ساعت 17
+                60,//ساعت 18
+                60,//ساعت 19
+                22,//ساعت 20
+                22,//ساعت 21
+                28,//ساعت 22
+                28,//ساعت 23
+            ]
         },
         get_restoran_foods(restoranId) {
             let foods = mockStorage.load({ name: `restoran_${restoranId}_menu`, def: [] });
