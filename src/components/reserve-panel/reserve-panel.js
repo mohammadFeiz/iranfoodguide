@@ -59,11 +59,11 @@ export default class Profile extends Component {
         let type = item.added === false?'add':'edit'
         let newItem = {...item}
         apis({
-            api:'add_or_edit_restoran_reserve_item',parameter:{restoranId,item:newItem},
+            api:'add_or_edit_restoran_reserve_item',parameter:{restoranId,item:newItem,type},
             name:`${type === 'add'?'ذخیره':'ویرایش'} خدمت رزرو رستوران در پنل ادمین`,
             callback:(p)=>{
                 newItem = {...newItem,added:true,isSubmited:true}
-                if(type === 'add'){newItem.id = p;}
+                if(type === 'add'){newItem.id = p.id;}
                 this.changeItem(newItem)
             }
         })

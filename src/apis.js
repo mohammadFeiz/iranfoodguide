@@ -667,17 +667,19 @@ export function getMock({ helper, getState }) {
         },
         get_restoran_reserve_items(){
             let storage = AIOStorage('ifgreservemockserver');
-            return storage.load({name:'items',def:[]})
+            let res = storage.load({name:'items',def:[]})
+            return res
         },
         add_or_edit_restoran_reserve_item({restoranId,item,type}){
+            debugger
             let storage = AIOStorage('ifgreservemockserver');
             let items = storage.load({name:'items',def:[]})
             if(type === 'add'){
                 let id = 'sss' + Math.round(Math.random() * 10000000)
                 item.id = id;
-                items = items.concat(items);
+                items = items.concat(item);
                 storage.save({name:'items',value:items})
-                return id
+                return {id}
             }
             else {
                 items = items.map((o)=>o.id === item.id?item:o);

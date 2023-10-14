@@ -26,56 +26,63 @@ export default class AIOInput extends Component {
         if (type === 'button' && popover) {
             return (dom) => {
                 let { popover, rtl } = this.props;
-                let { backdropAttrs, attrs, render, fixStyle, fitHorizontal, position = 'popover', openRelatedTo } = popover;
+                let { backdropAttrs, attrs = {}, render, fixStyle, fitHorizontal, position = 'popover',header } = popover;
                 return {
-                    rtl, position, attrs, backdrop: { attrs: backdropAttrs }, id: 'popover',
-                    popover: { fixStyle, fitHorizontal, getTarget: () => $(dom.current), openRelatedTo },
-                    body: { render: ({ close }) => render({ close }) }
+                    rtl, position,header,
+                    backdrop: { attrs: {...backdropAttrs,className:'aio-input-backdrop ' + this.datauniqid} },
+                    id: 'popover',
+                    popover: { 
+                        fixStyle, fitHorizontal, getTarget: () => $(dom.current), pageSelector:'.aio-input-backdrop.' + this.datauniqid
+                    },
+                    body: { render: ({ close }) => render({ close }) },
+                    attrs: {...attrs,className:'aio-input-popover' + (attrs.className?' ' + attrs.className:'') + (rtl?' aio-input-popover-rtl':'')} 
                 }
             }
         }
         if (type === 'datepicker') {
             return (dom) => {
                 let { popover, rtl } = this.props;
-                let { backdropAttrs, attrs, fixStyle, fitHorizontal, position = 'popover', openRelatedTo } = popover || {}
+                let { backdropAttrs, attrs = {}, fixStyle, fitHorizontal, position = 'popover' } = popover || {}
                 return {
                     rtl, position, attrs, id: 'popover',
-                    body: { render: () => <DatePicker {...this.props} /> },
-                    backdrop: { attrs: backdropAttrs },
-                    popover: { fixStyle, fitHorizontal, getTarget: () => $(dom.current), openRelatedTo }
+                    body: { render: (obj) => <DatePicker {...this.props} onClose={obj.close}/>},
+                    backdrop: { attrs: {...backdropAttrs,className:'aio-input-backdrop ' + this.datauniqid} },
+                    popover: { 
+                        fixStyle, fitHorizontal, 
+                        getTarget: () => $(dom.current), pageSelector:'.aio-input-backdrop.' + this.datauniqid
+                    },
+                    attrs: {...attrs,className:'aio-input-popover' + (attrs.className?' ' + attrs.className:'') + (rtl?' aio-input-popover-rtl':'')} 
                 }
             }
         }
         if (type === 'select' || type === 'multiselect') {
             return (dom) => {
                 let { popover, rtl } = this.props;
-                let { backdropAttrs, attrs, fixStyle, fitHorizontal = type === 'multiselect', header, footer, position = 'popover', openRelatedTo } = popover || {}
+                let { backdropAttrs, attrs = {}, fixStyle, fitHorizontal = type === 'multiselect', header, before,after, position = 'popover' } = popover || {}
                 return {
-                    rtl, position, attrs, id: 'popover',
+                    rtl, position, id: 'popover',header,
                     body: {
-                        render: () => {
-                            return (
-                                <>
-                                    {header && header}
-                                    <Options />
-                                    {footer && footer}
-                                </>
-
-                            )
-                        }, attrs: { style: { flexDirection: 'column' } }
+                        render: () => (<>{before && before}<Options />{after && after}</>), 
+                        attrs: { style: { flexDirection: 'column' } }
                     },
-                    backdrop: { attrs: backdropAttrs },
-                    popover: { fixStyle, fitHorizontal, getTarget: () => $(dom.current), openRelatedTo }
+                    backdrop: { attrs: {...backdropAttrs,className:'aio-input-backdrop ' + this.datauniqid} },
+                    popover: { 
+                        fixStyle, fitHorizontal, getTarget: () => $(dom.current), pageSelector:'.aio-input-backdrop.' + this.datauniqid ,
+                    },
+                    attrs: {...attrs,className:'aio-input-popover' + (attrs.className?' ' + attrs.className:'') + (rtl?' aio-input-popover-rtl':'')} 
                 }
             }
         }
         if (type && options && ['text', 'number', 'textarea', 'password'].indexOf(type) !== -1) {
             return (dom) => {
                 let { type, popover = {}, rtl } = this.props;
-                let { attrs, fixStyle, fitHorizontal = true, position = 'popover' } = popover
+                let { attrs = {}, fixStyle, fitHorizontal = true, position = 'popover' } = popover
                 return {
-                    rtl, position, attrs, backdrop: false, body: { render: () => <Options type={type} /> }, id: this.datauniqid,
-                    popover: { fixStyle, fitHorizontal, getTarget: () => $(dom.current) }
+                    rtl, position, backdrop: false, body: { render: () => <Options type={type} /> }, id: this.datauniqid,
+                    popover: { 
+                        fixStyle, fitHorizontal, getTarget: () => $(dom.current), pageSelector:'.aio-input-backdrop.' + this.datauniqid,
+                    },
+                    attrs: {...attrs,className:'aio-input-popover' + (attrs.className?' ' + attrs.className:'') + (rtl?' aio-input-popover-rtl':'')} 
                 }
             }
         }
@@ -92,11 +99,7 @@ export default class AIOInput extends Component {
         onSwap(from, to, this.swap)
     }
     swap(arr, from, to) {
-        if (to === from + 1) {
-            let a = to;
-            to = from;
-            from = a;
-        }
+        if (to === from + 1) {let a = to; to = from; from = a;}
         let Arr = arr.map((o, i) => { o._testswapindex = i; return o })
         let fromIndex = Arr[from]._testswapindex
         Arr.splice(to, 0, { ...Arr[from], _testswapindex: false })
@@ -145,9 +148,6 @@ export default class AIOInput extends Component {
     }
     getProp(key, def) {
         let { type, caret, popover } = this.props;
-        if (key === 'attrs') {
-            if (['text', 'textarea', 'number', 'password', 'color'].indexOf(type) === -1) { return {} }
-        }
         let propsResult = this.props[key] === 'function' ? this.props[key]() : this.props[key];
         if (key === 'caret') { return caret === false ? false : (((type === 'button' && popover) || (type === 'select' || type === 'multiselect' || type === 'datepicker')) ? (caret || true) : false) }
         if (key === 'multiple') { return (type === 'multiselect') || (type === 'radio' && !!propsResult) || (type === 'slider' && !!propsResult) }
@@ -177,9 +177,7 @@ export default class AIOInput extends Component {
                 eval(evalText);
                 return value;
             }
-            catch {
-                prop = prop
-            }
+            catch {prop = prop}
         }
         if (typeof prop === 'function') { return prop(option) }
         if (prop !== undefined) { return prop }
@@ -219,7 +217,45 @@ export default class AIOInput extends Component {
             parentDom: this.dom,
         }
     }
+    D2S(n){n = n.toString(); return n.length === 1?'0' + n:n}
     render_button() { return <Layout /> }
+    render_list(){
+        return <List {...this.props} getOptionProp={this.getOptionProp.bind(this)}/>
+    }
+    render_time() { 
+        let {year,month,day,hour,minute,popover = {},onChange} = this.props;
+        let {attrs:popoverAttrs = {}} = popover;
+        let text = [];
+        let dateArray = [];
+        if(year){dateArray.push(this.D2S(year))}
+        if(month){dateArray.push(this.D2S(month))}
+        if(day){dateArray.push(this.D2S(day))}
+        if(dateArray.length){text.push(dateArray.join('/'))}
+        if(hour !== undefined){text.push(`${this.D2S(hour)} : ${this.D2S(minute === undefined?0:minute)}`)}
+        return (
+            <AIOInput
+                caret={false} center={true} 
+                text={text.join(' ')}
+                {...this.props}
+                style={{...this.props.style,direction:'ltr'}}
+                type='button' 
+                popover={!onChange?undefined:{
+                    position: 'center',...popover,
+                    attrs: { ...popoverAttrs,className: 'aio-input-time-popover' + (popoverAttrs.className?' ' + popoverAttrs.className:'') }, 
+                    render: ({close}) => {
+                        let {year,month,day,hour,minute,onChange = ()=>{}} = this.props;
+                        return (
+                            <TimePopover 
+                                year={year} month={month} day={day} hour={hour} minute={minute} 
+                                onChange={({ year,month,day,hour, minute }) => onChange({ year,month,day,hour, minute })} 
+                                onClose={()=>close()}
+                            />
+                        )
+                    }
+                }}
+            />
+        ) 
+    }
     render_file() { return <Layout /> }
     render_select() { return <Layout /> }
     render_multiselect() { return <Multiselect /> }
@@ -247,6 +283,136 @@ export default class AIOInput extends Component {
         )
     }
 }
+function TimePopover(props) {
+    let {calendarType,lang = 'fa'} = props;
+    let [today] = useState(AIODate().getToday({calendarType}))
+    let [year, setYear] = useState(props.year === true?today[0]:props.year);
+    let [startYear] = useState(year?year - 10:undefined);
+    let [endYear] = useState(year?year + 10:undefined);
+    let [month, setMonth] = useState(props.month === true?today[1]:props.month);
+    let [day, setDay] = useState(props.day === true?today[2]:props.day);
+    let [hour, setHour] = useState(props.hour === true?today[3]:props.hour);
+    let [minute, setMinute] = useState(props.minute === true?today[4]:props.minute);
+    function translate(key){
+        return lang === 'fa'?{'Year':'سال','Month':'ماه','Day':'روز','Hour':'ساعت','Minute':'دقیقه','Submit':'ثبت'}[key]:key
+    }
+    function year_layout(year) {
+        if(!year){return false}
+        let options = [];
+        for(let i = startYear; i <= endYear; i++){
+            options.push({ text: i, value: i })
+        }
+        return {
+            column: [
+                { html: translate('Year'), align: 'vh', size: 36 },
+                {html: (<AIOInput type='list' value={year} options={options} size={48} width={72} onChange={(year) => setYear(year)}/>)}
+            ]
+        }
+    }
+    function month_layout(month) {
+        if(!month){return false}
+        return {
+            column: [
+                { html: translate('Month'), align: 'vh', size: 36 },
+                {
+                    html: (
+                        <AIOInput
+                            type='list' value={month}
+                            options={
+                                new Array(12).fill(0).map((o, i) => {
+                                    return { text: i + 1, value: i + 1 }
+                                })
+                            }
+                            size={48} width={72} onChange={(month) => setMonth(month)}
+                        />
+                    )
+                }
+            ]
+        }
+    }
+    function day_layout(year,month,day) {
+        if(!year || !month || !day){return false}
+        let days = AIODate().getMonthDaysLength({date:[year,month]})
+        if(day > days){day = 1;}
+        return {
+            column: [
+                { html: translate('Day'), align: 'vh', size: 36 },
+                {
+                    html: (
+                        <AIOInput
+                            type='list' value={day}
+                            options={
+                                new Array(days).fill(0).map((o, i) => {
+                                    return { text: i + 1, value: i + 1 }
+                                })
+                            }
+                            size={48} width={72} onChange={(day) => setDay(day)}
+                        />
+                    )
+                }
+            ]
+        }
+    }
+    function hour_layout(hour) {
+        if(hour === undefined){return false}
+        return {
+            column: [
+                { html: translate('Hour'), align: 'vh', size: 36 },
+                {
+                    html: (
+                        <AIOInput
+                            type='list' value={hour}
+                            options={
+                                new Array(24).fill(0).map((o, i) => {
+                                    return { text: i, value: i }
+                                })
+                            }
+                            size={48} width={72} onChange={(hour) => setHour(hour)}
+                        />
+                    )
+                }
+            ]
+        }
+    }
+    function minute_layout(minute) {
+        if(minute === undefined){return false}
+        return {
+            column: [
+                { html: translate('Minute'), align: 'vh', size: 36 },
+                {
+                    html: (
+                        <AIOInput
+                            type='list' value={minute}
+                            options={
+                                new Array(60).fill(0).map((o, i) => {
+                                    return { text: i, value: i }
+                                })
+                            }
+                            size={48} width={72} onChange={(minute) => setMinute(minute)}
+                        />
+                    )
+                }
+            ]
+        }
+    }
+    return (
+        <RVD
+            layout={{
+                style:{direction:'ltr'},
+                column: [
+                    {align: 'h',row: [year_layout(year),month_layout(month),day_layout(year,month,day),hour_layout(hour),minute_layout(minute)]},
+                    { size: 12 },
+                    {
+                        html: <button className='ai-style-3' style={{ height: 36, fontSize: 12 }} onClick={() => {
+                            props.onChange({ year,month,day,hour, minute })
+                            props.onClose()
+                        }}>{translate('Submit')}</button>
+                    }
+                ]
+            }}
+        />
+    )
+}
 function Image(){
     let {getProp} = useContext(AIContext);
     let [popup] = useState(new AIOPopup());
@@ -273,17 +439,20 @@ function Image(){
         else if(typeof value === 'string'){
             if(url !== value){setUrl(value)}
         }
-        
+        else if(url !== false) {setUrl(false)} 
     })
     function changeUrl(file,callback = ()=>{}){
-        let fr = new FileReader();
-        fr.onload = function () {
-            if(url !== fr.result){
-                setUrl(fr.result);
-                callback(fr.result)
+        try{
+            let fr = new FileReader();
+            fr.onload = function () {
+                if(url !== fr.result){
+                    setUrl(fr.result);
+                    callback(fr.result)
+                }
             }
+            fr.readAsDataURL(file);
         }
-        fr.readAsDataURL(file);
+        catch{}
     }
     function openPopup(){
         popup.addModal({
@@ -298,11 +467,7 @@ function Image(){
             body:{
                 render:()=>{
                     let src = $(dom.current).attr('src')
-                    return (
-                        <div className='aio-input-image-preview-popup'>
-                            <img src={src} alt=''/>
-                        </div>
-                    )
+                    return (<div className='aio-input-image-preview-popup'><img src={src} alt=''/></div>)
                 }
             }
         })
@@ -320,18 +485,13 @@ function Image(){
     }
     return (
         <AIOInput
-            type='file'
-            center={true}
-            text={IMG}
-            style={{width:'100%',height:'100%',padding:0}}
+            type='file' center={true} text={IMG} style={{width:'100%',height:'100%',padding:0}}
             onChange={(files)=>{
                 let file = files[0].file
                 changeUrl(file,(url)=>onChange({file,url}));
             }}
         />
     )
-    
-    
 }
 class InputSlider extends Component {
     static contextType = AIContext;
@@ -406,9 +566,7 @@ class Input extends Component {
             AIOSwip({
                 speedY: 0.2,
                 dom: $(this.dom.current),
-                start: () => {
-                    this.so = this.state.value || 0;
-                },
+                start: () => this.so = this.state.value || 0,
                 move: ({ dx, dy, dist }) => {
                     let newValue = -dy + this.so
                     if (min !== undefined && newValue < min) { return }
@@ -419,7 +577,7 @@ class Input extends Component {
         }
     }
     componentDidUpdate() {
-        let { type, autoHeight, delay = 400 } = this.props;
+        let { type, autoHeight } = this.props;
         if (type === 'textarea' && autoHeight) {
             let dom = this.dom.current;
             dom.style.height = 'fit-content';
@@ -430,11 +588,11 @@ class Input extends Component {
         }
         clearTimeout(this.rrt)
         if (this.state.prevValue !== this.props.value) {
-            this.rrt = setTimeout(() => this.setState({ value: this.props.value, prevValue: this.props.value }), delay + 10)
+            this.rrt = setTimeout(() => this.setState({ value: this.props.value, prevValue: this.props.value }), 0)
         }
     }
     change(value) {
-        let { type, getProp } = this.context;
+        let { type, getProp,blurChange } = this.context;
         let onChange = getProp('onChange');
         if (!onChange) { return }
         let maxLength = getProp('maxLength', Infinity);
@@ -461,23 +619,31 @@ class Input extends Component {
             }
         }
         this.setState({ value });
-        clearTimeout(this.timeout);
-        this.timeout = setTimeout(() => {
-            this.onChange(value);
-        }, delay);
+        if(!blurChange){
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(() => {
+                this.onChange(value);
+            }, delay);
+        }
+    }
+    blur(){
+        let {blurChange} = this.context;
+        if(!blurChange){return}
+        this.onChange(this.state.value)
     }
     render() {
         let { getProp, type } = this.context;
         let { value = '' } = this.state;
-        let attrs = getProp('attrs');
+        let inputAttrs = getProp('inputAttrs',{});
         let disabled = getProp('disabled', false);
         let placeholder = getProp('placeholder');
         let spin = getProp('spin');
         this.onChange = getProp('onChange');
         let props = {
-            ...attrs, value, type, disabled, ref: this.dom, placeholder,
+            ...inputAttrs, value, type, disabled, ref: this.dom, placeholder,
             className: spin === false ? 'no-spin' : '',
-            onChange: (e) => this.change(e.target.value)
+            onChange: (e) => this.change(e.target.value),
+            onBlur:()=>this.blur()
         }
         if (typeof this.onChange !== 'function') { return <div className='aio-input-value'>{value}</div> }
         else if (type === 'color') {
@@ -510,14 +676,16 @@ class Form extends Component {
         for (let prop in this.errors) { if (prop !== field) { newErrors[prop] = this.errors[prop] } }
         this.errors = newErrors
     }
-    setValue(v, field, obj) {
+    setValue(v, obj) {
         let { onChange } = this.props;
+        let {field,input = {}} = obj;
         let value = this.getValue();
         let newValue = this.setValueByField(value, field, v);
         let error = this.getError(obj, v)
         if (error) { this.errors[field] = error }
         else { this.removeError(field) }
-        if (onChange) { onChange(newValue, this.getErrors()) }
+        if(input.onChange){input.onChange(v)}
+        else if (onChange) { onChange(newValue, this.getErrors()) }
         else { this.setState({ value: newValue }) }
     }
     header_layout() {
@@ -656,7 +824,7 @@ class Form extends Component {
         let errorAttrs = this.getAttrs(this.props.errorAttrs, obj.errorAttrs)
         let attrs = this.getAttrs(inputAttrs, input)
         let privateAttrs = this['getAttrs_' + input.type] ? this['getAttrs_' + input.type](attrs) : {}
-        let props = { ...attrs, ...privateAttrs, rtl, value, onChange: (value) => this.setValue(value, field, obj) }
+        let props = { ...attrs, ...privateAttrs, rtl, value, onChange: (value) => this.setValue(value,obj) }
         return {
             flex, size, className: 'aio-input-form-item',
             column: [
@@ -968,7 +1136,7 @@ class Table extends Component {
         let template = getDynamics({ value: column.template, row, rowIndex, column });
         if (template !== undefined) { return template }
         let props = {
-            ...column,
+            ...column,blurChange:true,
             value: getDynamics({ value: column.value, row, rowIndex, column }),
             options: getDynamics({ value: column.options, row, rowIndex, column }),
             type: getDynamics({ value: column.type, row, rowIndex, column, def: 'text' }),
@@ -1246,7 +1414,7 @@ class SortClass {
             <AIOInput
                 popover={{
                     header: <div style={{ padding: '6px 12px' }}>sort</div>,
-                    openRelatedTo: '.aio-input-table'
+                    pageSelector: '.aio-input-table'
                 }}
                 key='sortbutton' caret={false} type='select' options={sortOptions} className='aio-input-table-toolbar-icon'
                 text={<Icon path={mdiSort} size={0.7} />}
@@ -1296,7 +1464,7 @@ class Layout extends Component {
         let props = {
             ...attrs,
             className: this.getClassName(label, disabled),
-            onClick: loading ? undefined : (option === undefined ? (e) => click(e, this.dom) : () => optionClick(option)),
+            onClick: loading ? undefined : (option === undefined ? (e) => {e.stopPropagation(); click(e, this.dom)} : (e) => {e.stopPropagation(); optionClick(option)}),
             ref: this.dom, disabled, style: { justifyContent: center ? 'center' : undefined, ...style }, 'data-label': label
         }
         if (option && onSwap) {
@@ -1487,7 +1655,10 @@ class DatePicker extends Component {
     static contextType = AIContext;
     render() {
         let { getProp } = this.context;
+        let {onClose} = this.props
         let props = {
+            onClose,
+            close: getProp('close', false),
             unit: getProp('unit', 'day'), calendarType: getProp('calendarType', 'gregorian'),
             disabled: getProp('disabled', false), value: getProp('value'),
             onChange: getProp('onChange', () => { }), onClear: getProp('onClear'),
@@ -1563,7 +1734,7 @@ class Calendar extends Component {
             translate: this.translate.bind(this),
             SetState: (obj) => this.setState(obj),
             onChange: ({ year, month, day, hour }) => {
-                let { onChange = () => { }, calendarType, unit, value } = this.props;
+                let { onChange = () => { }, calendarType, unit, value,close,onClose } = this.props;
                 let { months } = this.state;
                 let dateArray = [year, month, day, hour];
                 let jalaliDateArray = calendarType === 'gregorian' ? AIODate().toJalali({ date: dateArray }) : dateArray;
@@ -1586,7 +1757,8 @@ class Calendar extends Component {
                     months, jalaliDateArray, gregorianDateArray, dateArray, weekDay, weekDayIndex, dateString,
                     year, month, day, hour, monthString, jalaliMonthString, gregorianMonthString,
                 }
-                onChange(dateString, props)
+                onChange(dateString, props);
+                if(close){onClose()}
             }
         }
     }
@@ -1788,8 +1960,8 @@ class DPHeaderDropdown extends Component {
         let { size, theme = [] } = this.context;
         let props = {
             ...this.props, search: false,
-            caret: false, type: 'select', popupAttrs: { style: { maxHeight: size * 1.2 } },
-            className: 'aio-input-datepicker-dropdown', popover: { attrs: { style: { maxHeight: 200 } } },
+            caret: false, type: 'select',
+            className: 'aio-input-datepicker-dropdown',
             optionStyle: { height: size / 6, background: theme[1], color: theme[0] }
         }
         return (<AIOInput {...props} />)
@@ -2214,16 +2386,8 @@ class SliderLabel extends Component{
     var {value} = this.props;
     var obj = typeof labelStyle === 'function'?labelStyle(value,this.context):labelStyle;
     obj = !obj?{}:{...obj}
-    try{
-        let key = {right:'left',left:'right',top:'bottom',bottom:'top'}[direction];
-        obj[key] = getPercentByValue(value,start,end) + '%';
-    }
-    catch{
-        debugger
-        let key = {right:'left',left:'right',top:'bottom',bottom:'top'}[direction];
-        obj[key] = getPercentByValue(value,start,end) + '%';
-    }
-    
+    let key = {right:'left',left:'right',top:'bottom',bottom:'top'}[direction];
+    obj[key] = getPercentByValue(value,start,end) + '%';
     if(rotate){
       obj.transform = `rotate(${rotate + 'deg'})`;
       obj.justifyContent = rotate > 0?'flex-start':'flex-end' 
@@ -2288,3 +2452,206 @@ class SliderScale extends Component{
     return (<div className="aio-slider-scale" style={this.getStyle()}>{getScaleHTML && getScaleHTML(value)}</div>);
   }
 }
+
+class List extends Component {
+    constructor(props){
+      super(props);
+      this.touch = 'ontouchstart' in document.documentElement;
+      this.dom = createRef();
+      var {count = 3,move} = this.props;
+      if(move){move(this.move.bind(this))}
+      this.state = {count}
+    }
+    eventHandler(selector, event, action,type = 'bind'){
+      var me = { mousedown: "touchstart", mousemove: "touchmove", mouseup: "touchend" }; 
+      event = this.touch ? me[event] : event;
+      var element = typeof selector === "string"?(selector === "window"?$(window):$(selector)):selector; 
+      element.unbind(event, action); 
+      if(type === 'bind'){element.bind(event, action)}
+    }
+    getClient(e) {
+      try{
+        return this.touch && e.changedTouches
+        ? [e.changedTouches[0].clientX,e.changedTouches[0].clientY]
+        : [e.clientX,e.clientY];
+      }
+      catch{
+        return this.touch && e.changedTouches
+        ? [e.changedTouches[0].clientX,e.changedTouches[0].clientY]
+        : [e.clientX,e.clientY];
+      }
+    }
+    getStyle(){
+      var {size,width = 200} = this.props;
+      var {count} = this.state;
+      var height = count * (size);
+      return {width,height}
+    }
+    getOptions(){ 
+      var {size,options,value:propsValue,getOptionProp} = this.props;
+      this.activeIndex = 0;
+      return options.map((option,i)=>{
+        let value = getOptionProp(option,'value');
+        let text = getOptionProp(option,'text','');
+        let style = getOptionProp(option,'style',{});
+        if(value === propsValue){this.activeIndex = i;}
+        return <div key={i} dataindex={i} className='aio-input-list-option' style={{height:size,...style}}>{text}</div>
+      })
+    }
+    getIndexByTop(top){
+      var {size} = this.props;
+      var {count} = this.state;
+      return Math.round(((count * size) - size - (2*top)) / (2 * size));
+    }
+    getTopByIndex(index){
+      var {size} = this.props;
+      var {count} = this.state;
+      return (count - 2 * index - 1) * size / 2;
+    }
+    getContainerStyle(){
+      var style = {
+        top:this.getTopByIndex(this.activeIndex)
+      };
+      return style;
+    }
+    
+    moveDown(){
+      var {options} = this.props;
+      if(this.activeIndex >= options.length - 1){return}
+      this.activeIndex++;
+      var newTop = this.getTopByIndex(this.activeIndex);
+      this.setStyle({top:newTop});
+      this.setBoldStyle(this.activeIndex);
+    }
+    setBoldStyle(index){
+      $(this.dom.current).find('.aio-input-list-option').removeClass('active');
+      $(this.dom.current).find('.aio-input-list-option[dataindex='+(index)+']').addClass('active');
+    }
+    moveUp(){
+      if(this.activeIndex <= 0){return}
+      this.activeIndex--;
+      var newTop = this.getTopByIndex(this.activeIndex);
+      this.setStyle({top:newTop});
+      this.setBoldStyle(this.activeIndex);
+      
+    }
+    keyDown(e){
+      var {editable} = this.props;
+      if(editable === false){return}
+      if(e.keyCode === 38){
+        this.moveUp();
+      }
+      else if(e.keyCode === 40){
+        this.moveDown();
+      }
+      
+    }
+    getLimit(){
+      var {options} = this.props;
+      return {
+        top:this.getTopByIndex(-1),
+        bottom:this.getTopByIndex(options.length)
+      }
+    }
+    getTrueTop(top){
+      let {options} = this.props;
+      let index = this.getIndexByTop(top);
+      if(index < 0){index = 0}
+      if(index > options.length - 1){index = options.length - 1}
+      return this.getTopByIndex(index);
+    }
+    mouseDown(e){
+      var {options,onChange,editable} = this.props;
+      if(editable === false){return}
+      this.eventHandler('window','mousemove',$.proxy(this.mouseMove,this));
+      this.eventHandler('window','mouseup',$.proxy(this.mouseUp,this));
+      clearInterval(this.interval);
+      this.moved = false;
+      this.isDown = true;
+      var [x,y] = this.getClient(e);
+      this.setStyle({transition:'unset'});
+      let top = this.getTop();
+      var index = this.getIndexByTop(top);
+      this.setBoldStyle(index);
+      this.setStyle({top,transition:'unset'});
+      onChange(options[index].value,index)
+      this.so = {y,top,limit:this.getLimit()};
+    }
+    getTop(){
+      var top = parseInt($(this.dom.current).find('.aio-input-list-inner').css('top'));
+      return this.getTrueTop(top);
+    }
+    fixTop(value){
+      let {top,bottom} = this.so.limit;
+      if(value > top){return top}
+      if(value < bottom){return bottom}
+      return value;
+    }
+    mouseMove(e){
+      this.moved = true;
+      var [x,y] = this.getClient(e);
+      var offset = y - this.so.y;
+      if(this.lastY === undefined){this.lastY = y}
+      this.deltaY = y - this.lastY;
+      this.lastY = y;
+      if(Math.abs(offset) < 20){this.deltaY = 3}
+      var newTop = this.fixTop(this.so.top + offset);
+      let index = this.getIndexByTop(newTop);
+      this.so.newTop = newTop;
+      this.setBoldStyle(index);
+      this.setStyle({top:newTop}); 
+    }
+    setStyle(obj){
+      $(this.dom.current).find('.aio-input-list-inner').css(obj);
+    }
+    mouseUp(e){ 
+      this.eventHandler('window','mousemove',this.mouseMove,'unbind');
+      this.eventHandler('window','mouseup',this.mouseUp,'unbind'); 
+      this.isDown = false;
+      if(!this.moved){return}
+      this.moved = false;
+      this.move(this.deltaY,this.so.newTop)
+    }
+    move(deltaY,startTop = this.getTop()){ 
+      var {options,onChange = ()=>{},decay = 8,stop = 3} = this.props;
+      if(decay < 0){decay = 0}
+      if(decay > 99){decay = 99}
+      decay = parseFloat(1 + decay / 1000)
+      this.interval = setInterval(()=>{
+        startTop += deltaY; 
+        let index = this.getIndexByTop(startTop);
+        if(Math.abs(deltaY) < stop || index < 0 || index > options.length - 1){
+          clearInterval(this.interval); 
+          if(index < 0){index = 0}
+          if(index > options.length - 1){index = options.length - 1}
+          let top = this.getTopByIndex(index);
+          this.setBoldStyle(index);
+          this.setStyle({top,transition:'0.3s'});
+          onChange(options[index].value,index)
+          return;
+        }      
+        deltaY /= decay;
+        this.setStyle({top:startTop});
+      },20)
+    }
+    componentDidUpdate(){
+      this.setBoldStyle(this.activeIndex);
+    }
+    componentDidMount(){
+      this.setBoldStyle(this.activeIndex);
+    }
+    render(){
+      var options = this.getOptions();
+      return (
+          <div ref={this.dom} className='aio-input-list-container' style={this.getStyle()} tabIndex={0} onKeyDown={(e)=>this.keyDown(e)}>
+          <div 
+            className='aio-input-list-inner' 
+            style={this.getContainerStyle()} 
+            onMouseDown={(e)=>this.mouseDown(e)} 
+            onTouchStart={(e)=>this.mouseDown(e)}
+          >{options}</div>
+        </div>
+      );  
+    }
+  }
+  List.defaultProps = {size:48,options:[],onChange:(item,index)=>{}}
