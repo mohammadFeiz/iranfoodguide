@@ -66,7 +66,7 @@ export function getResponse({ getState, baseUrl }) {
         //         amount:number,
         //     }
         // }
-        async get_restoran_reserve_items(restoranId){
+        async get_restoran_reserve_items(){
             let url = `${baseUrl}/RestaurantReservasionPlan/Search`;
             //create from searchObject
             let { pageSize = 1000, pageNumber = 1, selected_tags = [], searchValue } = searchObject;
