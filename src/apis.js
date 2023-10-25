@@ -66,17 +66,58 @@ export function getResponse({ getState, baseUrl }) {
         //         amount:number,
         //     }
         // }
-        async get_restoran_reserve_items(){
-            return {mock:true}
+        async get_restoran_reserve_items(restoranId){
+            let url = `${baseUrl}/RestaurantReservasionPlan/Search`;
+            //create from searchObject
+            let { pageSize = 1000, pageNumber = 1, selected_tags = [], searchValue } = searchObject;
+            let body = {
+
+                RecordsPerPage: pageSize,// تعداد ریزالت در هر صفحه
+                pageNumber: pageNumber,// شماره صفحه
+                RestaurantId: selected_tags,// array id tags
+            }
+            let response = await Axios.post(url, body);
+            let data = response.data.data.items
+            let result = MapRestorans(data);
+            return { response, result }
         },
         async add_or_edit_restoran_reserve_item({restoranId,item,type}){
             //restoranId آی دی رستوران
             //item آیتم رزرو رستوران برای افزودن
             //type "add" | "edit"
+            let body = {
+                "id": type === 'edit' ? item.id : undefined,
+                "Id": type === 'edit' ? item.id : undefined,
+                "id": 0,
+                "name": item.name,
+                "restaurantId": restoranId,
+                "description": item.description,
+                "maxLimitCount": item.maxDiscount,
+                "minLimitCount":  item.minCount,
+                "guestCount": 0,
+                "price": item.price,
+                "isReturnAmount": item.returnAmount,
+                "preOrderTime": item.returnAmount,
+                "isDaily": { 'روز': 1, 'ساعت': 0 }[ item.preOrderTime.type]
+            }
+            let response, result;
+            if (type === 'add') {
+                response = await Axios.post(`${baseUrl}/RestaurantReservasionPlan/Create`, body);
+                result = { id: response.data.data }
+            }
+            else if (type === 'edit') {
+                response = await Axios.put(`${baseUrl}/RestaurantReservasionPlan/Edit`, body);
+                result = true
+            }
+            return { response, result }
+
+
             return {mock:true}
         },
         async remove_restoran_reserve_item({restoranId,itemId}){
-            return {mock:true}
+            let url = `${baseUrl}/RestaurantReservasionPlan?Id=${itemId.toString()}`;
+            let response = await Axios.delete(url);
+            return { response, result: true }
         },
         async get_restoran_reserve_capacity({restoranId,itemId}){
             return {mock:true}
