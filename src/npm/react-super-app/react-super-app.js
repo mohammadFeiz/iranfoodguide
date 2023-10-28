@@ -273,7 +273,7 @@ class SideMenu extends Component {
         let { icon = () => <div style={{ width: 12 }}></div>, text, id, className, onClick = () => { }, show = () => true } = o;
         let Show = show();
         return {
-          show: Show !== false, size: 36, className: 'rsa-sidemenu-item' + (className ? ' ' + className : ''), onClick: () => { onClick(o); onClose() },
+          show: Show !== false, size: 36, className: 'rsa-sidemenu-item' + (className ? ' ' + className : ''), onClick: () => { onClick(o);  },
           row: [
             { size: 48, html: typeof icon === 'function'?icon():icon, align: 'vh' },
             { html: text, align: 'v' }

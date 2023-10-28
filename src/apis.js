@@ -66,16 +66,17 @@ export function getResponse({ getState, baseUrl }) {
         //         amount:number,
         //     }
         // }
-        async get_restoran_reserve_items(){
+        async get_restoran_reserve_items({restoranId}){
             let url = `${baseUrl}/RestaurantReservasionPlan/Search`;
             //create from searchObject
-            let { pageSize = 1000, pageNumber = 1, selected_tags = [], searchValue } = searchObject;
+            //let { pageSize = 1000, pageNumber = 1, selected_tags = [], searchValue } = searchObject;
             let body = {
 
-                RecordsPerPage: pageSize,// تعداد ریزالت در هر صفحه
-                pageNumber: pageNumber,// شماره صفحه
-                RestaurantId: selected_tags,// array id tags
+               // RecordsPerPage: pageSize,// تعداد ریزالت در هر صفحه
+               // pageNumber: pageNumber,// شماره صفحه
+               restaurantId: 30// array id tags
             }
+            debugger
             let response = await Axios.post(url, body);
             let data = response.data.data.items
             let result = MapRestorans(data);
@@ -85,20 +86,20 @@ export function getResponse({ getState, baseUrl }) {
             //restoranId آی دی رستوران
             //item آیتم رزرو رستوران برای افزودن
             //type "add" | "edit"
+            debugger
             let body = {
                 "id": type === 'edit' ? item.id : undefined,
                 "Id": type === 'edit' ? item.id : undefined,
-                "id": 0,
                 "name": item.name,
-                "restaurantId": restoranId,
+                "restaurantId": 30,//restoranId
                 "description": item.description,
-                "maxLimitCount": item.maxDiscount,
+                "maxLimitCount": item.maxCount,
                 "minLimitCount":  item.minCount,
                 "guestCount": 0,
                 "price": item.price,
                 "isReturnAmount": item.returnAmount,
-                "preOrderTime": item.returnAmount,
-                "isDaily": { 'روز': 1, 'ساعت': 0 }[ item.preOrderTime.type]
+                //"preOrderTime": item.returnAmount,
+                "isDaily": { 'day': true, 'hour': false }[ item.preOrderTime.type]
             }
             let response, result;
             if (type === 'add') {
