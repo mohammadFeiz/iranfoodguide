@@ -79,7 +79,23 @@ export function getResponse({ getState, baseUrl }) {
             debugger
             let response = await Axios.post(url, body);
             let data = response.data.data.items
-            let result = MapRestorans(data);
+            let result = data.map((o)=>{
+            return {
+                name:string, // نام آیتم
+                description:string, // توضیحات آیتم
+                countType:boolean, //سفارس بر اساس تعداد می باشد یا خیر
+                countUnit:string, //واحد تعداد مثل نفر یا عدد فقط برای نمایش یو آی
+                minCount:number, //حداقل تعداد قابل سفارش
+                maxCount:number, //حداکثر تعداد قابل سفارش
+                timeType:"hour"|"day", // واحد زمانی آیتم روز یا ساعت
+                price:number, // قیمت واحد
+                returnAmount:boolean, //آیا رقم روی فاکتور بر می گردد؟
+                preOrderTime:{//مدت زمانی که طول میکشه سفارش آماده بشه
+                    type:"روز" | "ساعت",
+                    amount:number,
+                }
+            }
+            });
             return { response, result }
         },
         async add_or_edit_restoran_reserve_item({restoranId,item,type}){
