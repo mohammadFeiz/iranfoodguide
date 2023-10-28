@@ -81,21 +81,21 @@ export function getResponse({ getState, baseUrl }) {
             let data = response.data.data.items
             let result = data.map((o)=>{
             return {
-                name:string, // نام آیتم
-                description:string, // توضیحات آیتم
-                countType:boolean, //سفارس بر اساس تعداد می باشد یا خیر
-                countUnit:string, //واحد تعداد مثل نفر یا عدد فقط برای نمایش یو آی
-                minCount:number, //حداقل تعداد قابل سفارش
-                maxCount:number, //حداکثر تعداد قابل سفارش
-                timeType:"hour"|"day", // واحد زمانی آیتم روز یا ساعت
-                price:number, // قیمت واحد
-                returnAmount:boolean, //آیا رقم روی فاکتور بر می گردد؟
+                name:o.name, // نام آیتم
+                description:o.description, // توضیحات آیتم
+                countType:o.countType||false, //سفارس بر اساس تعداد می باشد یا خیر
+                minCount:o.minLimitCount, //حداقل تعداد قابل سفارش
+                maxCount:o.maxLimitCount, //حداکثر تعداد قابل سفارش
+                timeType:o.isDaily===1 ? "day": "hour", // واحد زمانی آیتم روز یا ساعت
+                price:o.price, // قیمت واحد
+                returnAmount:o.isReturnAmount, //آیا رقم روی فاکتور بر می گردد؟
                 preOrderTime:{//مدت زمانی که طول میکشه سفارش آماده بشه
-                    type:"روز" | "ساعت",
-                    amount:number,
+                    type:"ساعت" ,//| "ساعت"
+                    amount:0,
                 }
             }
             });
+            debugger
             return { response, result }
         },
         async add_or_edit_restoran_reserve_item({restoranId,item,type}){
@@ -109,8 +109,9 @@ export function getResponse({ getState, baseUrl }) {
                 "name": item.name,
                 "restaurantId": 30,//restoranId
                 "description": item.description,
-                "maxLimitCount": item.maxCount,
-                "minLimitCount":  item.minCount,
+                "maxLimitCount": item.maxCount || 0,
+                "minLimitCount":  item.minCount || 0,
+                "countType":item.countType,
                 "guestCount": 0,
                 "price": item.price,
                 "isReturnAmount": item.returnAmount,
