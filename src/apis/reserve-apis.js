@@ -29,7 +29,7 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
                     countType: o.countType || false, //سفارس بر اساس تعداد می باشد یا خیر
                     minCount: o.minLimitCount, //حداقل تعداد قابل سفارش
                     maxCount: o.maxLimitCount, //حداکثر تعداد قابل سفارش
-                    timeType: o.isDaily === 1 ? "day" : "hour", // واحد زمانی آیتم روز یا ساعت
+                    timeType: o.isDaily ? "day" : "hour", // واحد زمانی آیتم روز یا ساعت
                     price: o.price, // قیمت واحد
                     returnAmount: o.isReturnAmount, //آیا رقم روی فاکتور بر می گردد؟
                     preOrderTime: isNaN(o.preOrderTime)?0:o.preOrderTime//مدت زمانی که طول میکشه سفارش آماده بشه
@@ -75,8 +75,8 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
                 "guestCount": 0,
                 "price": item.price,
                 "isReturnAmount": item.returnAmount,
-                "preOrderTime": item.preOrderTime || 0,
-                "isDaily": item.timeType === 'day'?1:0
+                "PreOrderTimeCount": item.preOrderTime || 0,
+                "isDaily": item.timeType === 'day'?true:false
             }
             let response, result;
             if (type === 'add') {

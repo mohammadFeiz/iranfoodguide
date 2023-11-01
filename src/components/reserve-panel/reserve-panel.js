@@ -39,7 +39,7 @@ export default class Profile extends Component {
         let { apis } = this.context;
         let { restoranId } = this.state;
         apis.request({
-            api: 'reserve.remove_restoran_reserve_items', parameter: { restoranId, itemId: id },
+            api: 'reserve.remove_restoran_reserve_item', parameter: { restoranId, itemId: id },
             description: 'حذف خدمت رزرو رستوران در پنل ادمین',
             onSuccess: () => {
                 let { reserveItems } = this.state;
