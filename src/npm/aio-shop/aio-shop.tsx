@@ -810,7 +810,7 @@ const Shipping = observer((props: I_P_Shipping) => {
                     content={(
                         <AIOInput
                             type='radio'
-                            className='as-shipping-item'
+                            attrs={{className:'as-shipping-item'}}
                             multiple={multiple}
                             options={options.map((o) => { return { ...o, before: o.icon } })}
                             optionClassName="as-shipping-option"
@@ -1324,7 +1324,7 @@ function ProductManager(props: I_P_ProductManager) {
             flex: 1,
             html: (
                 <AIOInput
-                    placeholder='جستجو' className='as-bo-productmanager-search' type='text' value={searchValue}
+                    placeholder='جستجو' attrs={{className:'as-bo-productmanager-search'}} type='text' value={searchValue}
                     after={<Icon path={mdiMagnify} size={.9} style={{ margin: '0 6px' }} />}
                     onChange={(searchValue) => setSearchValue(searchValue)}
                 />
@@ -1397,7 +1397,7 @@ function ProductForm(props: I_P_ProductForm) {
         let { optionTypes = [] } = model;
         return (
             <AIOInput
-                className='as-bo-form'
+                attrs={{className:'as-bo-form'}}
                 type='form' lang='fa' reset={true} value={{...model}}
                 footer={(obj) => formFooter_layout(obj)}
                 onChange={(model, errors) => setModel({...model})}

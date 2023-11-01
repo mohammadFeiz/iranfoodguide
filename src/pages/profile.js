@@ -156,7 +156,7 @@ class Ettelaate_shakhsi extends Component {
                 {
                     html: (
                         <AIOInput
-                            type='form' value={profile} onChange={(profile) => this.setState({ profile })}
+                            type='form' lang='fa' value={profile} onChange={(profile) => this.setState({ profile })}
                             inputs={{props:{gap:12},column:inputs}}
                         />
                     )
@@ -172,15 +172,15 @@ class Ettelaate_shakhsi extends Component {
             html: (
                 <button className= 'button-1 w-100 h-36' onClick={()=>{
                     let {profile} = this.state;
-                    apis({
-                        api:'setProfile',
+                    apis.request({
+                        api:'profile.setProfile',
                         parameter:{profile,isRegistered,mobile},
-                        callback:()=>{
+                        onSuccess:()=>{
                             changeStore({profile},'<Ettelaate_shakhsi/> => footer_layout')
                             window.location.reload();
                         },
-                        name:'ثبت اطلاعات پروفایل',
-                        successMessage:true
+                        description:'ثبت اطلاعات پروفایل',
+                        message:{success:true}
                     })
                 }}>ثبت تغییرات</button>
             )
@@ -220,8 +220,8 @@ class Passwrod extends Component {
                 {
                     html: (
                         <AIOInput
-                            inputAttrs={{style:{height:36}}}
-                            type='form' value={model} onChange={(model) => this.setState({ model })}
+                            inputStyle={{height:36}}
+                            type='form' lang='fa' value={model} onChange={(model) => this.setState({ model })}
                             inputs={{props:{gap:12},column:inputs}}
                         />
                     )
@@ -237,12 +237,12 @@ class Passwrod extends Component {
             html: (
                 <button className= 'button-1 w-100 h-36' onClick={()=>{
                     let {model} = this.state;
-                    apis({
-                        api:'setPassword',
+                    apis.request({
+                        api:'profile.setPassword',
                         parameter:{mobile,password:model.password},
-                        callback:()=>rsa.removeModal(),
-                        name:'ثبت رمز عبور',
-                        successMessage:true
+                        onSuccess:()=>rsa.removeModal(),
+                        description:'ثبت رمز عبور',
+                        message:{success:true}
                     })
                 }}>ثبت تغییرات</button>
             )
@@ -267,17 +267,17 @@ class Address_ha extends Component {
     static contextType = AppContext;
     async onSubmit(address,type){
         let {changeStore,rsa,apis,addresses} = this.context;
-        await apis({
-            api:'addressForm',
+        await apis.request({
+            api:'profile.addressForm',
             parameter:{address,type},
-            callback:()=>{
+            onSuccess:()=>{
                 if(type === 'add'){addresses.push(address);}
                 else{addresses = addresses.map((o)=>address.id === o.id?address:o)}
                 changeStore({addresses},`<Address_ha/> => onSubmit`);
                 rsa.removeModal()
             },
-            name:()=>`${type === 'add'?'افزودن':'ویرایش'} آدرس `,
-            successMessage:true
+            description:()=>`${type === 'add'?'افزودن':'ویرایش'} آدرس `,
+            message:{success:true}
         })
     }
     add_layout() {
@@ -389,7 +389,7 @@ class Address_form extends Component {
             flex: 1,
             html: (
                 <AIOInput
-                    type='form' value={model} style={{ height: '100%' }}
+                    type='form' lang='fa' value={model} attrs={{style:{ height: '100%' }}}
                     inputs={{
                         props:{gap:6},
                         column:[
@@ -553,10 +553,10 @@ class Restoran_haye_mahboob extends Component{
     state = {items:[]}
     async componentDidMount(){
         let {apis} = this.context;
-        apis({
+        apis.request({
             api:'restoran_haye_mahboob',
-            name:'دریافت لیست رستوران های محبوب',
-            callback:(items)=>this.setState({items})
+            description:'دریافت لیست رستوران های محبوب',
+            onSuccess:(items)=>this.setState({items})
         })
     }
     render(){

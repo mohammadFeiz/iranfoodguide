@@ -18,27 +18,27 @@ export default class Restorans extends Component {
     }
     async get_restorans() {
         let {apis} = this.context;
-        apis({ 
-            api: 'get_restorans', name: 'دریافت لیست رستوزان ها', def: [] ,
-            callback:(restorans)=>this.setState({restorans})
+        apis.request({ 
+            api: 'backOffice.get_restorans', description: 'دریافت لیست رستوزان ها', def: [] ,
+            onSuccess:(restorans)=>this.setState({restorans})
         }); 
     }
     async add_or_edit_restoran(newRestoran,type) {
         let { apis } = this.context;
-        apis({
-            api: 'add_or_edit_restoran', parameter: {restoran:newRestoran,type},
-            name: `${type === 'add'?'افزودن':'ویرایش'} رستوران`,
-            callback: async (result) => {
+        apis.request({
+            api: 'backOffice.add_or_edit_restoran', parameter: {restoran:newRestoran,type},
+            description: `${type === 'add'?'افزودن':'ویرایش'} رستوران`,
+            onSuccess: async (result) => {
                 let id = type === 'add'?result.id:newRestoran.id;
                 if(newRestoran.image_file){
-                    await apis({
-                        api: 'edit_restoran_image', name: 'ثبت تصویر رستوران',
+                    await apis.request({
+                        api: 'backOffice.edit_restoran_image', description: 'ثبت تصویر رستوران',
                         parameter: { restoranId: id, imageFile: newRestoran.image_file }
                     })
                 }
                 if(newRestoran.logo_file){
-                    await apis({
-                        api: 'edit_restoran_logo', name: 'ثبت لوگوی رستوران',
+                    await apis.request({
+                        api: 'backOffice.edit_restoran_logo', description: 'ثبت لوگوی رستوران',
                         parameter: { restoranId: id, imageFile: newRestoran.logo_file }
                     })
                 }
@@ -57,9 +57,9 @@ export default class Restorans extends Component {
     }
     async remove_restoran(id) {
         let { apis } = this.context;
-        apis({
-            api: 'remove_restoran', name: 'حذف رستوران', parameter: id,
-            callback: () => {
+        apis.request({
+            api: 'backOffice.remove_restoran', description: 'حذف رستوران', parameter: id,
+            onSuccess: () => {
                 let { restorans, popup } = this.state;
                 let newRestorans = restorans.filter((o) => o.id !== id)
                 this.setState({ restorans: newRestorans });
@@ -69,10 +69,10 @@ export default class Restorans extends Component {
     }
     async get_restoran_tags() {
         let { apis } = this.context;
-        apis({ 
-            api: 'get_tags', parameter: { type: 'restoran' }, 
-            name: 'دریافت لیست تگ های رستوران ها', def: [],
-            callback:(restoran_tags)=>{
+        apis.request({ 
+            api: 'backOffice.get_tags', parameter: { type: 'restoran' }, 
+            description: 'دریافت لیست تگ های رستوران ها', def: [],
+            onSuccess:(restoran_tags)=>{
                 let restoran_tags_dic = {}
                 for (let i = 0; i < restoran_tags.length; i++) { let { id, name } = restoran_tags[i]; restoran_tags_dic[id] = name; }
                 this.setState({restoran_tags,restoran_tags_dic})
@@ -82,11 +82,11 @@ export default class Restorans extends Component {
     }
     async get_food_tags() {
         let { apis } = this.context;
-        apis({
-            api: 'get_tags',def:[],
-            name: 'دریافت لیست تگ های غذا ها',
+        apis.request({
+            api: 'backOffice.get_tags',def:[],
+            description: 'دریافت لیست تگ های غذا ها',
             parameter: { type: 'food' },
-            callback: (food_tags) => this.setState({ food_tags })
+            onSuccess: (food_tags) => this.setState({ food_tags })
         })
     }
     async componentDidMount() {
@@ -110,7 +110,7 @@ export default class Restorans extends Component {
                     html: (
                         <AIOInput
                             placeholder='جستجو'
-                            type='text' style={{ width: '100%', background: '#fff' }} value={searchValue}
+                            type='text' attrs={{style:{ width: '100%', background: '#fff' }}} value={searchValue}
                             after={<Icon path={mdiMagnify} size={.9} />}
                             onChange={(searchValue) => this.setState({ searchValue })}
                         />
@@ -209,9 +209,9 @@ class RestoranForm extends Component {
     async updateFoods() {
         let { apis } = this.context, { type } = this.props, { model } = this.state;
         if (type === 'edit') {
-            await apis({ 
-                api: 'get_restoran_foods', name: 'دریافت اطلاعات منوی رستوران', parameter: model.id,def:[],
-                callback: (foods) => this.setState({ foods }) 
+            await apis.request({ 
+                api: 'backOffice.get_restoran_foods', description: 'دریافت اطلاعات منوی رستوران', parameter: model.id,def:[],
+                onSuccess: (foods) => this.setState({ foods }) 
             })
         }
     }
@@ -299,7 +299,7 @@ class RestoranForm extends Component {
                                     fr.readAsDataURL(files[0].file);
                                 }
                             }}
-                            style={{ width: '100%', height: 72 }}
+                            attrs={{style:{ width: '100%', height: 72 }}}
                         />
                     )
                 }
@@ -317,7 +317,7 @@ class RestoranForm extends Component {
                     style: { border: '1px dashed #333' },
                     html: (
                         <AIOInput
-                            type='file' className='of-hidden'
+                            type='file' attrs={{className:'of-hidden',style:{ width: 72, height: 72, fontSize: 12 }}}
                             text={model.logo ? <img src={model.logo} style={{ width: 72, height: 72 }} width='100%' /> : 'افزودن لوگو'}
                             onChange={async (files) => {
                                 if (FileReader && files && files.length) {
@@ -328,7 +328,6 @@ class RestoranForm extends Component {
                                     fr.readAsDataURL(files[0].file);
                                 }
                             }}
-                            style={{ width: 72, height: 72, fontSize: 12 }}
                         />
                     )
                 }
@@ -342,7 +341,7 @@ class RestoranForm extends Component {
             className: 'admin-panel-restoran-card p-12 ofy-auto',flex:1,
             html: (
                 <AIOInput
-                    style={{height:'100%',fontSize:12}}
+                    attrs={{style:{height:'100%',fontSize:12}}}
                     type='form' lang='fa' reset={true} showErrors={false} value={model}
                     footer={(obj) => this.formFooter_layout(obj)}
                     onChange={(model,errors) => this.setState({ model })}
@@ -485,9 +484,9 @@ class Foods extends Component {
     async add_or_edit_food(newFood,action) {
         let { apis } = this.context;
         let { restoranId,foods,onChange } = this.props;
-        let res = await apis({
-            api: 'add_or_edit_food',
-            name: `${action === 'add'?'ثبت':'ویرایش'} غذا در منوی رستوران`,
+        let res = await apis.request({
+            api: 'backOffice.add_or_edit_food',
+            description: `${action === 'add'?'ثبت':'ویرایش'} غذا در منوی رستوران`,
             parameter: { restoranId, food: newFood,action }
         })
         let success = false,newFoods,foodId;
@@ -502,8 +501,8 @@ class Foods extends Component {
         }
         if(success){
             onChange(newFoods);
-            await apis({
-                api: 'edit_food_image',name: 'ثبت تصویر منوی رستوران',
+            await apis.request({
+                api: 'backOffice.edit_food_image',description: 'ثبت تصویر منوی رستوران',
                 parameter: { restoranId, foodId, imageFile: newFood.image_file, imageUrl: newFood.image }
             })
             return true
@@ -512,7 +511,7 @@ class Foods extends Component {
     async remove_food(id) {
         let { apis } = this.context;
         let { restoranId,foods,onChange } = this.props;
-        let res = await apis({api: 'remove_food',name: 'حذف غذا از منوی رستوران',parameter: { restoranId, foodId:id }})
+        let res = await apis.request({api: 'backOffice.remove_food',description: 'حذف غذا از منوی رستوران',parameter: { restoranId, foodId:id }})
         if (res === true) {onChange(foods.filter((nf) => nf.id !== id)); return true}
     }
     submit(newFoods) {

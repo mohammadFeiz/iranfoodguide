@@ -17,7 +17,7 @@ export default class CommingSoon extends Component {
             return;
         }
         if(!phone){return}
-        let res = await apis({api:'sabte_shomare_tamas',parameter:phone,name:'ثبت شماره تماس'})
+        let res = await apis.request({api:'sabte_shomare_tamas',parameter:phone,description:'ثبت شماره تماس'})
         if(res !== false){
             this.setState({submited:true})
         }

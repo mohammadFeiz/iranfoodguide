@@ -191,7 +191,7 @@ class OrderPage extends Component {
             size: 36, className: 'p-h-12',
             html: (
                 <AIOInput
-                    style={{ width: '100%' }}
+                    attrs={{style:{ width: '100%' }}}
                     type='select'
                     text='افزودن محتوی'
                     options={[
@@ -355,7 +355,7 @@ class OrderPageCard extends Component {
                     html: (
                         <AIOInput
                             type='select' caret={false}
-                            style={{ background: 'none' }}
+                            attrs={{style:{ background: 'none' }}}
                             text={<Icon path={mdiDotsHorizontal} size={0.9} />}
                             options={[
                                 { text: 'افزودن آیتم', before: <Icon path={mdiPlusThick} size={0.9} />, value: 'add' },
@@ -422,7 +422,7 @@ class OrderPageCard extends Component {
             html: (
                 <AIOInput
                     type='file'
-                    style={{ background: 'none' }}
+                    attrs={{style:{ background: 'none' }}}
                     text={
                         file ? (
                             <img
@@ -493,7 +493,7 @@ class SliderCard extends Component {
                     html: (
                         <AIOInput
                             type='select' caret={false}
-                            style={{ background: 'none' }}
+                            attrs={{style:{ background: 'none' }}}
                             text={<Icon path={mdiDotsHorizontal} size={0.9} />}
                             options={[
                                 { show: !isFirst, text: 'انتقال به بالا', before: <Icon path={mdiArrowUpBold} size={0.9} />, value: 'moveup' },
@@ -533,7 +533,7 @@ class SliderCard extends Component {
                                 <AIOInput
                                     type='select'
                                     value={mode}
-                                    style={{ width: '100%', background: 'none', border: '1px solid #ddd' }}
+                                    attrs={{style:{ width: '100%', background: 'none', border: '1px solid #ddd' }}}
                                     options={[
                                         { text: 'انتخاب نشده', value: false },
                                     ].concat(sliders)}
@@ -552,7 +552,7 @@ class SliderCard extends Component {
                             html: (
                                 <AIOInput
                                     type='date' unit='hour' value={endDate}
-                                    style={{ height: 24, width: '100%' }}
+                                    attrs={{style:{ height: 24, width: '100%' }}}
                                     onChange={(dateString) => this.change('endDate', dateString)}
                                 />
                             )
@@ -608,22 +608,22 @@ class Tags extends Component{
     async componentDidMount(){
         let {apis} = this.context;
         let {type,trans} = this.props;
-        apis({
-            api:`get_tags`,
-            name:`دریافت لیست تگ های ${trans} ها`,
+        apis.request({
+            api:`backOffice.get_tags`,
+            description:`دریافت لیست تگ های ${trans} ها`,
             parameter:{type},
-            callback:(tags)=>this.setState({tags,error:this.getError(tags)})
+            onSuccess:(tags)=>this.setState({tags,error:this.getError(tags)})
         })
     }
     add(){
         let {apis} = this.context;
         let {type,trans} = this.props;
         let {input} = this.state;
-        apis({
-            api:`add_tag`,
-            name:`ثبت تگ ${trans}`,
+        apis.request({
+            api:`backOffice.add_or_edit_tag`,
+            description:`ثبت تگ ${trans}`,
             parameter:{type,tagName:input},
-            callback:({id})=>{
+            onSuccess:({id})=>{
                 let {tags,input} = this.state;
                 tags.push({name:input,id});
                 this.setState({tags,input:''})
@@ -634,11 +634,11 @@ class Tags extends Component{
         let {apis} = this.context;
         let {type,trans} = this.props;
         let {input} = this.state;
-        apis({
-            api:`remove_tag`,
-            name:`حذف تگ ${trans}`,
+        apis.request({
+            api:`backOffice.remove_tag`,
+            description:`حذف تگ ${trans}`,
             parameter:{type,tagId:obj.id},
-            callback:()=>{
+            onSuccess:()=>{
                 let {tags} = this.state;
                 this.setState({tags:tags.filter((o)=>o.id !== obj.id),input:''})
             }
@@ -684,7 +684,7 @@ class Tags extends Component{
                 <AIOInput
                     type='table'
                     toolbar={this.header()}
-                    rows={tags}
+                    value={tags}
                     remove={this.remove.bind(this)}
                     columns={[
                         {title:'نام',value:'row.name',type:'text',disabled:true},

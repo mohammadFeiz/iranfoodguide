@@ -10,9 +10,9 @@ export default class Kife_pool extends Component{
     state = {tarikhche:[]}
     componentDidMount(){
         let {apis} = this.context;
-        apis({
+        apis.request({
             api:'tarikhcheye_kife_pool',
-            callback:(tarikhche)=>this.setState({tarikhche})
+            onSuccess:(tarikhche)=>this.setState({tarikhche})
         })
     }
     render(){

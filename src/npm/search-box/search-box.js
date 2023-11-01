@@ -88,18 +88,17 @@ export default class SearchBox extends Component{
             ]
         }
     }
-    historyModeRender(){
-        return (
-            <AIOInput
-                type='button' popupWidth='fit' text={'جستجو'}
-                className='search-box-button search-box-input'
-                popupAttrs={{className:'search-box-popup'}}
-                before={<Icon path={mdiMagnify} size={.8}/>}
-                style={{width:'100%',justifyContent:'flex-start'}}
-                popOver={()=>this.renderPopup()}
-            />
-        )
-    }
+    // historyModeRender(){
+    //     return (
+    //         <AIOInput
+    //             type='button' popupWidth='fit' text={'جستجو'}
+    //             attrs={{className:'search-box-button search-box-input',style:{width:'100%',justifyContent:'flex-start'}}}
+    //             popupAttrs={{className:'search-box-popup'}}
+    //             before={<Icon path={mdiMagnify} size={.8}/>}
+    //             popOver={()=>this.renderPopup()}
+    //         />
+    //     )
+    // }
     renderPopup(){
         return (
             <RVD
@@ -129,7 +128,7 @@ export default class SearchBox extends Component{
         let {history,onClick} = this.props;
         return (
             <div className='search-box' onClick={onClick}>
-                {history && this.historyModeRender()}
+                {/* {history && this.historyModeRender()} */}
                 {!history && this.renderSearchBox()}
             </div>
         )

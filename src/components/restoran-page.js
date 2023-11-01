@@ -125,10 +125,11 @@ export default class RestoranPage extends Component {
   async componentDidMount() {
     let { apis } = this.context;
     let id = this.getRestoranProp('id');
-    apis({
-      api: 'get_restoran_foods',
+    apis.request({
+      api: 'backOffice.get_restoran_foods',
+      description:'دریافت لیست غذا های رستوران',
       parameter: id,def:[],
-      callback: (foods) => {
+      onSuccess: (foods) => {
         let menu = {}
         let food_dic = {};
         let subFoods = {};
@@ -154,16 +155,16 @@ export default class RestoranPage extends Component {
         this.setState({ menu,activeMenu,menuLength:Object.keys(menu).length,subFoods })
       }
     })
-    apis({
+    apis.request({
       api:'restoran_coupons',
       parameter:id,
-      name:'دریافت کوپن های تخفیف رستوران',def:[],
-      callback:(coupons)=>this.setState({coupons})
+      description:'دریافت کوپن های تخفیف رستوران',def:[],
+      onSuccess:(coupons)=>this.setState({coupons})
     })
-    apis({
-      api:'get_restoran_reserve_items',parameter:{restoranId:id},
-      name:'دریافت خدمات رزرو رستوران در پنل کاربر',def:[],
-      callback:(reserveItems)=>this.setState({reserveItems})
+    apis.request({
+      api:'reserve.get_restoran_reserve_items',parameter:{restoranId:id},
+      description:'دریافت خدمات رزرو رستوران در پنل کاربر',def:[],
+      onSuccess:(reserveItems)=>this.setState({reserveItems})
     })
     let shopObject = {
       id:'iranfoodrestorancart' + id,
@@ -177,9 +178,9 @@ export default class RestoranPage extends Component {
         let foods = Object.keys(cart).map((o)=>{return {foodId:o,count:cart[o].count}})
         let restoranId = restoran.id;
         let {amount} = factor;
-        let res = await apis({
+        let res = await apis.request({
           api:'pardakht_online',
-          name:'پرداخت آنلاین',
+          description:'پرداخت آنلاین',
           parameter:{
             deliveryType,foods,restoranId,amount,selectedCouponIds,addressId
           }
@@ -488,11 +489,11 @@ class RestoranInfo extends Component {
     let {apis} = this.context;
     let {id} = this.props;
     let {commentsPageNumber,commentsPageSize} = this.state;
-    apis({
+    apis.request({
       api:'restoran_comments',
       parameter:{id,pageSize:commentsPageSize,pageNumber:commentsPageNumber},
-      name:'دریافت نظرات ثبت شده در مورد رستوران',
-      callback:(comments)=>this.setState({comments})
+      description:'دریافت نظرات ثبت شده در مورد رستوران',
+      onSuccess:(comments)=>this.setState({comments})
     })
   }
   title_layout(logo,name,rate){
@@ -819,10 +820,10 @@ class ReservePage extends Component{
   componentDidMount(){
     let {restoranId,item} = this.props;
     let {apis} = this.context;
-    apis({
-      api:'get_restoran_reserve_capacity',parameter:{restoranId,reserveItemId:item.id},
-      name:'دریافت ظرفیت رزرو',def:new Array(24).fill(0).map(()=>0),
-      callback:(capacityOfHours)=>this.setState({capacityOfHours})
+    apis.request({
+      api:'reserve.get_restoran_reserve_capacity',parameter:{restoranId,reserveItemId:item.id},
+      description:'دریافت ظرفیت رزرو',def:new Array(24).fill(0).map(()=>0),
+      onSuccess:(capacityOfHours)=>this.setState({capacityOfHours})
     })
     
   }
@@ -857,7 +858,7 @@ class ReservePage extends Component{
       }
   }
   getImage(url){
-      return {html:<AIOInput type='image' value={url} preview={true} width={100} height={100} style={{width:100,height:100}}/>,size:100}
+      return {html:<AIOInput type='image' value={url} preview={true} width={100} height={100} attrs={{style:{width:100,height:100}}}/>,size:100}
   }
   images_layout(image1,image2,image3){
       let images = [];
@@ -1019,7 +1020,7 @@ class ReservePage extends Component{
             align:'v',show:!disabled,
             html:(
               <AIOInput
-                type='button' center={true} className='reserve-page-cart-button'
+                type='button' center={true} attrs={{className:'reserve-page-cart-button'}}
                 text='موجود در سبد خرید'
                 before={<Icon path={mdiDelete} size={1}/>}
               />
@@ -1053,10 +1054,8 @@ class ReservePage extends Component{
                           flex:1,className:'ofy-auto',
                           html:(
                               <AIOInput
-                                  type='form' lang='fa' className='reserve-page-form'
-                                  inputAttrs={{
-                                      className:'reserve-page-input'
-                                  }}
+                                  type='form' lang='fa' attrs={{className:'reserve-page-form'}}
+                                  inputClassName='reserve-page-input'
                                   value={model}
                                   inputs={{
                                       props:{gap:12},

@@ -16,9 +16,9 @@ export default class Sefareshe_ghaza extends Component {
     
     async componentDidMount(){
         let { apis } = this.context;
-        let content = await apis({
+        let content = await apis.request({
             api:'safheye_sefaresh',
-            name:'دریافت اطلاعات صفحه سفارش غذا',
+            description:'دریافت اطلاعات صفحه سفارش غذا',
             def:[]
         })
         this.setState({content})
@@ -97,7 +97,7 @@ export default class Sefareshe_ghaza extends Component {
                     return {html:this.billboard_layout(o.items)}
                 }
                 if(o.type === 'Categories'){
-                    return {html:this.categories_layout(o.items)}
+                    return {align:'vh',html:this.categories_layout(o.items)}
                 }
             })
         }

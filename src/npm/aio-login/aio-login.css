@@ -41,6 +41,7 @@
     color:#445778;
     padding:0 12px;
     margin-bottom:6px;
+    text-align: right;
 }
 .aio-login-text{
     padding:0 12px;
@@ -61,7 +62,7 @@
     padding:0 8px;
     user-select: none;
     -webkit-user-select: none;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     margin-bottom:12px;
 }
@@ -81,19 +82,17 @@
     padding:12px;
     border-radius:12px;
 }
-.aio-login .aio-form-input{
-    background:#f6f7f9;
+.aio-login .aio-input{
+    border:1px solid #ced9e0;
     height:40px;
     outline:none;
     border-radius:6px; 
-    border:none;
-    
 }
-.aio-login .aio-form{
+.aio-login .aio-input-form{
     overflow:visible;
     margin-bottom:24px;
 }
-.aio-login .aio-form-body{
+.aio-login .aio-input-form-body{
     overflow:visible;
 }
 
@@ -108,6 +107,7 @@
     align-items: center;
     justify-content: center;
     cursor:pointer;
+    font-family:inherit;
 }
 .aio-login-submit-outline{
     background:none;
@@ -129,6 +129,7 @@
 .aio-login-submit:disabled{
     cursor:not-allowed;
     background:#aaa;
+    border:1px solid #aaa;
 }
 .aio-login .aio-form-row{
     margin-bottom:12px;
@@ -144,4 +145,23 @@
     background:none;
     border:none;
     margin-top:24px;
+    font-family:inherit;
+}
+.aio-login .aio-login-register-tabs{
+    margin-bottom:24px;
+    font-family: inherit;
+    border:none;
+}
+.aio-login-register-tabs .aio-input-tabs-option{
+    flex:1;
+}
+.aio-login-register-tabs .aio-input-tabs-option-value{
+    text-align:center;
+    align-items: center;
+}
+.aio-login-forget{
+    padding:0 12px;
+    font-size:80%;
+    margin-top:12px;
+    margin-bottom:24px;
 }

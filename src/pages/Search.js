@@ -27,10 +27,10 @@ export default class Search extends Component{
     async fetchData(){
         let {apis} = this.context;
         let {pageSize,pageNumber,selected_tags,selectedSort,searchValue = ''} = this.state;
-        apis({
-            api:'get_restorans',name:'جستجوی رستوران ها',
+        apis.request({
+            api:'backOffice.get_restorans',description:'جستجوی رستوران ها',
             parameter:{pageSize,pageNumber,selected_tags,selectedSort,searchValue},
-            callback:(restorans)=>this.setState({restorans})
+            onSuccess:(restorans)=>this.setState({restorans})
         })
     }
     changeState(obj){
@@ -46,7 +46,7 @@ export default class Search extends Component{
         return {
             className:'bgFF5900',size:36,align:'vh',html:(
                 <AIOInput
-                    type='tabs' className='restoran-search-type' value={searchType}
+                    type='tabs' attrs={{className:'restoran-search-type'}} value={searchType}
                     options={[{text:'رستوران',value:'0'},{text:'غذا',value:'1'}]}
                     onChange={(searchType)=>this.setState({searchType},()=>this.fetchData())}
                 />
@@ -76,8 +76,8 @@ export default class Search extends Component{
                     type='select' caret={false}
                     optionChecked='option.value === props.value'
                     optionClose={false}
-                    optionCheckIcon={[14,10,1,'orange','orange']}
-                    className='button-2'
+                    optionCheckIcon={{width:14,height:14,color:'orange',background:'orange'}}
+                    attrs={{className:'button-2'}}
                     options={restoran_sort_options}
                     value={selectedSort}
                     text={<Icon path={mdiSort} size={0.8}/>}
