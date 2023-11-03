@@ -29,7 +29,7 @@ export default class Profile extends Component {
     }
     addItem() {
         let addItem = {
-            id: Math.round(Math.random() * 100000), image1: '', image2: '', image3: '', isSubmited: false, added: false, name: '', description: '',
+            id: Math.round(Math.random() * 100000), image1: {url:''}, image2: {url:''}, image3: {url:''}, isSubmited: false, added: false, name: '', description: '',
             countType: false, minCount: false, maxCount: false, countUnit: 'عدد', returnAmount: false, timeType: '', price: '', preOrderTime: 0, timeLimits: [[], [], [], [], [], [], []], hasError: true
         }
         let { reserveItems } = this.state;
@@ -61,10 +61,21 @@ export default class Profile extends Component {
         apis.request({
             api: 'reserve.add_or_edit_restoran_reserve_item', parameter: { restoranId, item: newItem, type },
             description: `${type === 'add' ? 'ذخیره' : 'ویرایش'} خدمت رزرو رستوران در پنل ادمین`,
-            onSuccess: (p) => {
+            onSuccess: async (p) => {
                 newItem = { ...newItem, added: true, isSubmited: true }
                 if (type === 'add') { newItem.id = p.id; }
-                this.changeItem(newItem)
+                this.changeItem(newItem);
+                for(let i = 0; i < 2; i++){
+                    let imageKey = 'image' + (i + 1);
+                    if(newItem[imageKey]){
+                        let res = await apis.request({
+                            api:'edit_restoran_reserve_item_image',
+                            description:'ذخیره تصاویر آیتم رزرو رستوران',
+                            parameter:{image:item[imageKey],itemId:newItem.id},
+                            onError:()=>this.changeItem({...newItem,[imageKey]:undefined})
+                        })
+                    }
+                }
             }
         })
 
@@ -272,7 +283,7 @@ class ReserveForm extends Component {
                                             html: (
                                                 <AIOInput
                                                     type='image' attrs={{ className: 'reserve-panel-image' }} value={item['image' + o]} placeholder='انتخاب تصویر' width={96}
-                                                    onChange={({ file, url }) => onChange({ ...item, ['image' + o]: url, isSubmited: false })}
+                                                    onChange={(imageObject) => onChange({ ...item, ['image' + o]: imageObject, isSubmited: false })}
                                                 />
                                             )
                                         }

@@ -1,15 +1,14 @@
 import React, { Component, createRef, useContext, createContext, Fragment, useState, useEffect } from 'react';
-import AIODate from './../aio-date/aio-date';
-import RVD from './../react-virtual-dom/react-virtual-dom';
+import AIODate from 'aio-date';
+import RVD from 'react-virtual-dom';
 import Axios from 'axios';
-import AIOValidation from "../aio-validation/aio-validation";
 import Search from '../aio-functions/search';
 import ExportToExcel from '../aio-functions/export-to-excel';
 import DownloadUrl from '../aio-functions/download-url';
 import JSXToHTML from './../aio-functions/jsx-to-html';
 import { Icon } from '@mdi/react';
-import { 
-    mdiChevronDown, mdiLoading, mdiAttachment, mdiChevronRight, mdiClose, mdiCircleMedium, mdiArrowUp, mdiArrowDown, 
+import {
+    mdiChevronDown, mdiLoading, mdiAttachment, mdiChevronRight, mdiClose, mdiCircleMedium, mdiArrowUp, mdiArrowDown,
     mdiSort, mdiFileExcel, mdiMagnify, mdiPlusThick, mdiChevronLeft, mdiImage, mdiEye, mdiEyeOff, mdiDownloadOutline,
     mdiCrosshairsGps
 } from "@mdi/js";
@@ -18,109 +17,90 @@ import AIOPopup from './../../npm/aio-popup/aio-popup';
 import $ from 'jquery';
 import './aio-input.css';
 
-
-class Popover{
-    constructor(getProp,id,toggle,getOptions){
+class Popover {
+    constructor(getProp, id, toggle, getOptions, addToAttrs) {
         this.getProp = getProp;
         this.getOptions = getOptions;
+        this.addToAttrs = addToAttrs;
         this.toggle = toggle;
         this.type = getProp('type');
         this.id = id;
         this.isActive = this.getIsActive();
-        if(this.isActive){
-            this.rtl = getProp('rtl')
-        }
+        if (this.isActive) { this.rtl = getProp('rtl') }
     }
-    getRender = (popover)=>{
-        if(this.type === 'button'){return ({close})=>popover.render({close})}
-        else if(this.type === 'datepicker'){return ({close})=><DatePicker onClose={close} />}
+    getRender = (popover) => {
+        if (this.type === 'button') { return ({ close }) => popover.render({ close }) }
+        else if (this.type === 'datepicker') { return ({ close }) => <DatePicker onClose={close} /> }
         else {
-            return ({close})=>{
+            return ({ close }) => {
                 let options = this.getOptions() || [];
-                if(!options.length){return null}
-                if(popover.render){return popover.render({close,options})}
-                return <Options options={options}/>
+                if (!options.length) { return null }
+                if (popover.render) { return popover.render({ close, options }) }
+                return <Options options={options} />
             }
         }
     }
-    getIsActive = ()=>{
+    getIsActive = () => {
         let options = this.getProp('options');
         let popover = this.getProp('popover');
-        if(this.type === 'button'){return !!popover}
-        if(this.type === 'datepicker'){return true}
-        else if(this.type === 'select'){return true}
-        else if(this.type === 'multiselect'){return true}
-        else if(this.type === 'text'){return !!options}
-        else if(this.type === 'number'){return !!options}
-        else if(this.type === 'textarea'){return !!options}
-        return false        
+        if (this.type === 'button') { return !!popover }
+        if (this.type === 'datepicker') { return true }
+        else if (this.type === 'select') { return true }
+        else if (this.type === 'multiselect') { return true }
+        else if (this.type === 'text') { return !!options }
+        else if (this.type === 'number') { return !!options }
+        else if (this.type === 'textarea') { return !!options }
+        return false
     }
     getBackdrop = (popover) => {
-        let {backdrop = {}} = popover; 
-        let {attrs = {}} = backdrop;
-        let {className,style = {}} = attrs;
-        let newClassName = ('aio-input-backdrop ' + this.id) + (className?' ' + className:'');
-        let newStyle = {...style};
-        // if(['text','number','textarea'].indexOf(this.type) !== -1){
-        //     newStyle = {...newStyle,background:'none',pointerEvents:'none'}
-        // }
-        let newAttrs = {...attrs,className:newClassName,style:newStyle}
-        return { ...backdrop,attrs: newAttrs }
+        let { backdrop = {} } = popover;
+        return { ...backdrop, attrs: this.addToAttrs(backdrop.attrs, { className: 'aio-input-backdrop ' + this.id }) }
     }
-    getBody = (popover,render)=>{
-        let {body = {}} = popover;
-        return { ...body,render }
+    getBody = (popover, render) => {
+        let { body = {} } = popover;
+        return { ...body, render }
     }
-    getPopover = (popover,dom)=>{
-        let {fixStyle, fitHorizontal = ['multiselect','text','number','textarea'].indexOf(this.type) !== -1} = popover;
-        return {fixStyle, fitHorizontal,pageSelector: '.aio-input-backdrop.' + this.id,getTarget: () => $(dom.current)}
+    getPopover = (popover, dom) => {
+        let { fixStyle, fitHorizontal = ['multiselect', 'text', 'number', 'textarea'].indexOf(this.type) !== -1 } = popover;
+        return { fixStyle, fitHorizontal, pageSelector: '.aio-input-backdrop.' + this.id, getTarget: () => $(dom.current) }
     }
-    getAttrs = (popover)=>{
-        let {attrs = {}} = popover;
-        return { ...attrs, className: 'aio-input-popover' + (attrs.className ? ' ' + attrs.className : '') + (this.rtl ? ' aio-input-popover-rtl' : '') }
-    }
-    getFn = ()=>{
-        if(!this.isActive){return}
-        return (dom)=>{
-            let popover = this.getProp('popover',{})
+    getFn = () => {
+        if (!this.isActive) { return }
+        return (dom) => {
+            let popover = { ...AIOInput.defaults.popover, ...this.getProp('popover', {}) }
             let render = this.getRender(popover);
-            let body = this.getBody(popover,render)
-            let {rtl,position='popover',header,attrs = {}} = popover;
+            let body = this.getBody(popover, render)
+            let { rtl, position = 'popover', header, attrs = {} } = popover;
             return {
-                onClose:()=>this.toggle(false),
-                rtl,header,position, header,
-                backdrop:this.getBackdrop(popover),
+                onClose: () => this.toggle(false),
+                rtl, header, position, header,
+                backdrop: this.getBackdrop(popover),
                 body,
-                popover: this.getPopover(popover,dom),
-                attrs: this.getAttrs(popover)
+                popover: this.getPopover(popover, dom),
+                attrs: this.addToAttrs(popover.attrs, { className: `aio-input-popover aio-input-popover-${this.rtl ? 'rtl' : 'ltr'}` })
             }
         }
     }
-    
 }
 const AICTX = createContext();
 export default class AIOInput extends Component {
-    static defaults = {
-        validate:false,
-        mapApiKeys:{}
-    };
+    static defaults = { validate: false, mapApiKeys: {}, popover: {} };
     constructor(props) {
         super(props);
         this.type = props.type;
         this.isInput = ['text', 'number', 'textarea', 'password'].indexOf(props.type) !== -1;
-        this.isDropdown = ['text', 'number', 'textarea', 'select','multiselect'].indexOf(props.type) !== -1;
+        this.isDropdown = ['text', 'number', 'textarea', 'select', 'multiselect'].indexOf(props.type) !== -1;
         this.handleIsMultiple(props.type);
         this.dom = createRef();
         this.datauniqid = 'aiobutton' + (Math.round(Math.random() * 10000000));
         this.popup = new AIOPopup();
-        this.getPopover = new Popover(this.getProp.bind(this),this.datauniqid,this.toggle.bind(this),this.getOptions.bind(this)).getFn();
-        this.state = {open:this.getProp('open',false),showPassword:false}
-        
+        this.getPopover = new Popover(this.getProp.bind(this), this.datauniqid, this.toggle.bind(this), this.getOptions.bind(this), this.addToAttrs.bind(this)).getFn();
+        this.state = { open: this.getProp('open', false), showPassword: false }
     }
-    handleIsMultiple(type){
-        if(type === 'multiselect' || type === 'table'){this.isMultiple = ()=>true}
-        else if(type === 'radio' || type === 'slider' || type === 'file'){this.isMultiple = ()=>!!this.props.multiple}
-        else{this.isMultiple = ()=>false};
+    handleIsMultiple(type) {
+        if (type === 'multiselect' || type === 'table') { this.isMultiple = () => true }
+        else if (type === 'radio' || type === 'slider' || type === 'file') { this.isMultiple = () => !!this.props.multiple }
+        else { this.isMultiple = () => false };
     }
     dragStart(e) { this.dragIndex = parseInt($(e.target).attr('datarealindex')); }
     dragOver(e) { e.preventDefault(); }
@@ -141,13 +121,10 @@ export default class AIOInput extends Component {
         return Arr.filter((o) => o._testswapindex !== fromIndex)
     }
     getSelectText() {
-        let options = this.getProp('options',[])
+        let options = this.getProp('options', [])
         let value = this.getProp('value');
-        let option = options.find((option) => {
-            if(value === undefined){return false}
-            return this.getOptionProp(option, 'value') === value
-        });
-        if (option === undefined) { return  }
+        let option = options.find((option) => value === undefined ? false : this.getOptionProp(option, 'value') === value);
+        if (option === undefined) { return }
         return this.getOptionProp(option, 'text')
     }
     getDatepickerText() {
@@ -169,47 +146,55 @@ export default class AIOInput extends Component {
         let calendarType = this.getProp('calendarType', 'gregorian')
         return this.getProp('placeholder', calendarType === 'gregorian' ? 'Select Date' : 'انتخاب تاریخ')
     }
+    addToAttrs(attrs = {}, { className, style, stylePriority = true }) {
+        let classNames = [];
+        if (attrs.className) { classNames.push(attrs.className) }
+        if (className) { classNames.push(className) }
+        let newClassName = classNames.length ? classNames.join(' ') : undefined
+        let newStyle = stylePriority ? { ...attrs.style, ...style } : { ...style, ...attrs.style };
+        return { ...attrs, className: newClassName, style: newStyle }
+    }
     getProp(key, def) {
         let { type } = this.props;
         let propsResult = this.props[key] === 'function' ? this.props[key]() : this.props[key];
         if (key === 'value') {
-            if(propsResult === null){propsResult = undefined}
-            if(type === 'map'){
-                let {lat = 35.699739,lng = 51.338097} = propsResult;
-                return {lat,lng}
+            if (propsResult === null) { propsResult = undefined }
+            if (type === 'map') {
+                let { lat = 35.699739, lng = 51.338097 } = propsResult || {};
+                return { lat, lng }
             }
             if (this.isMultiple()) {
                 if (propsResult === undefined) { propsResult = [] }
-                if(!Array.isArray(propsResult)){
+                if (!Array.isArray(propsResult)) {
                     console.error(`aio-input error => in type="${type}" by multiple:true value should be an array but is ${propsResult}`)
                     return [propsResult]
-                } 
+                }
             }
             else {
-                if(Array.isArray(propsResult)){
+                if (Array.isArray(propsResult)) {
                     console.error(`aio-input error => in type="${type}" by multiple:false|undefined value cannot be an array`)
                     return propsResult[0]
                 }
             }
             return propsResult === undefined ? def : propsResult;
         }
-        if(key === 'type'){return this.props.type}
-        if(key === 'isDropdown'){return this.isDropdown}
-        if(key === 'props'){return this.props}
-        if(key === 'after'){
-            if(type === 'password' && this.getProp('visible')){
-                let {showPassword} = this.state;
-                return <div className='align-v' onClick={()=>this.toggleShowPassword()}><Icon path={showPassword?mdiEyeOff:mdiEye} size={.8}/></div>
+        if (key === 'type') { return this.props.type }
+        if (key === 'isDropdown') { return this.isDropdown }
+        if (key === 'props') { return this.props }
+        if (key === 'after') {
+            if (type === 'password' && this.getProp('visible')) {
+                let { showPassword } = this.state;
+                return <div className='align-v' onClick={() => this.toggleShowPassword()}><Icon path={showPassword ? mdiEyeOff : mdiEye} size={.8} /></div>
             }
         }
-        if (key === 'caret') { 
-            if(propsResult === false){return false}
-            if(type === 'button'){return !!this.getProp('popover')}
-            if(type === 'select' || type === 'multiselect' || type === 'datepicker'){return propsResult || true}
-            if(type === 'text' || type === 'number' || type === 'textarea'){
+        if (key === 'caret') {
+            if (propsResult === false) { return false }
+            if (type === 'button') { return !!this.getProp('popover') }
+            if (type === 'select' || type === 'multiselect' || type === 'datepicker') { return propsResult || true }
+            if (type === 'text' || type === 'number' || type === 'textarea') {
                 let options = this.getProp('options');
-                if(options){return propsResult || true}
-                else{return false}
+                if (options) { return propsResult || true }
+                else { return false }
             }
             return false;
         }
@@ -217,92 +202,57 @@ export default class AIOInput extends Component {
             if (type === 'select') { return this.getSelectText() }
             if (type === 'datepicker') { return this.getDatepickerText() }
         }
-        
         propsResult = propsResult === undefined ? def : propsResult;
         return propsResult;
     }
-    getMsf(obj = {}){
-        let {option,key,def,addStyle,addClassName} = obj;
-        let attrs = option?this.getOptionProp(option,'attrs',{}):this.getProp('attrs',{});
-        let type = typeof key;
-        if(type === 'string'){
-            let res = this.getProp(key,attrs[key] === undefined?def:attrs[key])
-            if(addClassName){return `${addClassName}${res?' ' + res:''}` }
-            else if(addStyle){return {...res,...addStyle} }
-            else {return res}
-        }
-        else if(type === 'object'){
-            let res = {};
-            for(let prop in key){
-                res[prop] = this.getProp(prop,attrs[prop] === undefined?key[prop]:attrs[prop])
-            }
-            if(addClassName){res.className = `${addClassName}${res.className?' ' + res.className:''}`}
-            if(addStyle){res.style = {...res.style,...addStyle} }
-            return res
-        }
-        else{
-            let res = {
-                ...attrs,
-                className:this.getProp('className',attrs.className),
-                style:this.getProp('style',attrs.style),
-                onClick:this.getProp('onClick',attrs.onClick),
-                title:this.getProp('title',attrs.title)
-            }
-            if(addClassName){res.className = `${addClassName}${res.className?' ' + res.className:''}`}
-            if(addStyle){res.style = {...res.style,...addStyle} }
-            return res
-        }
-    }
-    getOptionProp(option, key, def,preventFunction) {
-        let optionResult = typeof option[key] === 'function' && !preventFunction ? option[key](option,this.props) : option[key]
+    getOptionProp(option, key, def, preventFunction) {
+        let optionResult = typeof option[key] === 'function' && !preventFunction ? option[key](option, this.props) : option[key]
         if (optionResult !== undefined) { return optionResult }
         let prop = this.props['option' + key[0].toUpperCase() + key.slice(1, key.length)];
         if (typeof prop === 'string') {
             try {
-                let props = this.props;
-                let value, evalText = 'value = ' + prop;
-                eval(evalText);
+                let props = this.props, value;
+                eval('value = ' + prop);
                 return value;
             }
             catch { prop = prop }
         }
-        if (typeof prop === 'function' && !preventFunction) { 
-            let res = prop(option,this.props);
-            return res === undefined?def:res;
+        if (typeof prop === 'function' && !preventFunction) {
+            let res = prop(option, this.props);
+            return res === undefined ? def : res;
         }
-        if (prop !== undefined) { return prop }
-        return def
+        return prop !== undefined ? prop : def;
     }
-    toggle(popover,e) {
+    toggle(popover, e) {
         let open = !!this.popup.getModals().length
         let onToggle = this.getProp('onToggle');
         if (!!popover === !!open) { return }
         if (popover) {
             this.popup.addModal(popover);
-            this.setState({open:true})
+            this.setState({ open: true })
         }
         else {
             this.popup.removeModal();
-            this.setState({open:false})
+            this.setState({ open: false })
             setTimeout(() => $(this.dom.current).focus(), 0)
         }
         if (onToggle) { onToggle(!!popover) }
     }
     click(e, dom) {
         let type = this.type;
-        let onChange = this.getProp('onChange',()=>{});
-        let attrs = this.getProp('attrs',{});
+        let onChange = this.getProp('onChange', () => { });
+        let attrs = this.getProp('attrs', {});
         if (type === 'checkbox') { onChange(!this.getProp('value')) }
-        else if (this.getPopover) { this.toggle(this.getPopover(dom),e) }
+        else if (this.getPopover) { this.toggle(this.getPopover(dom), e) }
         else if (attrs.onClick) { attrs.onClick(); }
     }
     optionClick(option) {
-        let onChange = this.getProp('onChange',()=>{});
+        let onChange = this.getProp('onChange', () => { });
         let type = this.type;
         let Value = this.getProp('value');
         let { value, attrs = {}, close, text } = option;
         if (attrs.onClick) { attrs.onClick(value, option); }
-        else if (type && ['text', 'number', 'textarea', 'password'].indexOf(type) !== -1) { onChange(text,option) }
+        else if (type && ['text', 'number', 'textarea', 'password'].indexOf(type) !== -1) { onChange(text, option) }
         else if (this.isMultiple()) {
             if (Value.indexOf(value) === -1) { onChange(Value.concat(value), value, 'add') }
             else { onChange(Value.filter((o) => o !== value), value, 'remove') }
@@ -310,7 +260,7 @@ export default class AIOInput extends Component {
         else { onChange(value, option) }
         if (close) { this.toggle(false) }
     }
-    toggleShowPassword(){this.setState({showPassword:!this.state.showPassword})}
+    toggleShowPassword() { this.setState({ showPassword: !this.state.showPassword }) }
     getOptions() {
         let getProp = this.getProp.bind(this);
         let getOptionProp = this.getOptionProp.bind(this);
@@ -332,10 +282,10 @@ export default class AIOInput extends Component {
             let text = getOptionProp(option, 'text');
             if (this.isInput && Value && text.toString().indexOf(Value.toString()) !== 0) { continue }
             let value = getOptionProp(option, 'value')
-            let attrs = getOptionProp(option, 'attrs',{});
+            let attrs = getOptionProp(option, 'attrs', {});
             let obj = {
                 text, value,
-                checkIcon: getOptionProp(option, 'checkIcon',[],true),
+                checkIcon: getOptionProp(option, 'checkIcon', [], true),
                 checked: getOptionProp(option, 'checked', getDefaultOptionChecked(value)),
                 before: getOptionProp(option, 'before'),
                 after: getOptionProp(option, 'after'),
@@ -349,11 +299,7 @@ export default class AIOInput extends Component {
                 tagAfter: getOptionProp(option, 'tagAfter'),
                 renderIndex, realIndex: i
             }
-            if (value === Value) { 
-                obj.attrs = obj.attrs || {};
-                obj.attrs.className = obj.attrs.className || '';
-                obj.attrs.className += obj.attrs.className ? ' active' : 'active' 
-            }////notice
+            if (value === Value) { obj.attrs = this.addToAttrs(obj.attrs, { className: 'active' }) }
             result.push(obj)
             renderIndex++;
         }
@@ -362,14 +308,15 @@ export default class AIOInput extends Component {
     getContext() {
         return {
             ...this.props,
-            mapApiKeys:AIOInput.defaults.mapApiKeys,
-            isMultiple:this.isMultiple.bind(this),
-            isInput:this.isInput,
-            type:this.type,
-            getOptions:this.getOptions.bind(this),
-            open:this.state.open,
-            toggleShowPassword:this.toggleShowPassword.bind(this),
-            showPassword:this.state.showPassword,
+            addToAttrs: this.addToAttrs.bind(this),
+            mapApiKeys: AIOInput.defaults.mapApiKeys,
+            isMultiple: this.isMultiple.bind(this),
+            isInput: this.isInput,
+            type: this.type,
+            getOptions: this.getOptions.bind(this),
+            open: this.state.open,
+            toggleShowPassword: this.toggleShowPassword.bind(this),
+            showPassword: this.state.showPassword,
             popup: this.popup,
             dragStart: this.dragStart.bind(this),
             dragOver: this.dragOver.bind(this),
@@ -383,63 +330,43 @@ export default class AIOInput extends Component {
         }
     }
     D2S(n) { n = n.toString(); return n.length === 1 ? '0' + n : n }
+    getTimeText(obj) {
+        obj = { ...obj }
+        for (let prop in obj) { obj[prop] = this.D2S(obj[prop]) }
+        let text = [], dateArray = [];
+        if (obj.year !== undefined) { dateArray.push(obj.year) }
+        if (obj.month !== undefined) { dateArray.push(obj.month) }
+        if (obj.day !== undefined) { dateArray.push(obj.day) }
+        if (dateArray.length) { text.push(dateArray.join('/')) }
+        let timeArray = []
+        if (obj.hour !== undefined) { timeArray.push(obj.hour) }
+        if (obj.minute !== undefined) { timeArray.push(obj.minute) }
+        if (obj.second !== undefined) { timeArray.push(obj.second) }
+        if (timeArray.length) { text.push(timeArray.join(':')) }
+        return text.join(' ');
+    }
     render_button() { return <Layout /> }
     render_list() {
         return <List getProp={this.getProp.bind(this)} getOptionProp={this.getOptionProp.bind(this)} />
     }
     render_time() {
         let getProps = () => {
-            let value = this.getProp('value',{});
-            let {year:Year,month:Month,day:Day,hour:Hour,minute:Minute,second:Second} = value;
-            let calendarType = this.getProp('calendarType','gregorian');
+            let calendarType = this.getProp('calendarType', 'gregorian');
             let today = AIODate().getToday({ calendarType });
-            let year = Year === true ? today[0] : Year;
-            let month = Month === true ? today[1] : Month;
-            let day = Day === true ? today[2] : Day;
-            let hour = Hour === true ? today[3] : Hour;
-            let minute = Minute === true ? today[4] : Minute;
-            let second = Second === true ? today[5] : Second;
-            let popover = this.getProp('popover',{});
+            let todayObject = { year: today[0], month: today[1], day: today[2], hour: today[3], minute: today[4], second: today[5] }
+            let value = this.getProp('value', {});
+            for (let prop in value) { if (value[prop] === true) { value[prop] = todayObject[prop] } }
+            let popover = this.getProp('popover', {});
             let onChange = this.getProp('onChange');
-            let attrs = this.getProp('attrs',{});
-            let { attrs: popoverAttrs = {} } = popover;
-            let text = [];
-            let dateArray = [];
-            if (year) { dateArray.push(this.D2S(year)) }
-            if (month) { dateArray.push(this.D2S(month)) }
-            if (day) { dateArray.push(this.D2S(day)) }
-            if (dateArray.length) { text.push(dateArray.join('/')) }
-            let timeArray = []
-            if (hour !== undefined) { timeArray.push(this.D2S(hour)) }
-            if (minute !== undefined) { timeArray.push(this.D2S(minute)) }
-            if (second !== undefined) { timeArray.push(this.D2S(second)) }
-            if (timeArray.length) { text.push(timeArray.join(':')) }
-            let props = {text,attrs,popover,popoverAttrs,onChange,year,month,day,hour,minute,second}
-            return props
+            return { text: this.getTimeText(value), attrs: this.addToAttrs(this.getProp('attrs'), { style: { direction: 'ltr' } }), popover, onChange, value }
         }
-        let {text,attrs,popover,popoverAttrs,onChange} = getProps()
+        let { text, attrs, popover = {}, onChange } = getProps()
         return (
             <AIOInput
-                caret={false}
-                text={text.join(' ')}
-                {...this.props}
-                attrs={{...attrs,style:{...attrs.style, direction: 'ltr'}}}
-                type='button'
+                caret={false} text={text} {...this.props} attrs={attrs} type='button'
                 popover={!onChange ? undefined : {
-                    position: 'center', ...popover,
-                    attrs: { ...popoverAttrs, className: 'aio-input-time-popover' + (popoverAttrs.className ? ' ' + popoverAttrs.className : '') },
-                    render: ({ close }) => {
-                        let {onChange,year,month,day,hour,minute,second} = getProps()
-                        return (
-                            <TimePopover
-                                year={year} month={month} day={day} hour={hour} minute={minute} second={second}
-                                onChange={({ year, month, day, hour, minute,second }) => {
-                                    onChange({ year, month, day, hour, minute,second })
-                                }}
-                                onClose={() => close()}
-                            />
-                        )
-                    }
+                    position: 'center', ...popover, attrs: this.addToAttrs(popover.attrs, { className: 'aio-input-time-popover' }),
+                    render: ({ close }) => <TimePopover value={getProps().value} onChange={(obj) => onChange(obj)} onClose={() => close()} />
                 }}
             />
         )
@@ -452,19 +379,18 @@ export default class AIOInput extends Component {
     render_checkbox() { return <Layout /> }
     render_datepicker() { return <Layout /> }
     render_image() { return <Layout text={<Image />} /> }
+    render_map() { return <Layout text={<Map getProp={this.getProp.bind(this)} />} /> }
     render_table() { return <Table getProp={this.getProp.bind(this)} /> }
-    render_text() { return <Layout text={<Input/>} /> }
-    render_password() { return <Layout text={<Input/>} /> }
-    render_textarea() { return <Layout text={<Input/>} /> }
-    render_number() { return <Layout text={<Input/>} /> }
-    render_color() { return <Layout text={<Input/>} /> }
+    render_text() { return <Layout text={<Input />} /> }
+    render_password() { return <Layout text={<Input />} /> }
+    render_textarea() { return <Layout text={<Input />} /> }
+    render_number() { return <Layout text={<Input />} /> }
+    render_color() { return <Layout text={<Input />} /> }
     render_slider() { return <Layout text={<InputSlider getProp={this.getProp.bind(this)} />} /> }
     render_form() { return <Form getProp={this.getProp.bind(this)} /> }
     render() {
         let type = this.type;
-        if(AIOInput.defaults.validate){
-            new AIOInputValidate(this.props)
-        }
+        if (AIOInput.defaults.validate) { new AIOInputValidate(this.props) }
         if (!type || !this['render_' + type]) { return null }
         return (
             <AICTX.Provider key={this.datauniqid} value={this.getContext()}>
@@ -474,163 +400,43 @@ export default class AIOInput extends Component {
         )
     }
 }
-
 function TimePopover(props) {
     let { lang = 'fa' } = props;
-    let [startYear] = useState(props.year ? props.year - 10 : undefined);
-    let [endYear] = useState(props.year ? props.year + 10 : undefined);
-    let [year, setYear] = useState(props.year);
-    let [month, setMonth] = useState(props.month);
-    let [day, setDay] = useState(props.day);
-    let [hour, setHour] = useState(props.hour);
-    let [minute, setMinute] = useState(props.minute);
-    let [second, setSecond] = useState(props.second);
+    let [startYear] = useState(props.value.year ? props.value.year - 10 : undefined);
+    let [endYear] = useState(props.value.year ? props.value.year + 10 : undefined);
+    let [value, setValue] = useState({ ...props.value })
+    function change(obj) { setValue({ ...value, ...obj }) }
     function translate(key) {
-        return lang === 'fa' ? { 'Year': 'سال', 'Month': 'ماه', 'Day': 'روز', 'Hour': 'ساعت', 'Minute': 'دقیقه','Second':'ثانیه', 'Submit': 'ثبت' }[key] : key
+        return lang === 'fa' ? { 'year': 'سال', 'month': 'ماه', 'day': 'روز', 'hour': 'ساعت', 'minute': 'دقیقه', 'second': 'ثانیه', 'Submit': 'ثبت' }[key] : key
     }
-    function year_layout(year) {
-        if (!year) { return false }
-        let options = [];
-        for (let i = startYear; i <= endYear; i++) {
-            options.push({ text: i, value: i })
+    function getOptions(type) {
+        let { year, month, day } = value;
+        if (type === 'year') { return new Array(endYear - startYear + 1).fill(0).map((o, i) => { return { text: i + startYear, value: i + startYear } }) }
+        if (type === 'day') {
+            let length = !year || !month ? 31 : AIODate().getMonthDaysLength({ date: [year, month] });
+            if (day > length) { change({ day: 1 }) }
+            return new Array(length).fill(0).map((o, i) => { return { text: i + 1, value: i + 1 } })
         }
+        if (type === 'month') { return new Array(12).fill(0).map((o, i) => { return { text: i + 1, value: i + 1 } }) }
+        return new Array(type === 'hour' ? 24 : 60).fill(0).map((o, i) => { return { text: i, value: i } })
+    }
+    function layout(type) {
+        if (!value[type]) { return false }
         return {
             column: [
-                { html: translate('Year'), align: 'vh', size: 36 },
-                { html: (<AIOInput type='list' value={year} options={options} size={48} width={72} onChange={(year) => setYear(year)} />) }
+                { html: translate(type), align: 'vh', size: 36 },
+                { html: (<AIOInput type='list' value={value[type]} options={getOptions(type)} size={48} width={72} onChange={(v) => change({ [type]: v })} />) }
             ]
         }
     }
-    function month_layout(month) {
-        if (!month) { return false }
-        return {
-            column: [
-                { html: translate('Month'), align: 'vh', size: 36 },
-                {
-                    html: (
-                        <AIOInput
-                            type='list' value={month}
-                            options={
-                                new Array(12).fill(0).map((o, i) => {
-                                    return { text: i + 1, value: i + 1 }
-                                })
-                            }
-                            size={48} width={72} onChange={(month) => setMonth(month)}
-                        />
-                    )
-                }
-            ]
-        }
-    }
-    function day_layout(year, month, day) {
-        if (!year || !month || !day) { return false }
-        let days = AIODate().getMonthDaysLength({ date: [year, month] })
-        if (day > days) { day = 1; }
-        return {
-            column: [
-                { html: translate('Day'), align: 'vh', size: 36 },
-                {
-                    html: (
-                        <AIOInput
-                            type='list' value={day}
-                            options={
-                                new Array(days).fill(0).map((o, i) => {
-                                    return { text: i + 1, value: i + 1 }
-                                })
-                            }
-                            size={48} width={72} onChange={(day) => setDay(day)}
-                        />
-                    )
-                }
-            ]
-        }
-    }
-    function hour_layout(hour) {
-        if (hour === undefined) { return false }
-        return {
-            column: [
-                { html: translate('Hour'), align: 'vh', size: 36 },
-                {
-                    html: (
-                        <AIOInput
-                            type='list' value={hour}
-                            options={
-                                new Array(24).fill(0).map((o, i) => {
-                                    return { text: i, value: i }
-                                })
-                            }
-                            size={48} width={72} onChange={(hour) => setHour(hour)}
-                        />
-                    )
-                }
-            ]
-        }
-    }
-    function minute_layout(minute) {
-        if (minute === undefined) { return false }
-        return {
-            column: [
-                { html: translate('Minute'), align: 'vh', size: 36 },
-                {
-                    html: (
-                        <AIOInput
-                            type='list' value={minute}
-                            options={
-                                new Array(60).fill(0).map((o, i) => {
-                                    return { text: i, value: i }
-                                })
-                            }
-                            size={48} width={72} onChange={(minute) => setMinute(minute)}
-                        />
-                    )
-                }
-            ]
-        }
-    }
-    function second_layout(second) {
-        if (second === undefined) { return false }
-        return {
-            column: [
-                { html: translate('Second'), align: 'vh', size: 36 },
-                {
-                    html: (
-                        <AIOInput
-                            type='list' value={second}
-                            options={
-                                new Array(60).fill(0).map((o, i) => {
-                                    return { text: i, value: i }
-                                })
-                            }
-                            size={48} width={72} onChange={(second) => setSecond(second)}
-                        />
-                    )
-                }
-            ]
-        }
-    }
+    function submit() { props.onChange(value); props.onClose(); }
     return (
         <RVD
             layout={{
                 style: { direction: 'ltr' },
                 column: [
-                    { 
-                        align: 'h', 
-                        row: [
-                            year_layout(year), 
-                            month_layout(month), 
-                            day_layout(year, month, day), 
-                            hour_layout(hour), 
-                            minute_layout(minute),
-                            second_layout(second)
-                        ] 
-                    },
-                    { size: 12 },
-                    {
-                        html: <button className='ai-style-3' style={{ height: 36, fontSize: 12 }} onClick={() => {
-                            props.onChange({ year, month, day, hour, minute,second })
-                            props.onClose()
-                        }}>{translate('Submit')}</button>
-                    }
+                    { align: 'h', className: 'm-b-12', row: [layout('year'), layout('month'), layout('day'), layout('hour'), layout('minute'), layout('second')] },
+                    { html: <button className='ai-style-3' style={{ height: 36, fontSize: 12 }} onClick={submit}>{translate('Submit')}</button> }
                 ]
             }}
         />
@@ -710,7 +516,7 @@ function Image() {
     return (
         <AIOInput
             disabled={disabled || loading}
-            type='file' center={true} text={IMG} attrs={{style:{ width: '100%', height: '100%', padding: 0 }}}
+            type='file' center={true} text={IMG} attrs={{ style: { width: '100%', height: '100%', padding: 0 } }}
             onChange={(file) => {
                 changeUrl(file, (url) => {
                     onChange({ file, url })
@@ -720,21 +526,21 @@ function Image() {
     )
 }
 function InputSlider() {
-    let { getProp,isMultiple } = useContext(AICTX)
+    let { getProp, isMultiple } = useContext(AICTX)
     let onChange = getProp('onChange');
     function change(value) {
         if (isMultiple()) { onChange([...value]) }
         else { onChange(value[0]) }
     }
     let value = getProp('value'), rtl = getProp('rtl');
-    if (!Array.isArray(value)) { 
-        if(typeof value !== 'number'){value = []}
-        else{value = [value]}
+    if (!Array.isArray(value)) {
+        if (typeof value !== 'number') { value = [] }
+        else { value = [value] }
     }
     let attrs = getProp('attrs', {})
     let disabled = getProp('disabled') || getProp('loading');
     let props = {
-        attrs,disabled,
+        attrs, disabled,
         value, rtl, start: getProp('start'), end: getProp('end'), step: getProp('step'), min: getProp('min'), max: getProp('max'),
         direction: getProp('direction', rtl ? 'left' : 'right'), showValue: getProp('showValue'), onChange: !onChange ? undefined : change,
         pointStyle: getProp('pointStyle'), lineStyle: getProp('lineStyle'), fillStyle: getProp('fillStyle'), getPointHTML: getProp('getPointHTML'),
@@ -746,35 +552,35 @@ function InputSlider() {
 }
 function Multiselect() {
     let { getProp } = useContext(AICTX);
-    let style = getProp('style',{})
+    let style = getProp('style', {})
     return (<div className={'aio-input-multiselect-container'} style={{ width: style.width }}><Layout /><Tags /></div>)
 }
 function Tags() {
-    let { getProp,getOptionProp } = useContext(AICTX);
+    let { getProp, getOptionProp } = useContext(AICTX);
     let value = getProp('value'), rtl = getProp('rtl');
     if (!value.length || getProp('hideTags', false)) { return null }
     let options = getProp('options', [])
     return (
         <div className={`aio-input-tags${rtl ? ' rtl' : ''}`}>
             {
-                value.map((o,i) => {
+                value.map((o, i) => {
                     let option = options.find((option) => o === getOptionProp(option, 'value'))
-                    if(option === undefined){return null}
-                    return <Tag key={i} value={o} option={option}/>      
+                    if (option === undefined) { return null }
+                    return <Tag key={i} value={o} option={option} />
                 })
             }
         </div>
     )
 }
-function Tag({ option,value }) {
+function Tag({ option, value }) {
     let { getProp, getOptionProp } = useContext(AICTX);
-    let onChange = getProp('onChange',()=>{})
+    let onChange = getProp('onChange', () => { })
     let text = getOptionProp(option, 'text');
     let tagAttrs = getOptionProp(option, 'tagAttrs', {});
-    let tagBefore = getOptionProp(option, 'tagBefore',<Icon path={mdiCircleMedium} size={0.7} />);
+    let tagBefore = getOptionProp(option, 'tagBefore', <Icon path={mdiCircleMedium} size={0.7} />);
     let tagAfter = getOptionProp(option, 'tagAfter');
-    let disabled = getOptionProp(option,'disabled') || getProp('disabled');
-    let onRemove = disabled?undefined:() => { onChange(getProp('value').filter((o) => o !== value)) }
+    let disabled = getOptionProp(option, 'disabled') || getProp('disabled');
+    let onRemove = disabled ? undefined : () => { onChange(getProp('value').filter((o) => o !== value)) }
     return (
         <div {...tagAttrs} className={'aio-input-tag' + (tagAttrs.className ? ' ' + tagAttrs.className : '') + (disabled ? ' disabled' : '')} style={tagAttrs.style}>
             <div className='aio-input-tag-icon'>{tagBefore}</div>
@@ -791,15 +597,12 @@ class Input extends Component {
         this.dom = createRef();
         this.container = createRef();
         this.datauniqid = `ac${Math.round(Math.random() * 100000)}`;
-        this.state = { value:undefined, prevValue: undefined }
+        this.state = { value: undefined, prevValue: undefined }
     }
     componentDidMount() {
-        let {getProp,type} = this.context;
-        let min = getProp('min')
-        let max = getProp('max')
-        let swip = getProp('swip')
-        let value = getProp('value');
-        this.setState({value,prevValue:value})
+        let { getProp, type } = this.context;
+        let min = getProp('min'), max = getProp('max'), swip = getProp('swip'), value = getProp('value');
+        this.setState({ value, prevValue: value })
         if (type === 'number' && swip) {
             AIOSwip({
                 speedY: 0.2,
@@ -815,7 +618,7 @@ class Input extends Component {
         }
     }
     componentDidUpdate() {
-        let {getProp,type} = this.context;
+        let { getProp, type } = this.context;
         let autoHeight = getProp('autoHeight')
         if (type === 'textarea' && autoHeight) {
             let dom = this.dom.current;
@@ -831,8 +634,8 @@ class Input extends Component {
             this.rrt = setTimeout(() => this.setState({ value: propsValue, prevValue: propsValue }), 0)
         }
     }
-    change(value,onChange) {
-        let {getProp,type} = this.context;
+    change(value, onChange) {
+        let { getProp, type } = this.context;
         let blurChange = getProp('blurChange')
         let maxLength = getProp('maxLength', Infinity);
         let justNumber = getProp('justNumber');
@@ -844,11 +647,11 @@ class Input extends Component {
                 if (justNumber) {
                     value = value.toString();
                     let lastChar = value[value.length - 1];
-                    if(lastChar === ' ' || isNaN(+lastChar)){
-                        if(Array.isArray(justNumber)){
-                            if(justNumber.indexOf(lastChar) === -1){value = value.slice(0, value.length - 1)}
+                    if (lastChar === ' ' || isNaN(+lastChar)) {
+                        if (Array.isArray(justNumber)) {
+                            if (justNumber.indexOf(lastChar) === -1) { value = value.slice(0, value.length - 1) }
                         }
-                        else{value = value.slice(0, value.length - 1) }
+                        else { value = value.slice(0, value.length - 1) }
                     }
                 }
                 if (filter.length) {
@@ -864,59 +667,37 @@ class Input extends Component {
         this.setState({ value });
         if (!blurChange) {
             clearTimeout(this.timeout);
-            this.timeout = setTimeout(() => {
-                onChange(value);
-            }, delay);
+            this.timeout = setTimeout(() => onChange(value), delay);
         }
     }
     blur(onChange) {
-        let {getProp} = this.context;
+        let { getProp } = this.context;
         let blurChange = getProp('blurChange')
         if (!blurChange) { return }
         onChange(this.state.value)
     }
-    getInputStyle(inputAttrs){
-        let {getProp} = this.context;
-        let justify = getProp('justify', false);
-        let style = {...inputAttrs.style};
-        if(justify){style.textAlign = 'center'}
-        return style;
-    }
-    getInputClassName(inputAttrs = {}){
-        let classes = [];
-        let {getProp} = this.context;
-        let spin = getProp('spin');
-        if(spin === false){classes.push('no-spin')}
-        if(inputAttrs.className){classes.push(inputAttrs.className)}
-        return classes.length?classes.join(' '):'';
-    }
-    getInputAttrs(){
-        let {getProp,showPassword,type} = this.context;
+    getInputAttrs() {
+        let { getProp, showPassword, type, addToAttrs } = this.context;
         let { value = '' } = this.state;
-        let inputAttrs = getProp('inputAttrs', {});
         let disabled = getProp('disabled');
         let placeholder = getProp('placeholder');
         let onChange = getProp('onChange');
         let loading = getProp('loading');
+        let inputAttrs = addToAttrs(getProp('inputAttrs'), {
+            className: !getProp('spin', true) ? 'no-spin' : undefined,
+            style: getProp('justify') ? { textAlign: 'center' } : undefined
+        })
         let p = {
-            ...inputAttrs, value, type, ref: this.dom,
-            disabled:!!loading || disabled,
-            placeholder,
-            style:this.getInputStyle(inputAttrs),
-            className: this.getInputClassName(inputAttrs),
-            onChange: onChange?(e) => this.change(e.target.value,onChange):undefined,
+            ...inputAttrs, value, type, ref: this.dom, disabled: !!loading || disabled, placeholder,
+            onChange: onChange ? (e) => this.change(e.target.value, onChange) : undefined,
             onBlur: () => this.blur(onChange)
         }
-        if(type === 'color'){
-            if(getProp('options')){
-                p = {...p,list:this.datauniqid}
-            }
-        }
-        if(type === 'password' && showPassword){p = {...p,type:'text',style:{...p.style,textAlign:'center'}}}
+        if (type === 'color' && getProp('options')) { p = { ...p, list: this.datauniqid } }
+        if (type === 'password' && showPassword) { p = { ...p, type: 'text', style: { ...p.style, textAlign: 'center' } } }
         return p;
     }
     render() {
-        let {getProp,type} = this.context;
+        let { getProp, type } = this.context;
         let { value = '' } = this.state;
         let attrs = this.getInputAttrs()
         if (!attrs.onChange) { return value }
@@ -925,16 +706,7 @@ class Input extends Component {
             return (
                 <label style={{ width: '100%', height: '100%', background: value }}>
                     <input {...attrs} style={{ opacity: 0 }} />
-                    {
-                        options && 
-                        <datalist id={this.datauniqid}>
-                            {
-                                options.map((o)=>{
-                                    return <option value={o}/>
-                                })
-                            }
-                        </datalist>
-                    }
+                    {options && <datalist id={this.datauniqid}>{options.map((o) => <option value={o} />)}</datalist>}
                 </label>
             )
         }
@@ -943,22 +715,19 @@ class Input extends Component {
     }
 }
 class Form extends Component {
+    static contextType = AICTX;
     constructor(props) {
         super(props);
-        let {getProp} = props;
+        let { getProp } = props;
         this.getProp = getProp;
-        let value = this.getProp('value',{})
+        let value = this.getProp('value', {})
         let onChange = this.getProp('onChange')
         this.state = { initialValue: JSON.stringify(value) }
-        if (!onChange) {
-            this.state.value = value;
-        }
+        if (!onChange) { this.state.value = value; }
         this.errors = {}
     }
-    getValue() { return this.getProp('onChange') ? this.getProp('value',{}) : this.state.value }
-    getErrors() {
-        return [...Object.keys(this.errors).filter((o) => !!this.errors[o]).map((o) => this.errors[o])]
-    }
+    getValue() { return this.getProp('onChange') ? this.getProp('value', {}) : this.state.value }
+    getErrors() { return [...Object.keys(this.errors).filter((o) => !!this.errors[o]).map((o) => this.errors[o])] }
     removeError(field) {
         let newErrors = {}
         for (let prop in this.errors) { if (prop !== field) { newErrors[prop] = this.errors[prop] } }
@@ -979,7 +748,7 @@ class Form extends Component {
         let header = this.getProp('header');
         let title = this.getProp('title');
         let subtitle = this.getProp('subtitle');
-        let headerAttrs = this.getProp('headerAttrs',{});
+        let headerAttrs = this.getProp('headerAttrs', {});
         let onClose = this.getProp('onClose');
         let onBack = this.getProp('onBack');
         if (!header && !title && !onClose && !onBack) { return false }
@@ -1016,10 +785,10 @@ class Form extends Component {
         let footer = this.getProp('footer');
         let onSubmit = this.getProp('onSubmit');
         let onClose = this.getProp('onClose');
-        let footerAttrs = this.getProp('footerAttrs',{});
-        let closeText = this.getProp('closeText','Close');
-        let resetText = this.getProp('resetText','Reset');
-        let submitText = this.getProp('submitText','Submit');
+        let footerAttrs = this.getProp('footerAttrs', {});
+        let closeText = this.getProp('closeText', 'Close');
+        let resetText = this.getProp('resetText', 'Reset');
+        let submitText = this.getProp('submitText', 'Submit');
         let reset = this.getProp('reset');
         let { initialValue } = this.state;
         if (footer === false) { return false }
@@ -1092,12 +861,8 @@ class Form extends Component {
         let { className, style } = attrs;
         return { html: error, attrs, style, className: 'aio-input-form-error' + (className ? ' ' + className : '') }
     }
-    componentDidMount() {
-        this.reportErrors()
-    }
-    componentDidUpdate() {
-        this.reportErrors()
-    }
+    componentDidMount() { this.reportErrors() }
+    componentDidUpdate() { this.reportErrors() }
     reportErrors() {
         let getErrors = this.getProp('getErrors');
         if (!getErrors) { return }
@@ -1111,41 +876,33 @@ class Form extends Component {
         let style = { ...propsAttrs.style, ...ownAttrs.style }
         return { ...propsAttrs, ...ownAttrs, style }
     }
-    getInputProps(input,formItem){
+    getInputProps(input, formItem) {
+        let { addToAttrs } = this.context;
         let rtl = this.getProp('rtl');
         let disabled = this.getProp('disabled');
         let value = this.getValueByField(formItem.field, this.getDefault(input));
-        let updateInput = this.getProp('updateInput',(o)=>o)
-        let inputStyle = this.getProp('inputStyle',{})
-        let inputClassName = this.getProp('inputClassName') 
-        let props = {rtl,value,onChange: (value) => this.setValue(value, formItem)};
-        for(let prop in input){
-            props[prop] = this.getValueByField(input[prop])
-        }
+        let updateInput = this.getProp('updateInput', (o) => o)
+        let inputStyle = this.getProp('inputStyle', {})
+        let inputClassName = this.getProp('inputClassName')
+        let props = { rtl, value, onChange: (value) => this.setValue(value, formItem) };
+        for (let prop in input) { props[prop] = this.getValueByField(input[prop]) }
         props.value = value;
-        if(input.type === 'slider'){
-            if(props.showValue === undefined){props.showValue = 'inline';}
-        }
-        let {attrs = {}} = input;
+        if (input.type === 'slider' && props.showValue === undefined) { props.showValue = 'inline'; }
+        let { attrs = {} } = input;
         props.attrs = {};
-        for(let prop in attrs){
-            props.attrs[prop] = this.getValueByField(attrs[prop])
-        }
-        if(inputStyle){props.attrs.style = {...inputStyle,...props.attrs.style}}
-        if(inputClassName){props.attrs.className = props.attrs.className?`${props.attrs.className} ${inputClassName}`:inputClassName}
-        if(disabled){props.disabled = true;}
-        if(['text','number','password','textarea'].indexOf(props.type) !== -1){
-            let {inputAttrs = {}} = input;
+        for (let prop in attrs) { props.attrs[prop] = this.getValueByField(attrs[prop]) }
+        props.attrs = addToAttrs(props.attrs, { style: inputStyle, stylePriority: false, className: inputClassName })
+        if (disabled) { props.disabled = true; }
+        if (['text', 'number', 'password', 'textarea'].indexOf(props.type) !== -1) {
+            let { inputAttrs = {} } = input;
             props.inputAttrs = {};
-            for(let prop in inputAttrs){
-                props.inputAttrs[prop] = this.getValueByField(inputAttrs[prop])
-            }
+            for (let prop in inputAttrs) { props.inputAttrs[prop] = this.getValueByField(inputAttrs[prop]) }
         }
         return updateInput(props);
     }
     input_layout(formItem) {
         let { label, footer, inlineLabel, input, flex, size, field } = formItem;
-        if(label){inlineLabel = undefined};
+        if (label) { inlineLabel = undefined };
         let value = this.getValueByField(field, this.getDefault(input));
         let error = this.getError(formItem, value)
         if (error) { this.errors[field] = error }
@@ -1153,46 +910,32 @@ class Form extends Component {
         let labelAttrs = this.getAttrs(this.getProp('labelAttrs'), formItem.labelAttrs)
         let errorAttrs = this.getAttrs(this.getProp('errorAttrs'), formItem.errorAttrs)
         let footerAttrs = this.getAttrs(this.getProp('footerAttrs'), formItem.footerAttrs)
-        let inputProps = this.getInputProps(input,formItem);
+        let inputProps = this.getInputProps(input, formItem);
         return {
             flex, size, className: 'aio-input-form-item',
             column: [
-                // {
-                //     className:'aio-input-form-item-body of-visible',
-                //     row: [
-                //         this.inlineLabel_layout(inlineLabel, labelAttrs),
-                //         {
-                //             flex: 1, className: 'aio-input-form-item-input-container of-visible',
-                //             column: [
-                //                 this.label_layout(label, labelAttrs),
-                //                 { className:'aio-input-form-item-input-container of-visible',html: <AIOInput {...inputProps} />},
-                //             ]
-                //         }
-                //     ]
-                // },
                 {
-                    show:!!inlineLabel,
-                    className:'aio-input-form-item-body of-visible',
+                    show: !!inlineLabel,
+                    className: 'aio-input-form-item-body of-visible',
                     row: [
                         this.inlineLabel_layout(inlineLabel, labelAttrs),
-                        { className:'aio-input-form-item-input-container of-visible',html: <AIOInput {...inputProps} />}
+                        { className: 'aio-input-form-item-input-container of-visible', html: <AIOInput {...inputProps} /> }
                     ]
                 },
                 {
-                    show:!!label,
                     flex: 1, className: 'aio-input-form-item-input-container of-visible',
                     column: [
                         this.label_layout(label, labelAttrs),
-                        { className:'aio-input-form-item-input-container of-visible',html: <AIOInput {...inputProps} />},
+                        { className: 'aio-input-form-item-input-container of-visible', html: <AIOInput {...inputProps} /> },
                     ]
                 },
-                this.footer_layout(footer,footerAttrs),
+                this.footer_layout(footer, footerAttrs),
                 this.error_layout(error, errorAttrs)
             ]
         }
     }
     getError(o, value, options) {
-        let lang = this.getProp('lang','en')
+        let lang = this.getProp('lang', 'en')
         let { validations = [], input } = o;
         let { type } = input;
         if (!validations.length || type === 'html') { return '' }
@@ -1209,8 +952,8 @@ class Form extends Component {
     }
     render() {
         let rtl = this.getProp('rtl')
-        let attrs = this.getProp('attrs',{})
-        let {style, className} = attrs;
+        let attrs = this.getProp('attrs', {})
+        let { style, className } = attrs;
         return (
             <RVD
                 getLayout={(obj, parent = {}) => {
@@ -1230,9 +973,9 @@ class Form extends Component {
 }
 function Options(props) {
     let context = useContext(AICTX);
-    let {getProp,getOptions,isInput} = context;
+    let { getProp, getOptions, isInput } = context;
     let type = getProp('type');
-    let [searchValue,setSearchValue] = useState('');
+    let [searchValue, setSearchValue] = useState('');
     function renderSearchBox(options) {
         let search = getProp('search');
         if (type === 'tabs' || isInput || search === false) { return null }
@@ -1273,13 +1016,14 @@ function Options(props) {
 //title,value,width,minWidth,justify,type,onChange,cellAttrs,subtext,before,after
 const AITableContext = createContext();
 class Table extends Component {
+    static contextType = AICTX;
     constructor(p) {
         super(p);
-        let {getProp} = p;
+        let { getProp } = p;
         this.getProp = getProp;
         this.dom = createRef();
-        let Sort = new SortClass({getProp,getState: () => this.state,setState: (obj) => this.setState(obj)})
-        let columns = this.getProp('columns',[]);
+        let Sort = new SortClass({ getProp, getState: () => this.state, setState: (obj) => this.setState(obj) })
+        let columns = this.getProp('columns', []);
         let searchColumns = [];
         let updatedColumns = columns.map((o) => {
             let { id = 'aitc' + Math.round(Math.random() * 1000000), sort, search } = o;
@@ -1298,21 +1042,22 @@ class Table extends Component {
                 let type = typeof value;
                 if (type === 'string') {
                     let result = value;
-                    let getValue = this.getProp('getValue',{});
+                    let getValue = this.getProp('getValue', {});
                     if (getValue[value]) { result = getValue[value]({ row, column, rowIndex }) }
                     else if (value.indexOf('row.') !== -1) { try { eval(`result = ${value}`); } catch { result = '' } }
                     return result === undefined ? def : result;
                 }
                 if (type === 'undefined') { return def }
                 if (type === 'function') { return value({ row, column, rowIndex }) }
+                return value === undefined ? def : value
             },
             setCell: (row, column, value) => {
-                if(column.input && column.input.onChange) { column.input.onChange({ value, row, column }) }
+                if (column.input && column.input.onChange) { column.input.onChange({ value, row, column }) }
                 else {
                     let rows = this.getProp('value');
                     row = JSON.parse(JSON.stringify(row));
                     eval(`${column.value} = value`);
-                    this.getProp('onChange',()=>{})(rows.map((o) => o._id !== row._id ? o : row))
+                    this.getProp('onChange', () => { })(rows.map((o) => o._id !== row._id ? o : row))
                 }
             }
         }
@@ -1322,14 +1067,14 @@ class Table extends Component {
         this.setState({ sorts: Sort.initiateSortsByColumns(columns) })
     }
     add() {
-        let onAdd = this.getProp('onAdd'),rows = this.getProp('value');
+        let onAdd = this.getProp('onAdd'), rows = this.getProp('value');
         if (typeof onAdd === 'function') { onAdd(); }
-        else if (typeof onAdd === 'object') { this.getProp('onChange',()=>{})([onAdd, ...rows]) }
+        else if (typeof onAdd === 'object') { this.getProp('onChange', () => { })([onAdd, ...rows]) }
     }
     remove(row, index) {
-        let rows = this.getProp('value'),onRemove = this.getProp('onRemove');
+        let rows = this.getProp('value'), onRemove = this.getProp('onRemove');
         if (typeof onRemove === 'function') { onRemove(row); }
-        else if (onRemove === true) { this.getProp('onChange',()=>{})(rows.filter((o, i) => o._id !== row._id)); }
+        else if (onRemove === true) { this.getProp('onChange', () => { })(rows.filter((o, i) => o._id !== row._id)); }
     }
     exportToExcel() {
         let excel = this.getProp('excel'), list = [];
@@ -1357,7 +1102,7 @@ class Table extends Component {
         let placeIndex = this.getIndexById(rows, row._id);
         newRows.splice(placeIndex, 0, this.start)
         if (typeof onSwap === 'function') { onSwap({ newRows, from: { ...this.start }, to: row }) }
-        else { this.getProp('onChange',()=>{})(newRows) }
+        else { this.getProp('onChange', () => { })(newRows) }
     }
     getSearchedRows(rows) {
         let onSearch = this.getProp('onSearch');
@@ -1376,7 +1121,7 @@ class Table extends Component {
     }
     getRows() {
         let { Sort } = this.state;
-        let rows = this.getProp('value',[]);
+        let rows = this.getProp('value', []);
         let p = this.getProp('paging');
         let searchedRows = this.getSearchedRows(rows);
         let sortedRows = Sort.getSortedRows(searchedRows);
@@ -1416,10 +1161,9 @@ class Table extends Component {
         return { ...cellAttrs, style, className }
     }
     getRowAttrs(row, rowIndex) {
+        let { addToAttrs } = this.context;
         let onSwap = this.getProp('onSwap');
-        let rowAttrs = this.getProp('rowAttrs',()=>{return {}});
-        let attrs = rowAttrs({ row, rowIndex });
-        let obj = { ...attrs, className: 'aio-input-table-row' + (attrs.className ? ' ' + attrs.className : '') }
+        let obj = addToAttrs(this.getProp('rowAttrs', () => { return {} })({ row, rowIndex }), { className: 'aio-input-table-row' })
         if (!!onSwap) { obj = { ...obj, draggable: true, onDragStart: (e) => this.dragStart(e, row), onDragOver: (e) => this.dragOver(e, row), onDrop: (e) => this.drop(e, row) } }
         return obj;
     }
@@ -1428,11 +1172,11 @@ class Table extends Component {
         let template = getDynamics({ value: column.template, row, rowIndex, column });
         if (template !== undefined) { return template }
         let input = getDynamics({ value: column.input, row, rowIndex, column });
-        if(!input){input = {type:'text'}}
-        for(let prop in input){input[prop] = getDynamics({ value: input[prop], row, rowIndex, column })}
+        if (!input) { input = { type: 'text' } }
+        for (let prop in input) { input[prop] = getDynamics({ value: input[prop], row, rowIndex, column }) }
         return (
-            <AIOInput 
-                {...input} 
+            <AIOInput
+                {...input}
                 value={getDynamics({ value: column.value, row, rowIndex, column })}
                 onChange={column.input ? (value) => setCell(row, column, value) : undefined}
             />
@@ -1448,7 +1192,7 @@ class Table extends Component {
         let columnGap = this.getProp('columnGap');
         let context = {
             ROWS,
-            getProp:this.getProp,
+            getProp: this.getProp,
             state: { ...this.state },
             parentDom: this.dom,
             SetState: (obj) => this.setState(obj),
@@ -1467,7 +1211,7 @@ class Table extends Component {
     }
     render() {
         let paging = this.getProp('paging');
-        let attrs = this.getProp('attrs',{});
+        let attrs = this.getProp('attrs', {});
         let ROWS = this.getRows();
         return (
             <AITableContext.Provider value={this.getContext(ROWS)}>
@@ -1481,7 +1225,7 @@ class Table extends Component {
     }
 }
 function TablePaging() {
-    let { ROWS,getProp } = useContext(AITableContext)
+    let { ROWS, getProp } = useContext(AITableContext)
     function fix(paging) {
         let { number, size = 20, length = 0, sizes = [1, 5, 10, 15, 20, 30, 50, 70, 100], serverSide } = paging
         if (!serverSide) { length = ROWS.sortedRows.length }
@@ -1511,7 +1255,7 @@ function TablePaging() {
             {
                 sizes.length &&
                 <AIOInput
-                    className='aio-input-table-paging-button aio-input-table-paging-size'
+                    attrs={{ className: 'aio-input-table-paging-button aio-input-table-paging-size' }}
                     type='select' value={size} options={sizes} optionText='option' optionValue='option'
                     onChange={(value) => changePaging({ size: value })}
                 />
@@ -1522,12 +1266,12 @@ function TablePaging() {
 function TableRows() {
     let { getProp, ROWS } = useContext(AITableContext)
     let rowTemplate = getProp('rowTemplate');
-    let rowAfter = getProp('rowAfter',() => null);
-    let rowBefore = getProp('rowBefore',() => null);
+    let rowAfter = getProp('rowAfter', () => null);
+    let rowBefore = getProp('rowBefore', () => null);
     function getContent() {
         let rows = ROWS.pagedRows;
         let rowsTemplate = getProp('rowsTemplate');
-        if (rowsTemplate) {return rowsTemplate(rows)}
+        if (rowsTemplate) { return rowsTemplate(rows) }
         if (rows.length) {
             return rows.map((o, i) => {
                 let { id = 'ailr' + Math.round(Math.random() * 10000000) } = o;
@@ -1538,14 +1282,14 @@ function TableRows() {
                 return (<Fragment key={id}>{rowBefore({ row: o, rowIndex: i })}{Row}{rowAfter({ row: o, rowIndex: i })}</Fragment>)
             })
         }
-        let placeholder = getProp('placeholder','there is not any items');
+        let placeholder = getProp('placeholder', 'there is not any items');
         return <div style={{ width: '100%', textAlign: 'center', padding: 12, boxSizing: 'border-box' }}>{placeholder}</div>
     }
     return <div className='aio-input-table-rows'>{getContent()}</div>
 }
 function TableToolbar() {
     let { add, exportToExcel, RowGap, getProp, state, search } = useContext(AITableContext);
-    let toolbarAttrs = getProp('toolbarAttrs',{});
+    let toolbarAttrs = getProp('toolbarAttrs', {});
     let toolbar = getProp('toolbar');
     let onAdd = getProp('onAdd');
     let excel = getProp('excel');
@@ -1570,7 +1314,7 @@ function TableToolbar() {
 }
 function TableHeader() {
     let { RowGap, getProp, state } = useContext(AITableContext);
-    let headerAttrs = getProp('headerAttrs',{});
+    let headerAttrs = getProp('headerAttrs', {});
     let onRemove = getProp('onRemove');
     let { columns } = state;
     let Titles = columns.map((o, i) => <TableTitle key={o._id} column={o} isLast={i === columns.length - 1} />);
@@ -1648,7 +1392,7 @@ class SortClass {
             let activeSorts = sorts.filter((sort) => sort.active !== false);
             if (activeSorts.length) {
                 let rows = this.getProp('value');
-                this.getProp('onChange',()=>{})(this.sort(rows, activeSorts))
+                this.getProp('onChange', () => { })(this.sort(rows, activeSorts))
             }
         }
     }
@@ -1659,7 +1403,7 @@ class SortClass {
         if (onChangeSort) { return rows }
         let activeSorts = sorts.filter((sort) => sort.active !== false);
         if (!activeSorts.length) { return rows }
-        if (rows.length) { this.initialSort = true; this.getProp('onChange',()=>{})(this.sort(rows, activeSorts)) }
+        if (rows.length) { this.initialSort = true; this.getProp('onChange', () => { })(this.sort(rows, activeSorts)) }
         else { return rows; }
     }
     sort = (rows = [], sorts = []) => {
@@ -1695,7 +1439,7 @@ class SortClass {
     getSortOption = (sort) => {
         let { active, dir = 'dec', title, sortId } = sort;
         return {
-            text: title, checked: !!active, close: false,value:sortId,
+            text: title, checked: !!active, close: false, value: sortId,
             after: (
                 <Icon
                     path={dir === 'dec' ? mdiArrowDown : mdiArrowUp} size={0.8}
@@ -1710,12 +1454,12 @@ class SortClass {
         let sortOptions = sorts.map((sort) => this.getSortOption(sort));
         return (
             <AIOInput
-                popover={{header: {attrs:{className:'aio-input-table-toolbar-popover-header'},title:'Sort',onClose:false},pageSelector: '.aio-input-table'}}
-                key='sortbutton' caret={false} type='select' options={sortOptions} 
-                attrs={{className:'aio-input-table-toolbar-icon'}}
+                popover={{ header: { attrs: { className: 'aio-input-table-toolbar-popover-header' }, title: 'Sort', onClose: false }, pageSelector: '.aio-input-table' }}
+                key='sortbutton' caret={false} type='select' options={sortOptions}
+                attrs={{ className: 'aio-input-table-toolbar-icon' }}
                 text={<Icon path={mdiSort} size={0.7} />}
                 onSwap={(from, to, swap) => this.setSorts(swap(sorts, from, to))}
-                onChange={(value,option)=>{
+                onChange={(value, option) => {
                     this.setSort(value, { active: !option.checked })
                 }}
             />
@@ -1729,7 +1473,7 @@ class Layout extends Component {
         this.dom = createRef()
     }
     getClassName(label) {
-        let { getProp, getOptionProp, datauniqid,isInput,isMultiple } = this.context;
+        let { getProp, getOptionProp, datauniqid, isInput, isMultiple } = this.context;
         let { option } = this.props;
         let cls;
         let attrs;
@@ -1737,7 +1481,7 @@ class Layout extends Component {
             cls = `aio-input-option aio-input-${this.type}-option`
             if (isMultiple()) { cls += ` aio-input-${this.type}-multiple-option` }
             if (getProp('isDropdown')) { cls += ` aio-input-dropdown-option` }
-            if (getOptionProp(option,'disabled')) { cls += ' disabled' }
+            if (getOptionProp(option, 'disabled')) { cls += ' disabled' }
             attrs = getOptionProp(option, 'attrs')
         }
         else {
@@ -1760,28 +1504,23 @@ class Layout extends Component {
         return cls;
     }
     getProps() {
-        let { dragStart, dragOver, drop, click, optionClick,open,getProp } = this.context;
+        let { dragStart, dragOver, drop, click, optionClick, open, getProp } = this.context;
         let { option, realIndex, renderIndex } = this.props;
-        let { label, center, loading, attrs = {},disabled } = this.properties;
-        let zIndex = 0;
-        if(open && !option && ['text','number','textarea'].indexOf(this.type) !== -1){
+        let { label, center, loading, attrs = {}, disabled } = this.properties;
+        let zIndex;
+        if (open && !option && ['text', 'number', 'textarea'].indexOf(this.type) !== -1) {
             zIndex = 100000
         }
         let onClick;
         //ممکنه این یک آپشن باشه باید دیزیبل پرنتش هم چک بشه تا دیزیبل بشه
-        if(option){disabled = disabled || loading || !!getProp('disabled') || !!getProp('loading')}
-        if(!disabled && !loading){
-            if(option === undefined){
-                onClick = (e) => { e.stopPropagation(); click(e, this.dom) }
-            }
-            else {
-                onClick = (e) => { e.stopPropagation(); optionClick(option) }
-            }
+        if (option) { disabled = disabled || loading || !!getProp('disabled') || !!getProp('loading') }
+        if (!disabled && !loading) {
+            if (option === undefined) {onClick = (e) => { e.stopPropagation(); click(e, this.dom) }}
+            else {onClick = (e) => { e.stopPropagation(); optionClick(option) }}
         }
-        
         let p = {
-            ...attrs,className: this.getClassName(label),onClick,ref: this.dom, disabled, 'data-label': label,
-            style: {justifyContent: center ? 'center' : undefined, ...attrs.style,zIndex}
+            ...attrs, className: this.getClassName(label), onClick, ref: this.dom, disabled, 'data-label': label,
+            style: { justifyContent: center ? 'center' : undefined, ...attrs.style, zIndex }
         }
         if (option && getProp('onSwap')) {
             p.datarealindex = realIndex;
@@ -1799,7 +1538,6 @@ class Layout extends Component {
     }
     getProperties() {
         let { option, text } = this.props;
-
         if (!option) {
             let { getProp } = this.context;
             let properties = {
@@ -1809,11 +1547,11 @@ class Layout extends Component {
                 caret: getProp('caret'),
                 justify: getProp('justify'),
                 text: text !== undefined ? text : getProp('text'),
-                checkIcon: getProp('checkIcon', [],undefined,true),
+                checkIcon: getProp('checkIcon', [], undefined, true),
                 disabled: getProp('disabled'),
                 checked: getProp('checked', this.getDefaultChecked()),
                 before: getProp('before'),
-                placeholder:getProp('placeholder'),
+                placeholder: getProp('placeholder'),
                 after: getProp('after'),
                 subtext: getProp('subtext'),
                 center: getProp('center'),
@@ -1824,49 +1562,44 @@ class Layout extends Component {
         return option
     }
     getItemClassName(key) {
-        let { option } = this.props;
-        let className = `aio-input-${key}`;
-        if(option){
-            className += ` aio-input-${this.type}-option-${key}`
-        }
-        else {
-            className += ` aio-input-${this.type}-${key}`
-        }
-        return className;        
+        let { option } = this.props,className = `aio-input-${key}`;
+        if (option) {className += ` aio-input-${this.type}-option-${key}`}
+        else {className += ` aio-input-${this.type}-${key}`}
+        return className;
     }
-    text_layout(text,subtext,placeholder,center,justify){
-        if(text === undefined && placeholder !== undefined){text = <div className='aio-input-placeholder'>{placeholder}</div>}
-        if(text){
-            if(subtext){
+    text_layout(text, subtext, placeholder, center, justify) {
+        if (text === undefined && placeholder !== undefined) { text = <div className='aio-input-placeholder'>{placeholder}</div> }
+        if (text) {
+            if (subtext) {
                 return (
-                    <div className={`aio-input-content aio-input-${this.type}-content${center?' aio-input-content-center':''}`}>
-                        <div style={{textAlign:justify?'center':undefined}} className={`${this.getItemClassName('value')}${center?' aio-input-value-center':''}`}>{text}</div>
-                        <div style={{textAlign:justify?'center':undefined}} className={`${this.getItemClassName('subtext')}${center?' aio-input-value-center':''}`}>{subtext}</div>
+                    <div className={`aio-input-content aio-input-${this.type}-content${center ? ' aio-input-content-center' : ''}`}>
+                        <div style={{ textAlign: justify ? 'center' : undefined }} className={`${this.getItemClassName('value')}${center ? ' aio-input-value-center' : ''}`}>{text}</div>
+                        <div style={{ textAlign: justify ? 'center' : undefined }} className={`${this.getItemClassName('subtext')}${center ? ' aio-input-value-center' : ''}`}>{subtext}</div>
                     </div>
                 )
             }
-            else{
+            else {
                 return (
-                    <div 
-                        style={{textAlign:justify?'center':undefined}} 
-                        className={`${this.getItemClassName('value')}${center?' aio-input-value-center':''}`}
+                    <div
+                        style={{ textAlign: justify ? 'center' : undefined }}
+                        className={`${this.getItemClassName('value')}${center ? ' aio-input-value-center' : ''}`}
                     >{text}</div>
                 )
             }
         }
-        else{return <div className='flex-1'></div>}
+        else { return <div className='flex-1'></div> }
     }
     render() {
-        let {type} = this.context;
+        let { type } = this.context;
         this.type = type;
         let { option } = this.props;
         this.properties = this.getProperties()
-        let { checked, checkIcon, before, text, subtext, after, caret,center, placeholder, loading,justify } = this.properties;
+        let { checked, checkIcon, before, text, subtext, after, caret, center, placeholder, loading, justify } = this.properties;
         let content = (
             <>
-                <CheckIcon {...{ checked, checkIcon, type:this.type, option }} />
+                <CheckIcon {...{ checked, checkIcon, type: this.type, option }} />
                 {before !== undefined && <div className={this.getItemClassName('before')}>{before}</div>}
-                {this.text_layout(text,subtext,placeholder,center,justify)}
+                {this.text_layout(text, subtext, placeholder, center, justify)}
                 {after !== undefined && <div className={this.getItemClassName('after')}>{after}</div>}
                 {loading && <div className={this.getItemClassName('loading')}>{loading === true ? <Icon path={mdiLoading} spin={0.3} size={.8} /> : loading}</div>}
                 {caret && <div className='aio-input-caret'>{caret === true ? <Icon path={mdiChevronDown} size={.8} /> : caret}</div>}
@@ -1879,34 +1612,28 @@ class Layout extends Component {
 }
 class CheckIcon extends Component {
     static contextType = AICTX;
-    renderDefault(){
-
-    }
     render() {
         let { gap } = this.context;
         let { checked, checkIcon = [] } = this.props;
         if (checked === undefined) { return null }
-        if (typeof checkIcon === 'function') {return checkIcon(checked)}
+        if (typeof checkIcon === 'function') { return checkIcon(checked) }
         return (
-            <div className={'aio-input-check-out' + (checked ? ' checked' : '')} style={{...checkIcon,background:'none'}}>
-                {checked && <div className={'aio-input-check-in'} style={{background:checkIcon.background}}></div>}
+            <div className={'aio-input-check-out' + (checked ? ' checked' : '')} style={{ ...checkIcon, background: 'none' }}>
+                {checked && <div className={'aio-input-check-in'} style={{ background: checkIcon.background }}></div>}
             </div>
         );
     }
 }
-function File() {
-    let { getProp } = useContext(AICTX);
-    return (<div className='aio-input-file-container'><Layout /><FileItems /></div>)
-}
+function File() {return (<div className='aio-input-file-container'><Layout /><FileItems /></div>)}
 export class InputFile extends Component {
     static contextType = AICTX;
     change(e) {
-        let { getProp,isMultiple } = this.context;
-        let value = getProp('value',[]);
-        let onChange = getProp('onChange',()=>{});
+        let { getProp, isMultiple } = this.context;
+        let value = getProp('value', []);
+        let onChange = getProp('onChange', () => { });
         let Files = e.target.files;
         let result;
-        if(isMultiple()){
+        if (isMultiple()) {
             result = [...value];
             let names = result.map(({ name }) => name);
             for (let i = 0; i < Files.length; i++) {
@@ -1915,17 +1642,15 @@ export class InputFile extends Component {
                 result.push({ name: file.name, size: file.size, file })
             }
         }
-        else {
-            result = Files.length?Files[0]:undefined
-        }
+        else {result = Files.length ? Files[0] : undefined}
         onChange(result)
     }
     render() {
-        let { getProp,isMultiple } = this.context;
+        let { getProp, isMultiple } = this.context;
         let multiple = isMultiple();
         let loading = getProp('loading');
         let disabled = getProp('disabled');
-        let props = { disabled:disabled || loading, type: 'file', style: { display: 'none' }, multiple, onChange: (e) => this.change(e) }
+        let props = { disabled: disabled || loading, type: 'file', style: { display: 'none' }, multiple, onChange: (e) => this.change(e) }
         return <input {...props} />
     }
 }
@@ -1935,10 +1660,10 @@ export class FileItems extends Component {
         let { getProp } = this.context;
         let value = getProp('value'), rtl = getProp('rtl');
         let files = [];
-        if(Array.isArray(value)){files = value}
-        else if(value){files = [value]}
-        else{return null}
-        if(!files.length){return null}
+        if (Array.isArray(value)) { files = value }
+        else if (value) { files = [value] }
+        else { return null }
+        if (!files.length) { return null }
         return (
             <div className='aio-input-files' style={{ direction: rtl ? 'rtl' : 'ltr' }}>{files.map((file, i) => <FileItem key={i} file={file} index={i} />)}</div>
         )
@@ -1960,7 +1685,7 @@ class FileItem extends Component {
             }
             else { minName = filename; }
             let size = fileSize;
-            if(!size){return {minName,sizeString:false}}
+            if (!size) { return { minName, sizeString: false } }
             let gb = size / (1024 * 1024 * 1024), mb = size / (1024 * 1024), kb = size / 1024;
             if (gb >= 1) { sizeString = gb.toFixed(2) + ' GB'; }
             else if (mb >= 1) { sizeString = mb.toFixed(2) + ' MB'; }
@@ -1968,14 +1693,12 @@ class FileItem extends Component {
             else { sizeString = size + ' byte' }
             return { minName, sizeString }
         }
-        catch {
-            return { minName: 'untitle', sizeString: false }
-        }
+        catch {return { minName: 'untitle', sizeString: false }}
     }
     remove(index) {
-        let {getProp} = this.context;
-        let onChange = getProp('onChange',()=>{});
-        let value = getProp('value',[])
+        let { getProp } = this.context;
+        let onChange = getProp('onChange', () => { });
+        let value = getProp('value', [])
         let newValue = [];
         for (let i = 0; i < value.length; i++) {
             if (i === index) { continue }
@@ -1983,25 +1706,25 @@ class FileItem extends Component {
         }
         onChange(newValue);
     }
-    renderString(minName,sizeString){
+    renderString(minName, sizeString) {
         let size;
-        if(sizeString === false){size = ''}
-        else {size = ` ( ${sizeString})`}
+        if (sizeString === false) { size = '' }
+        else { size = ` ( ${sizeString})` }
         return `${minName}${size}`
     }
     render() {
         let { file, index } = this.props;
         let { minName, sizeString } = this.getFile(file);
-        let {url,name} = file;
+        let { url, name } = file;
         return (
-            <div className='aio-input-file' style={{cursor:url?'pointer':'default'}}>
+            <div className='aio-input-file' style={{ cursor: url ? 'pointer' : 'default' }}>
                 <div className='aio-input-file-icon'>
-                    <Icon path={url?mdiDownloadOutline:mdiAttachment} size={.8} />
+                    <Icon path={url ? mdiDownloadOutline : mdiAttachment} size={.8} />
                 </div>
                 <div className='aio-input-file-name' onClick={() => {
-                    if(url){DownloadUrl(url, name)} 
+                    if (url) { DownloadUrl(url, name) }
                 }}>
-                    {this.renderString(minName,sizeString)}
+                    {this.renderString(minName, sizeString)}
                 </div>
                 <div className='aio-input-file-icon' onClick={() => this.remove(index)}>
                     <Icon path={mdiClose} size={.7} />
@@ -2014,7 +1737,7 @@ const DPContext = createContext();
 class DatePicker extends Component {
     static contextType = AICTX;
     render() {
-        let { getProp } = this.context,{ onClose } = this.props
+        let { getProp } = this.context, { onClose } = this.props
         return (<Calendar getProp={getProp} onClose={onClose} />)
     }
 }
@@ -2022,7 +1745,7 @@ class Calendar extends Component {
     constructor(props) {
         super(props);
         let { getProp } = props;
-        let calendarType = getProp('calendarType','gregorian');
+        let calendarType = getProp('calendarType', 'gregorian');
         let value = getProp('value')
         let { getToday, convertToArray, getMonths, getWeekDay } = AIODate();
         let today = getToday({ calendarType });
@@ -2037,8 +1760,8 @@ class Calendar extends Component {
     }
     translate(text) {
         let { getProp, translate = (text) => text } = this.props;
-        let calendarType = getProp('calendarType','gregorian');
-        let unit = getProp('unit','day');
+        let calendarType = getProp('calendarType', 'gregorian');
+        let unit = getProp('unit', 'day');
         if (text === 'Today') {
             if (unit === 'month') { text = 'This Month' }
             else if (unit === 'hour') { text = 'This Hour' }
@@ -2053,7 +1776,7 @@ class Calendar extends Component {
         if (obj === 'today') {
             let { today } = this.state;
             let { getProp } = this.props;
-            let unit = getProp('unit','day');
+            let unit = getProp('unit', 'day');
             let [year, month, day] = today;
             newActiveDate = { year, month, day: unit === 'month' ? 1 : day };
         }
@@ -2063,9 +1786,9 @@ class Calendar extends Component {
     getYears() {
         let start, end;
         let { getProp } = this.props;
-        let calendarType = getProp('calendarType','gregorian');
-        let startYear = getProp('startYear','-20');
-        let endYear = getProp('endYear','+10'); 
+        let calendarType = getProp('calendarType', 'gregorian');
+        let startYear = getProp('startYear', '-20');
+        let endYear = getProp('endYear', '+10');
         let today = AIODate().getToday({ calendarType });
         if (typeof startYear === 'string' && startYear.indexOf('-') === 0) {
             start = today[0] - parseInt(startYear.slice(1, startYear.length));
@@ -2082,15 +1805,15 @@ class Calendar extends Component {
     getPopupStyle() {
         let { getProp } = this.props;
         let disabled = getProp('disabled');
-        let size = getProp('size',180);
-        let theme = getProp('theme',[])
+        let size = getProp('size', 180);
+        let theme = getProp('theme', [])
         return {
             width: size, fontSize: size / 17, background: theme[1], color: theme[0], stroke: theme[0],
             cursor: disabled === true ? 'not-allowed' : undefined,
         };
     }
     getContext() {
-        let {getProp} = this.props;
+        let { getProp } = this.props;
         return {
             ...this.state,
             getProp,
@@ -2098,13 +1821,13 @@ class Calendar extends Component {
             translate: this.translate.bind(this),
             SetState: (obj) => this.setState(obj),
             onChange: ({ year, month, day, hour }) => {
-                let { getProp,onClose } = this.props;
-                let calendarType = getProp('calendarType','gregorian');
-                let unit = getProp('unit','day');
-                let onChange = getProp('onChange',()=>{});
+                let { getProp, onClose } = this.props;
+                let calendarType = getProp('calendarType', 'gregorian');
+                let unit = getProp('unit', 'day');
+                let onChange = getProp('onChange', () => { });
                 let close = getProp('close');
                 let value = getProp('value')
-        
+
                 let { months } = this.state;
                 let dateArray = [year, month, day, hour];
                 let jalaliDateArray = calendarType === 'gregorian' ? AIODate().toJalali({ date: dateArray }) : dateArray;
@@ -2149,10 +1872,10 @@ class DPToday extends Component {
     static contextType = DPContext;
     render() {
         let { getProp, translate, today, todayWeekDay, thisMonthString } = this.context;
-        let theme = getProp('theme',[])
-        let calendarType = getProp('calendarType','gregorian');
-        let unit = getProp('unit','day');
-        let size = getProp('size',180);
+        let theme = getProp('theme', [])
+        let calendarType = getProp('calendarType', 'gregorian');
+        let unit = getProp('unit', 'day');
+        let size = getProp('size', 180);
         return (
             <div className='aio-input-datepicker-today' style={{ width: size / 2, color: theme[1], background: theme[0] }}>
                 <div style={{ fontSize: size / 13 }}>{translate('Today')}</div>
@@ -2175,14 +1898,13 @@ class DPFooter extends Component {
     static contextType = DPContext;
     render() {
         let { getProp, changeActiveDate, translate } = this.context;
-        let onClear = getProp('onClear');
-        let disabled = getProp('disabled');
-        let size = getProp('size',180);
+        let remove = getProp('remove'),disabled = getProp('disabled'),onChange = getProp('onChange', () => { })
+        let size = getProp('size', 180);
         if (disabled) { return null }
         let buttonStyle = { padding: `${size / 20}px 0` };
         return (
             <div className='aio-input-datepicker-footer' style={{ fontSize: size / 13 }}>
-                {onClear && <button style={buttonStyle} onClick={() => onClear()}>{translate('Clear')}</button>}
+                {remove && <button style={buttonStyle} onClick={() => onChange(false)}>{translate('Clear')}</button>}
                 <button style={buttonStyle} onClick={() => changeActiveDate('today')}>{translate('Today')}</button>
             </div>
         )
@@ -2192,27 +1914,20 @@ class DPBody extends Component {
     static contextType = DPContext;
     getStyle() {
         let { getProp } = this.context;
-        let size = getProp('size',180)
-        let calendarType = getProp('calendarType','gregorian');
-        let unit = getProp('unit','day');
+        let size = getProp('size', 180),calendarType = getProp('calendarType', 'gregorian'),unit = getProp('unit', 'day');
         var columnCount = { hour: 4, day: 7, month: 3 }[unit];
         var rowCount = { hour: 6, day: 7, month: 4 }[unit];
-        var padding = size / 18, fontSize = size / 15,
-            a = (size - padding * 2) / columnCount;
+        var padding = size / 18, fontSize = size / 15,a = (size - padding * 2) / columnCount;
         var rowHeight = { hour: size / 7, day: a, month: size / 6, year: size / 7 }[unit];
         var gridTemplateColumns = '', gridTemplateRows = '';
-        for (let i = 1; i <= columnCount; i++) {
-            gridTemplateColumns += a + 'px' + (i !== columnCount ? ' ' : '')
-        }
-        for (let i = 1; i <= rowCount; i++) {
-            gridTemplateRows += (rowHeight) + 'px' + (i !== rowCount ? ' ' : '')
-        }
+        for (let i = 1; i <= columnCount; i++) {gridTemplateColumns += a + 'px' + (i !== columnCount ? ' ' : '')}
+        for (let i = 1; i <= rowCount; i++) {gridTemplateRows += (rowHeight) + 'px' + (i !== rowCount ? ' ' : '')}
         let direction = calendarType === 'gregorian' ? 'ltr' : 'rtl';
         return { gridTemplateColumns, gridTemplateRows, direction, padding, fontSize }
     }
     render() {
         let { getProp, activeDate } = this.context;
-        let unit = getProp('unit','day');
+        let unit = getProp('unit', 'day');
         return (
             <div className='aio-input-datepicker-body' style={this.getStyle()}>
                 {unit === 'hour' && new Array(24).fill(0).map((o, i) => <DPCell key={'cell' + i} dateArray={[activeDate.year, activeDate.month, activeDate.day, i]} />)}
@@ -2226,8 +1941,8 @@ class DPBodyDay extends Component {
     static contextType = DPContext;
     render() {
         let { getProp, activeDate } = this.context;
-        let theme = getProp('theme',[])
-        let calendarType = getProp('calendarType','gregorian');
+        let theme = getProp('theme', [])
+        let calendarType = getProp('calendarType', 'gregorian');
         let firstDayWeekDayIndex = AIODate().getWeekDay({ date: [activeDate.year, activeDate.month, 1] }).index;
         var daysLength = AIODate().getMonthDaysLength({ date: [activeDate.year, activeDate.month] });
         let weekDays = AIODate().getWeekDays({ calendarType });
@@ -2243,8 +1958,8 @@ class DPCell_Weekday extends Component {
     static contextType = DPContext;
     render() {
         let { getProp, translate } = this.context;
-        let theme = getProp('theme',[])
-        let calendarType = getProp('calendarType','gregorian');
+        let theme = getProp('theme', [])
+        let calendarType = getProp('calendarType', 'gregorian');
         let { weekDay } = this.props;
         return (
             <div className='aio-input-datepicker-weekday aio-input-datepicker-cell' style={{ background: theme[1], color: theme[0] }}>
@@ -2267,16 +1982,18 @@ class DPCell extends Component {
         let { getProp, translate } = this.context;
         let disabled = getProp('disabled')
         let dateAttrs = getProp('dateAttrs')
-        let theme = getProp('theme',[])
+        let theme = getProp('theme', [])
         let onChange = getProp('onChange', () => { })
         let value = getProp('value');
-        let calendarType = getProp('calendarType','gregorian');
-        let unit = getProp('unit','day');
+        let calendarType = getProp('calendarType', 'gregorian');
+        let unit = getProp('unit', 'day');
         let { dateArray } = this.props;
         let { isEqual, isMatch, getMonths, getToday } = AIODate();
         let isActive = !value ? false : AIODate().isEqual(dateArray, value);
         let isToday = isEqual(dateArray, getToday({ calendarType }))
-        let isDisabled = typeof disabled === 'boolean' ? disabled : isMatch({ date: dateArray, matchers: disabled })//notice
+        let dateDisabled = getProp('dateDisabled');
+        let isDateDisabled = !dateDisabled ? false : isMatch({ date: dateArray, matchers: dateDisabled });
+        let isDisabled = disabled || isDateDisabled;
         let Attrs = {}
         if (dateAttrs) { Attrs = dateAttrs({ dateArray, isToday, isDisabled, isActive, isMatch: (o) => isMatch({ date: dateArray, matchers: o }) }) || {} }
         let className = this.getClassName(isActive, isToday, isDisabled, Attrs.className);
@@ -2304,14 +2021,14 @@ class DPHeader extends Component {
     getYears() {
         let { activeDate, years, changeActiveDate } = this.context;
         let props = {
-            value: activeDate.year, options: years.map((y)=>{return {text:y.toString(),value:y}}),
+            value: activeDate.year, options: years.map((y) => { return { text: y.toString(), value: y } }),
             onChange: (year) => { changeActiveDate({ year }) }
         }
         return (<DPHeaderDropdown {...props} />)
     }
     getMonths() {
         let { getProp, activeDate, changeActiveDate, months, translate } = this.context;
-        let calendarType = getProp('calendarType','gregorian');
+        let calendarType = getProp('calendarType', 'gregorian');
         let props = {
             value: activeDate.month, onChange: (month) => { changeActiveDate({ month }) },
             options: months.map((o, i) => { return { value: i + 1, text: translate(calendarType === 'gregorian' ? o.slice(0, 3) : o) } })
@@ -2326,9 +2043,9 @@ class DPHeader extends Component {
         return (<DPHeaderDropdown {...props} />)
     }
     render() {
-        let { getProp} = this.context;
-        let size = getProp('size',180)
-        let unit = getProp('unit','day');
+        let { getProp } = this.context;
+        let size = getProp('size', 180)
+        let unit = getProp('unit', 'day');
         return (
             <div className='aio-input-datepicker-header' style={{ height: size / 4 }}>
                 <DPArrow type='minus' />
@@ -2346,20 +2063,15 @@ class DPHeaderDropdown extends Component {
     static contextType = DPContext;
     render() {
         //این شرط فقط در حالت سال رخ میدهد در شرایطی که فقط یک سال قابل انتخاب است
-        let {value,options,onChange} = this.props;
+        let { value, options, onChange } = this.props;
         if (this.props.options.length === 1) { return this.props.options[0] }
         let { getProp } = this.context;
-        let size = getProp('size',180)
-        let theme = getProp('theme',[])
+        let size = getProp('size', 180)
+        let theme = getProp('theme', [])
         let props = {
-            value,options,onChange, search: false,
-            caret: false, type: 'select',
-            attrs:{
-                className: 'aio-input-datepicker-dropdown'
-            },
-            optionAttrs:{
-                style: { height: size / 6, background: theme[1], color: theme[0] }
-            }
+            value, options, onChange, search: false,caret: false, type: 'select',
+            attrs: {className: 'aio-input-datepicker-dropdown'},
+            optionAttrs: {style: { height: size / 6, background: theme[1], color: theme[0] }}
         }
         return (<AIOInput {...props} />)
     }
@@ -2368,8 +2080,8 @@ class DPArrow extends Component {
     static contextType = DPContext;
     change() {
         let { getProp, years, changeActiveDate, activeDate } = this.context;
-        let calendarType = getProp('calendarType','gregorian');
-        let unit = getProp('unit','day');
+        let calendarType = getProp('calendarType', 'gregorian');
+        let unit = getProp('unit', 'day');
         let { type } = this.props;
         let offset = (calendarType === 'gregorian' ? 1 : -1) * (type === 'minus' ? -1 : 1);
         let date = [activeDate.year, activeDate.month, activeDate.day]
@@ -2381,7 +2093,7 @@ class DPArrow extends Component {
     }
     getIcon() {
         let { getProp } = this.context, { type } = this.props;
-        let theme = getProp('theme',[])
+        let theme = getProp('theme', [])
         return <Icon path={type === 'minus' ? mdiChevronLeft : mdiChevronRight} size={1} style={{ color: theme[0] }} />
     }
     render() {
@@ -2432,7 +2144,7 @@ export class Slider extends Component {
     }
     getValidValue() {
         let { value = [], start, end, min = start, max = end, step } = this.props;
-        if(!Array.isArray(value) || !value.length){value = [0]}
+        if (!Array.isArray(value) || !value.length) { value = [0] }
         for (var i = 0; i < value.length; i++) {
             var point = value[i];
             point = Math.round((point - start) / step) * step + start;
@@ -2479,20 +2191,16 @@ export class Slider extends Component {
     mouseDown(e, index, type) {
         e.preventDefault();
         var { start, end, min = start, max = end, onChange, disabled } = this.props;
-
         if (!onChange || disabled) { return }
         var { x, y } = this.getClient(e), dom = $(this.dom.current);
         var pointContainers = dom.find('.aio-slider-point-container');
         var size = dom.find('.aio-slider-line')[this.oriention === 'horizontal' ? 'width' : 'height']();
         var length = this.value.length;
-
         this.eventHandler('window', 'mousemove', $.proxy(this.mouseMove, this));
         this.eventHandler('window', 'mouseup', $.proxy(this.mouseUp, this));
-
         this.moved = false;
         this.setState({ isDown: true });
         pointContainers.css({ zIndex: 10 });
-
         if (type === 'point') {
             let pointContainer = pointContainers.eq(index);
             pointContainer.css({ zIndex: 100 });
@@ -2500,10 +2208,7 @@ export class Slider extends Component {
             var current = this.value[index];
             var before = index === 0 ? min : this.value[index - 1];
             var after = index === this.value.length - 1 ? max : this.value[index + 1]
-            this.startOffset = {
-                x, y, size, index: [index], value: [current],
-                startLimit: before - current, endLimit: after - current,
-            }
+            this.startOffset = {x, y, size, index: [index], value: [current],startLimit: before - current, endLimit: after - current}
         }
         else {
             let pointContainer1 = pointContainers.eq(index - 1);
@@ -2574,9 +2279,7 @@ export class Slider extends Component {
         };
     }
     getStyle() {
-        let { attrs } = this.props;
-        let { style = {} } = attrs;
-        var obj = { ...style };
+        let { attrs } = this.props,{ style = {} } = attrs,obj = { ...style };
         obj = { ...obj };
         obj.direction = 'ltr';
         obj.flexDirection = this.flexDirection;
@@ -2630,34 +2333,19 @@ class SliderFill extends Component {
         else { obj.height = (percent[1] - percent[0]) + '%'; }
         return obj;
     }
-
     render() {
         var { mouseDown, rangeEvents = {}, fillStyle, getText, textStyle, touch, value } = this.context;
         var { index } = this.props;
         var containerProps = {
-            'data-index': index, className: 'aio-slider-fill-container',
-            [touch ? 'onTouchStart' : 'onMouseDown']: (e) => {
-                mouseDown(e, index, 'fill')
-            },
-            style: this.getContainerStyle()
+            'data-index': index, className: 'aio-slider-fill-container',style: this.getContainerStyle(),
+            [touch ? 'onTouchStart' : 'onMouseDown']: (e) => mouseDown(e, index, 'fill')
         }
-        for (let prop in rangeEvents) {
-            containerProps[prop] = () => rangeEvents[prop](index)
-        }
-        let text = getText(index, this.context);
-        let style, active;
-        if (typeof fillStyle === 'function') {
-            style = fillStyle(index, this.context);
-        }
+        for (let prop in rangeEvents) {containerProps[prop] = () => rangeEvents[prop](index)}
+        let text = getText(index, this.context),style, active;
+        if (typeof fillStyle === 'function') {style = fillStyle(index, this.context);}
         else {
-            if (value.length === 1 && index === 0) {
-                style = fillStyle;
-                active = true
-            }
-            if (value.length > 1 && index !== 0 && index !== value.length) {
-                style = fillStyle;
-                active = true;
-            }
+            if (value.length === 1 && index === 0) {style = fillStyle; active = true}
+            if (value.length > 1 && index !== 0 && index !== value.length) {style = fillStyle; active = true;}
         }
         return (
             <div {...containerProps}>
@@ -2671,9 +2359,7 @@ class SliderPoint extends Component {
     static contextType = SliderContext;
     getContainerStyle() {
         var { direction } = this.context, { percent } = this.props;
-        return {
-            [{ right: 'left', left: 'right', top: 'bottom', bottom: 'top' }[direction]]: percent[1] + '%'
-        };
+        return {[{ right: 'left', left: 'right', top: 'bottom', bottom: 'top' }[direction]]: percent[1] + '%'};
     }
     getValueStyle() {
         var { showValue, isDown, valueStyle } = this.context;
@@ -2718,9 +2404,7 @@ class SliderLabels extends Component {
         var value = getStartByStep(start, labelStep);
         var key = 0;
         while (value <= end) {
-            Labels.push(
-                <SliderLabel key={key} value={value} />
-            );
+            Labels.push(<SliderLabel key={key} value={value} />);
             value += labelStep;
             value = parseFloat(value.toFixed(6))
             key++;
@@ -2844,18 +2528,18 @@ function SliderScale(props) {
         obj[{ right: 'left', left: 'right', top: 'bottom', bottom: 'top' }[direction]] = getPercentByValue(value, start, end) + '%';
         return obj;
     }
-    let { getScaleHTML } = this.context, { value } = this.props;
+    let { getScaleHTML } = context, { value } = props;
     return (<div className="aio-slider-scale" style={getStyle()}>{getScaleHTML && getScaleHTML(value)}</div>);
 }
 class List extends Component {
     constructor(props) {
         super(props);
-        let {getProp,getOptionProp} = props;
+        let { getProp, getOptionProp } = props;
         this.getProp = getProp;
         this.getOptionProp = getOptionProp;
         this.touch = 'ontouchstart' in document.documentElement;
         this.dom = createRef();
-        let count = this.getProp('count',3);
+        let count = this.getProp('count', 3);
         let move = this.getProp('move');
         if (move) { move(this.move.bind(this)) }
         this.state = { count }
@@ -2868,27 +2552,17 @@ class List extends Component {
         if (type === 'bind') { element.bind(event, action) }
     }
     getClient(e) {
-        try {
-            return this.touch && e.changedTouches
-                ? [e.changedTouches[0].clientX, e.changedTouches[0].clientY]
-                : [e.clientX, e.clientY];
-        }
-        catch {
-            return this.touch && e.changedTouches
-                ? [e.changedTouches[0].clientX, e.changedTouches[0].clientY]
-                : [e.clientX, e.clientY];
-        }
+        try {return this.touch && e.changedTouches? [e.changedTouches[0].clientX, e.changedTouches[0].clientY]: [e.clientX, e.clientY];}
+        catch {return this.touch && e.changedTouches? [e.changedTouches[0].clientX, e.changedTouches[0].clientY]: [e.clientX, e.clientY]}
     }
     getStyle() {
-        let size = this.getProp('size',48);
-        let width = this.getProp('width',200);
-        var { count } = this.state;
-        var height = count * (size);
+        let size = this.getProp('size', 48),width = this.getProp('width', 200);
+        var { count } = this.state,height = count * (size);
         return { width, height }
     }
     getOptions() {
-        let size = this.getProp('size',48);
-        let options = this.getProp('options',[]);
+        let size = this.getProp('size', 48);
+        let options = this.getProp('options', []);
         let propsValue = this.getProp('value');
         this.activeIndex = 0;
         return options.map((option, i) => {
@@ -2900,24 +2574,16 @@ class List extends Component {
         })
     }
     getIndexByTop(top) {
-        let size = this.getProp('size',48);
-        var { count } = this.state;
+        let size = this.getProp('size', 48),{ count } = this.state;
         return Math.round(((count * size) - size - (2 * top)) / (2 * size));
     }
     getTopByIndex(index) {
-        var  size  = this.getProp('size',48);
-        var { count } = this.state;
+        let size = this.getProp('size', 48),{ count } = this.state;
         return (count - 2 * index - 1) * size / 2;
     }
-    getContainerStyle() {
-        var style = {
-            top: this.getTopByIndex(this.activeIndex)
-        };
-        return style;
-    }
-
+    getContainerStyle() {return {top: this.getTopByIndex(this.activeIndex)};}
     moveDown() {
-        let options = this.getProp('options',[]);
+        let options = this.getProp('options', []);
         if (this.activeIndex >= options.length - 1) { return }
         this.activeIndex++;
         var newTop = this.getTopByIndex(this.activeIndex);
@@ -2934,37 +2600,25 @@ class List extends Component {
         var newTop = this.getTopByIndex(this.activeIndex);
         this.setStyle({ top: newTop });
         this.setBoldStyle(this.activeIndex);
-
     }
     keyDown(e) {
-        let editable = this.getProp('editable',true);
+        let editable = this.getProp('editable', true);
         if (!editable) { return }
-        if (e.keyCode === 38) {
-            this.moveUp();
-        }
-        else if (e.keyCode === 40) {
-            this.moveDown();
-        }
-
+        if (e.keyCode === 38) {this.moveUp();}
+        else if (e.keyCode === 40) {this.moveDown();}
     }
-    getLimit() {
-        let options = this.getProp('options',[]);
-        return {
-            top: this.getTopByIndex(-1),
-            bottom: this.getTopByIndex(options.length)
-        }
-    }
+    getLimit() {return {top: this.getTopByIndex(-1),bottom: this.getTopByIndex(this.getProp('options', []).length)}}
     getTrueTop(top) {
-        let options = this.getProp('options',[]);
+        let options = this.getProp('options', []);
         let index = this.getIndexByTop(top);
         if (index < 0) { index = 0 }
         if (index > options.length - 1) { index = options.length - 1 }
         return this.getTopByIndex(index);
     }
     mouseDown(e) {
-        let options = this.getProp('options',[]);
-        let onChange = this.getProp('onChange',()=>{});
-        let editable = this.getProp('editable',true);
+        let options = this.getProp('options', []);
+        let onChange = this.getProp('onChange', () => { });
+        let editable = this.getProp('editable', true);
         if (!editable) { return }
         this.eventHandler('window', 'mousemove', $.proxy(this.mouseMove, this));
         this.eventHandler('window', 'mouseup', $.proxy(this.mouseUp, this));
@@ -3004,9 +2658,7 @@ class List extends Component {
         this.setBoldStyle(index);
         this.setStyle({ top: newTop });
     }
-    setStyle(obj) {
-        $(this.dom.current).find('.aio-input-list-options').css(obj);
-    }
+    setStyle(obj) {$(this.dom.current).find('.aio-input-list-options').css(obj);}
     mouseUp(e) {
         this.eventHandler('window', 'mousemove', this.mouseMove, 'unbind');
         this.eventHandler('window', 'mouseup', this.mouseUp, 'unbind');
@@ -3016,10 +2668,10 @@ class List extends Component {
         this.move(this.deltaY, this.so.newTop)
     }
     move(deltaY, startTop = this.getTop()) {
-        let options = this.getProp('options',[]);
-        let onChange = this.getProp('onChange',()=>{});
-        let decay = this.getProp('decay',8);
-        let stop = this.getProp('stop',3);
+        let options = this.getProp('options', []);
+        let onChange = this.getProp('onChange', () => { });
+        let decay = this.getProp('decay', 8);
+        let stop = this.getProp('stop', 3);
         if (decay < 0) { decay = 0 }
         if (decay > 99) { decay = 99 }
         decay = parseFloat(1 + decay / 1000)
@@ -3040,51 +2692,60 @@ class List extends Component {
             this.setStyle({ top: startTop });
         }, 20)
     }
-    componentDidUpdate() {
-        this.setBoldStyle(this.activeIndex);
-    }
-    componentDidMount() {
-        this.setBoldStyle(this.activeIndex);
-    }
+    componentDidUpdate() {this.setBoldStyle(this.activeIndex);}
+    componentDidMount() {this.setBoldStyle(this.activeIndex);}
     render() {
-        let attrs = this.getProp('attrs',{});
-        var options = this.getOptions();
+        let attrs = this.getProp('attrs', {}),options = this.getOptions();
         return (
             <div
-                {...attrs} ref={this.dom} tabIndex={0} 
+                {...attrs} ref={this.dom} tabIndex={0} onKeyDown={(e) => this.keyDown(e)}
                 className={'aio-input-list' + (attrs.className ? ' ' + attrs.className : '')}
-                onKeyDown={(e) => this.keyDown(e)}
                 style={{ ...attrs.style, ...this.getStyle() }}
             >
                 <div
-                    className='aio-input-list-options'
-                    style={this.getContainerStyle()}
-                    onMouseDown={(e) => this.mouseDown(e)}
-                    onTouchStart={(e) => this.mouseDown(e)}
+                    className='aio-input-list-options' style={this.getContainerStyle()}
+                    onMouseDown={(e) => this.mouseDown(e)} onTouchStart={(e) => this.mouseDown(e)}
                 >{options}</div>
             </div>
         );
     }
 }
 const MapContext = createContext();
-class Map extends Component {
+function Map(props) {
+    let context = useContext(AICTX);
+    let mapApiKeys = context.mapApiKeys;
+    let { getProp } = props;
+    let popup = getProp('popup');
+    let isPopup = false;
+    let mapConfig = getProp('mapConfig', {})
+    let onClose = false;
+    let onChange = getProp('onChange');
+    let disabled = getProp('disabled');
+    let loading = getProp('loading');
+    let attrs = getProp('attrs', {});
+    let onChangeAddress = getProp('onChangeAddress', () => { });
+    let value = getProp('value');
+    let p = { popup, isPopup, onClose, onChange, attrs, onChangeAddress, value, mapApiKeys, mapConfig, disabled: !!disabled || !!loading }
+    return <MapUnit {...p} />
+}
+class MapUnit extends Component {
     static contextType = AICTX;
     constructor(props) {
         super(props);
-        this.getProp = props.getProp;
         this.datauniqid = 'mp' + (Math.round(Math.random() * 10000000))
         this.markers = []
         this.dom = createRef();
-        let zoom = this.getProp('zoom',14);
-        let value = this.getProp('value');
-        this.state = { address:'',value,prevValue:value,zoom,prevZoom:zoom }
+        let { mapConfig = {} } = props;
+        let { zoom = 14 } = mapConfig;
+        this.state = { address: '', value: props.value, prevValue: props.value, zoom, prevZoom: zoom }
     }
-    handleArea(){
-        if(this.area){this.area.remove()}
-        let area = this.getProp('area');
-        if(area){
-            let {color = 'dodgerblue',opacity = 0.1,radius = 1000,lat,lng} = area;
-            this.area = this.L.circle([lat, lng], {color,fillColor: color,fillOpacity: opacity,radius}).addTo(this.map);
+    handleArea() {
+        if (this.area) { this.area.remove() }
+        let { mapConfig = {} } = this.props;
+        let { area } = mapConfig;
+        if (area) {
+            let { color = 'dodgerblue', opacity = 0.1, radius = 1000, lat, lng } = area;
+            this.area = this.L.circle([lat, lng], { color, fillColor: color, fillOpacity: opacity, radius }).addTo(this.map);
         }
     }
     ipLookUp() {
@@ -3092,27 +2753,25 @@ class Map extends Component {
             .then(
                 (response) => {
                     let { lat, lon } = response;
-                    this.flyTo(lat, lon,undefined,'ipLookUp')
+                    this.flyTo(lat, lon, undefined, 'ipLookUp')
                 },
-                (data, status) => {
-                    console.log('Request failed.  Returned status of', status);
-                }
+                (data, status) => console.log('Request failed.  Returned status of', status)
             );
     }
     handlePermission() {
         navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-            if (result.state === 'granted') {console.log(result.state);}
-            else if (result.state === 'prompt') {console.log(result.state);}
-            else if (result.state === 'denied') {console.log(result.state);}
+            if (result.state === 'granted') { console.log(result.state); }
+            else if (result.state === 'prompt') { console.log(result.state); }
+            else if (result.state === 'denied') { console.log(result.state); }
         });
     }
-    async getAddress({lat, lng}){
-        let { mapApiKeys } = this.context;
-        try{
-            let res = await Axios.get(`https://api.neshan.org/v5/reverse?lat=${lat}&lng=${lng}`,{headers:{'Api-Key':mapApiKeys.service,Authorization:false}});
-            return res.status !== 200?'':res.data.formatted_address;
+    async getAddress({ lat, lng }) {
+        let { mapApiKeys } = this.props;
+        try {
+            let res = await Axios.get(`https://api.neshan.org/v5/reverse?lat=${lat}&lng=${lng}`, { headers: { 'Api-Key': mapApiKeys.service, Authorization: false } });
+            return res.status !== 200 ? '' : res.data.formatted_address;
         }
-        catch(err){return ''}
+        catch (err) { return '' }
     }
     goToCurrent() {
         if ("geolocation" in navigator) {
@@ -3120,195 +2779,183 @@ class Map extends Component {
             // check if geolocation is supported/enabled on current browser
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    let { latitude:lat, longitude:lng } = position.coords;
-                    this.apis.flyTo(lat, lng,undefined,'goToCurrent');
+                    let { latitude: lat, longitude: lng } = position.coords;
+                    this.apis.flyTo(lat, lng, undefined, 'goToCurrent');
                 },
-                (error_message) => {this.ipLookUp()}
+                (error_message) => { this.ipLookUp() }
             )
         }
-        else {this.ipLookUp()}
+        else { this.ipLookUp() }
     }
-    async route(from = [35.699739,51.338097],to=[35.699939,51.338497]){
-        let { mapApiKeys} = this.context;
-        try{
-            let param = {headers:{'Api-Key':mapApiKeys.service}}
+    async route(from = [35.699739, 51.338097], to = [35.699939, 51.338497]) {
+        let { mapApiKeys } = this.context;
+        try {
+            let param = { headers: { 'Api-Key': mapApiKeys.service } }
             let url = `https://api.neshan.org/v4/direction?type=car&origin=${from[0]},${from[1]}&destination=${to[0]},${to[1]}`;
-            await Axios.get(url,param);
+            await Axios.get(url, param);
         }
-        catch(err){return ''}
+        catch (err) { return '' }
     }
-    async showPath(path){
-        let { mapApiKeys } = this.context;
-        try{await Axios.post(`https://api.neshan.org/v3/map-matching?path=${path}`,{headers:{'Api-Key':mapApiKeys.service}});}
-        catch(err){return ''}
+    async showPath(path) {
+        let { mapApiKeys } = this.props;
+        try { await Axios.post(`https://api.neshan.org/v3/map-matching?path=${path}`, { headers: { 'Api-Key': mapApiKeys.service } }); }
+        catch (err) { return '' }
     }
-    flyTo(lat, lng,zoom = this.state.zoom,caller) {
-        if(!lat || !lng){return}
-        this.map.flyTo([lat, lng], zoom,{animate: true,duration: 1.4});
+    flyTo(lat, lng, zoom = this.state.zoom) {
+        let animate = getDistance(this.state.value, { lat, lng }) > 0.3;
+        if (!lat || !lng) { return }
+        this.map.flyTo([lat, lng], zoom, { animate, duration: 1 });
     }
-    panTo(lat, lng) {this.map.panTo({ lat, lng })}
-    async updateAddress({lat,lng}){
-        let onChangeAddress = this.getProp('onChangeAddress',()=>{});
-        let address = await this.getAddress({lat,lng})
-        this.setState({address})
-        onChangeAddress(address)
+    panTo(lat, lng) { this.map.panTo({ lat, lng }) }
+    async updateAddress({ lat, lng }) {
+        let { onChangeAddress = () => { } } = this.props;
+        let address = await this.getAddress({ lat, lng });
+        this.setState({ address });
+        onChangeAddress(address);
     }
-    change({lat,lng}){
-        let onChange = this.getProp('onChange',()=>{});
-        onChange({lat,lng});
-        this.updateAddress({lat,lng})
+    change({ lat, lng }) {
+        let { onChange = () => { } } = this.props;
+        onChange({ lat, lng });
+        this.updateAddress({ lat, lng })
     }
-    move({lat, lng}){
-        let showMarker = this.getProp('showMarker',true);
-        if(showMarker){this.marker.setLatLng({ lat, lng })}
+    move({ lat, lng }) {
+        let { mapConfig = {} } = this.props;
+        let { marker = true } = mapConfig;
+        if (marker) { this.marker.setLatLng({ lat, lng }) }
         clearTimeout(this.timeout);
-        this.timeout = setTimeout(async () => this.setState({ value: {lat,lng} },()=>this.change({lat,lng})), 700);
+        this.timeout = setTimeout(async () => this.setState({ value: { lat, lng } }, () => this.change({ lat, lng })), 700);
     }
-    //maptype: "dreamy" | 'standard-day'
-    
-    init(){
-        let { mapApiKeys } = this.context;
-        let mapConfig = this.getProp('mapConfig',{});
-        let {zoomable = true,showMarker = true,draggable = true,traffic = false,zoomControl = false,maptype = 'dreamy-gold',poi = true} = mapConfig;
-        let onChange = this.getProp('onChange');
-        let popup = this.getProp('popup');
-        let { value,zoom } = this.state;
-        //onClick
-        let onClick;
-        if(popup){onClick = (e) => this.setState({showPopup:true})}
-        else if(this.props.onClick){onClick = (e) => this.props.onClick(e)}
-        else if(onChange){onClick = (e) => {let { lat, lng } = e.latlng; this.map.panTo({ lat, lng })}}
+    //maptype: "dreamy" | 'standard-day'  
+    init() {
+        let { mapApiKeys, onChange, popup, isPopup, mapConfig = {}, disabled, attrs = {} } = this.props;
+        let { marker = true, traffic = false, zoomControl = false, maptype = 'dreamy-gold', poi = true, zoomable = true } = mapConfig;
+        let { value, zoom } = this.state;
         let config = {
-            key: mapApiKeys.map,maptype,poi,traffic,
-            center: [value.lat, value.lng],zoom: 14,
-            dragging:draggable && !popup,
+            key: mapApiKeys.map, maptype, poi, traffic,
+            center: [value.lat, value.lng], zoom,
+            dragging: !disabled,
             scrollWheelZoom: 'center',
-            minZoom: zoomable && !popup ? undefined:zoom,
-            maxZoom: zoomable && !popup ? undefined:zoom,
+            minZoom: zoomable ? undefined : zoom,
+            maxZoom: zoomable ? undefined : zoom,
             zoomControl
         }
         let map = new window.L.Map(this.dom.current, config);
-        let L = window.L;
-        let myMap = map;
-        this.map = myMap;
-        this.L = L;
-        if(showMarker){this.marker = L.marker([value.lat, value.lng]).addTo(myMap);}
-        if(onClick){myMap.on('click', onClick);}
-        if(!popup){
+        let L = window.L,myMap = map;
+        this.map = myMap; this.L = L;
+        if (marker) { this.marker = L.marker([value.lat, value.lng]).addTo(myMap); }
+        myMap.on('click', (e) => {
+            if (attrs.onClick) { return }
+            if (popup && !isPopup) { this.setState({ showPopup: true }) }
+            else if (onChange) { let { lat, lng } = e.latlng; this.map.panTo({ lat, lng }) }
+        });
+        if (!disabled) {
             myMap.on('move', (e) => {
                 //marker.setLatLng(e.target.getCenter())
                 let { lat, lng } = e.target.getCenter()
-                this.move(lat,lng,'init')
+                this.move({ lat, lng })
             });
         }
         this.updateAddress(value);
         this.handleMarkers()
         this.handleArea()
     }
-    componentDidMount(){
-        if(document.getElementById('aio-map-neshan') === null){
-            try{
+    componentDidMount() {
+        if (document.getElementById('aio-input-map-neshan') === null) {
+            try {
                 const script = document.createElement("script");
                 script.src = `https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.js`;
-                script.id = 'aio-map-neshan'
+                script.id = 'aio-input-map-neshan'
                 script.onload = () => this.init();
                 document.body.appendChild(script);
             }
-            catch(err){console.log(err)}
+            catch (err) { console.log(err) }
         }
-        else {this.init()}
+        else { this.init() }
     }
-
-    componentDidUpdate(){
-        let {zoom:pzoom = 14} = this.props;
-        let {prevValue,prevZoom:szoom} = this.state;
-        let value = this.getProp('value');
-        if(JSON.stringify(prevValue) !== JSON.stringify(value) || pzoom !== szoom){
-            setTimeout(()=>{
-                this.flyTo(value.lat,value.lng,pzoom,'componentDidUpdate');
-                this.setState({prevValue:value,prevZoom:pzoom})
-            },0)
+    componentDidUpdate() {
+        let { mapConfig = {} } = this.props;
+        let { zoom: pzoom } = mapConfig;
+        let { prevValue, prevZoom: szoom } = this.state;
+        let { value } = this.props;
+        if (JSON.stringify(prevValue) !== JSON.stringify(value) || pzoom !== szoom) {
+            setTimeout(() => {
+                this.flyTo(value.lat, value.lng, pzoom, 'componentDidUpdate');
+                this.setState({ prevValue: value, prevZoom: pzoom })
+            }, 0)
         }
         this.handleArea()
         this.handleMarkers()
     }
-    getMarkerDefaultOptions(marker){
-        let {markerOptions = {}} = this.props;
-        let {size : dsize = 20,color : dcolor = 'orange',html : dhtml,text : dtext = ''} = markerOptions;
-        let {size = dsize,color = dcolor,html = dhtml,text = dtext} = marker;
-        return {size,color,html,text}
+    getMarkerDefaultOptions(marker) {
+        let { mapConfig = {} } = this.props;
+        let { markerOptions = {} } = mapConfig;
+        let { size: dsize = 20, color: dcolor = 'orange', html: dhtml, text: dtext = '' } = markerOptions;
+        let { size = dsize, color = dcolor, html = dhtml, text = dtext } = marker;
+        return { size, color, html, text }
     }
-    getMarker(marker){
-        let {size,color,html,text} = this.getMarkerDefaultOptions(marker);
+    getMarker(marker) {
+        let { size, color, html, text } = this.getMarkerDefaultOptions(marker);
         let innerSize = size * 0.4;
         let borderSize = Math.ceil(size / 10);
         let innerTop = Math.round(size / 25);
         let top = `-${(size / 2 + innerSize)}px`;
         let style1 = `transform:translateY(${top});flex-shrink:0;color:${color};width:${size}px;height:${size}px;border:${borderSize}px solid;position:relative;border-radius:100%;display:flex;align-items:center;justify-content:center;`
         let style2 = `position:absolute;left:calc(50% - ${innerSize}px);top:calc(100% - ${innerTop}px);border-top:${innerSize}px solid ${color};border-left:${innerSize}px solid transparent;border-right:${innerSize}px solid transparent;`
-        let innerHtml = '',innerText = '';
-        if(html){innerHtml = JSXToHTML(html)}
-        if(text){innerText = JSXToHTML(text)}
-        return (`<div class='aio-map-marker' data-parent='${this.datauniqid}' style="${style1}">${innerHtml}<div class='aio-map-marker-text'>${innerText}</div><div style="${style2}"></div></div>`)
+        let innerHtml = '', innerText = '';
+        if (html) { innerHtml = JSXToHTML(html) }
+        if (text) { innerText = JSXToHTML(text) }
+        return (`<div class='aio-input-map-marker' data-parent='${this.datauniqid}' style="${style1}">${innerHtml}<div class='aio-input-map-marker-text'>${innerText}</div><div style="${style2}"></div></div>`)
     }
-    
-    handleMarkers(){
-        let markers = this.getProp('markers',[]);
-        if(!markers){markers = []} 
-        if(this.markers.length){
-            for(let i = 0; i < this.markers.length; i++){this.markers[i].remove();}
+    handleMarkers() {
+        let { mapConfig = {} } = this.props;
+        let { markers = [] } = mapConfig;
+        if (!markers) { markers = [] }
+        if (this.markers.length) {
+            for (let i = 0; i < this.markers.length; i++) { this.markers[i].remove(); }
             this.markers = [];
         }
-        for(let i = 0; i < markers.length; i++){
+        for (let i = 0; i < markers.length; i++) {
             let marker = markers[i];
-            let {lat,lng,popup = ()=>''} = marker;
+            let { lat, lng, popup = () => '' } = marker;
             let pres = popup(marker)
-            if(typeof pres !== 'string'){try{pres = pres.toString()} catch{}}
+            if (typeof pres !== 'string') { try { pres = pres.toString() } catch { } }
             this.markers.push(
-                this.L.marker([lat, lng],{icon:this.L.divIcon({html: this.getMarker(marker)})}).addTo(this.map).bindPopup(pres)
+                this.L.marker([lat, lng], { icon: this.L.divIcon({ html: this.getMarker(marker) }) }).addTo(this.map).bindPopup(pres)
             )
         }
     }
-    getContext(){
-        let {mapApiKeys} = this.context;
-        return {
-            mapApiKeys,
-            rootProps:{...this.props},
-            rootState:{...this.state},
-            submit:()=>this.change(this.state.value),
-            flyTo:this.flyTo.bind(this),
-            goToCurrent:this.goToCurrent.bind(this)
-        }
+    getContext() {
+        let { mapApiKeys } = this.props;
+        return { mapApiKeys, rootProps: { ...this.props }, rootState: { ...this.state }, flyTo: this.flyTo.bind(this), goToCurrent: this.goToCurrent.bind(this) }
     }
-    renderPopup(){
-        let {showPopup} = this.state;
-        if(showPopup){
-            let {popup,search,onChange} = this.props;
-            if(popup === true){popup = {}}
-            let {title = this.props.title,showMarker = this.props.showMarker,markers = this.props.markers} = popup
-            let {value} = this.state;
-            let {lat,lng} = value;
+    renderPopup() {
+        let { showPopup } = this.state;
+        if (showPopup) {
+            let { popup } = this.props, { attrs = {} } = popup, { value } = this.state;
+            if (popup === true) { popup = {} }
             let props = {
-                popup:undefined,value:{lat,lng},search,title,showMarker,markers,
-                style:{width:'100%',height:'100%',top:0,position:'fixed',left:0,zIndex:10,...popup.style},
-                onClick:undefined,
-                onClose:()=>this.setState({showPopup:false}),
-                onChange:undefined,
-                onSubmit:!onChange?undefined:(obj)=>{this.move(obj); this.setState({showPopup:false})}
+                ...this.props, ...popup, value,
+                mapConfig: { ...this.props.mapConfig, ...popup.mapConfig },
+                isPopup: true, popup: false,
+                onClose: () => this.setState({ showPopup: false }),
+                attrs: { ...attrs, style: { width: '100%', height: '100%', top: 0, position: 'fixed', left: 0, zIndex: 1000000, ...attrs.style }, onClick: undefined },
+                onChange: (obj, calledBySubmitButton) => { this.move(obj); if (calledBySubmitButton) { this.setState({ showPopup: false }) } }
             }
-            return <Map {...props}/>
+            return <MapUnit {...props} />
         }
         return null
     }
     render() {
-        let {style = {width:'100%',height:240}} = this.props;
+        let { attrs = {} } = this.props;
         return (
             <>
                 <MapContext.Provider value={this.getContext()}>
-                    <div style={style} className='aio-map'>
-                        <div ref={this.dom} style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', zIndex: 0  }} />
-                        <MapFooter/> <MapHeader/>
-                    </div>
+                    <RVD
+                        layout={{
+                            className: 'aio-input-map-container', style: attrs.style,
+                            column: [{ html: <MapHeader /> }, { flex: 1, attrs: { ref: this.dom }, html: '' }, { html: <MapFooter /> }]
+                        }}
+                    />
                 </MapContext.Provider>
                 {this.renderPopup()}
             </>
@@ -3317,525 +2964,490 @@ class Map extends Component {
 }
 function MapHeader() {
     let context = useContext(MapContext);
-    let {rootProps,rootState,flyTo,goToCurrent,mapApiKeys} = context;
-    let {search,popup,title = 'نقشه',onClose} = rootProps;
-    let [searchValue,setSearchValue] = useState('');
-    let [searchResult,setSearchResult] = useState([]);
-    let [loading,setLoading] = useState(false);
-    let [showResult,setShowResult] = useState(false);
+    let { rootProps, rootState, flyTo, goToCurrent, mapApiKeys } = context;
+    let { mapConfig = {}, onClose } = rootProps;
+    let { title, search } = mapConfig;
+    let [searchValue, setSearchValue] = useState('');
+    let [searchResult, setSearchResult] = useState([]);
+    let [loading, setLoading] = useState(false);
+    let [showResult, setShowResult] = useState(false);
     let loadingIcon = <Icon path={mdiLoading} size={1} spin={0.4} />;
     let closeIcon = <Icon path={mdiClose} size={0.8} onClick={() => setShowResult(false)} />;
     let searchIcon = <Icon path={mdiMagnify} size={0.8} />;
     let dom = createRef();
     let timeout;
     async function changeSearch(e) {
-        let { value } = rootState,{lat,lng} = value,searchValue = e.target.value;
+        let { value } = rootState, { lat, lng } = value, searchValue = e.target.value;
         setSearchValue(searchValue);
         clearTimeout(timeout);
         timeout = setTimeout(async () => {
-            try{
-                let param = {headers: {'Api-Key': mapApiKeys.service}}
+            try {
+                let param = { headers: { 'Api-Key': mapApiKeys.service } }
                 let url = `https://api.neshan.org/v1/search?term=${searchValue}&lat=${lat}&lng=${lng}`;
                 setLoading(true); let res = await Axios.get(url, param); setLoading(false)
                 if (res.status !== 200) { return }
-                setSearchResult(res.data.items )
+                setSearchResult(res.data.items)
             }
-            catch(err){}
+            catch (err) { }
         }, 1000)
     }
-    function SearchInput(){
-        return (<input ref={dom} value={searchValue} className='aio-map-search-input' type='text' placeholder='جستجو' onChange={changeSearch} onClick={() => setShowResult(true)}/>)
+    function SearchInput() {
+        return (<input ref={dom} value={searchValue} className='aio-input-map-serach-input' type='text' placeholder='جستجو' onChange={changeSearch} onClick={() => setShowResult(true)} />)
     }
-    function search_layout(){
+    function search_layout() {
         let showCloseButton = !!showResult && !!searchResult.length;
         return {
-            flex:1, row: [
-                {align: 'h', flex: 1,html: SearchInput()},
-                {show: !!loading, align: 'vh', className:'aio-map-search-icon',html: loadingIcon},
-                {show: showCloseButton, align: 'vh', className:'aio-map-search-icon',html: closeIcon},
-                {show: !showCloseButton && !loading, align: 'vh', className:'aio-map-search-icon',html: searchIcon}
+            flex: 1, row: [
+                { align: 'h', flex: 1, html: SearchInput() },
+                { show: !!loading, align: 'vh', className: 'aio-input-map-serach-icon', html: loadingIcon },
+                { show: showCloseButton, align: 'vh', className: 'aio-input-map-serach-icon', html: closeIcon },
+                { show: !showCloseButton && !loading, align: 'vh', className: 'aio-input-map-serach-icon', html: searchIcon }
             ]
         }
     }
     function input_layout() {
-        if(!search){return false}
-        return {className: 'aio-map-search',row:[currentPoint_layout(),search_layout()]}
+        if (!search) { return false }
+        return { className: 'aio-input-map-search', row: [currentPoint_layout(), search_layout()] }
     }
     function result_layout() {
         if (!searchResult || !searchResult.length || !showResult) { return false }
         return {
-            className: 'aio-map-search-results', 
+            className: 'aio-input-map-serach-results',
             column: searchResult.map(({ title, address, location }) => {
                 return {
-                    onClick: () => {setShowResult(false); flyTo(location.y, location.x, undefined,'result_layout')},
-                    className:'aio-map-search-result',
+                    onClick: () => { setShowResult(false); flyTo(location.y, location.x, undefined, 'result_layout') },
+                    className: 'aio-input-map-search-result',
                     column: [
-                        {html: title, className: 'aio-map-search-result-text', align: 'v'},
-                        { html: address, className: 'aio-map-search-result-subtext', align: 'v', style: { opacity: 0.5 } }
+                        { html: title, className: 'aio-input-map-serach-result-text', align: 'v' },
+                        { html: address, className: 'aio-input-map-serach-result-subtext', align: 'v', style: { opacity: 0.5 } }
                     ]
                 }
             })
         }
     }
-    function header_layout(){
-        if(typeof title !== 'string' && !onClose){return false}
+    function header_layout() {
+        if (typeof title !== 'string' && !onClose) { return false }
         return {
-            row:[
-                {show:!!onClose,align:'vh',html:<Icon path={mdiChevronRight} size={1}/>,className:'aio-map-close',onClick:()=>onClose()},
-                {show:typeof title === 'string',html:title,className:'aio-map-title',align:'v'},
+            row: [
+                { show: !!onClose, align: 'vh', html: <Icon path={mdiChevronRight} size={1} />, className: 'aio-input-map-close', onClick: () => onClose() },
+                { show: typeof title === 'string', html: title, className: 'aio-input-map-title', align: 'v' },
             ]
         }
     }
-    function currentPoint_layout(){
-        return { className:'aio-map-current-point',html: <Icon path={mdiCrosshairsGps} size={0.8} onClick={() => goToCurrent()} />, align: 'vh' }
+    function currentPoint_layout() {
+        return { className: 'aio-input-map-current-point', html: <Icon path={mdiCrosshairsGps} size={0.8} onClick={() => goToCurrent()} />, align: 'vh' }
     }
-    if(popup || (!search && !title && !onClose)){return null}
+    if (!search && !title && !onClose) { return null }
     return (
         <RVD
             layout={{
-                className:'aio-map-header of-visible' + (searchResult && searchResult.length && showResult?' aio-map-header-open':''),
-                column: [header_layout(),input_layout(),result_layout(),]
+                className: 'aio-input-map-header of-visible' + (searchResult && searchResult.length && showResult ? ' aio-input-map-header-open' : ''),
+                column: [header_layout(), input_layout(), result_layout(),]
             }}
         />
     )
 }
-function MapFooter(){
+function MapFooter() {
     let context = useContext(MapContext);
-    let {rootProps,rootState,submit} = context;
-    let {popup} = rootProps
-    function submit_layout(){
-        if(popup){return false}
-        return {html: (<button className='aio-map-submit-button' onClick={async () => submit()}>تایید موقعیت</button>)}
+    let { rootProps, rootState } = context;
+    let { value, onChange } = rootState, { lat, lng } = value;
+    function submit_layout() {
+        if (!rootProps.isPopup) { return false }
+        return { html: (<button className='aio-input-map-submit' onClick={async () => onChange(rootState.value, true)}>تایید موقعیت</button>) }
     }
-    function details_layout(){
-        return {column:[{html:rootState.address,className:'aio-map-address'},{show:!!lat && !!lng,html:()=>`${lat} - ${lng}`,className:'aio-map-latlng'}]}
+    function details_layout() {
+        return { flex: 1, column: [{ html: rootState.address, className: 'aio-input-map-address' }, { show: !!lat && !!lng, html: () => `${lat} - ${lng}`, className: 'aio-input-map-coords' }] }
     }
-    if(popup){return null}
-    let {value} = rootState,{lat,lng} = value;
-    return (<RVD layout={{className: 'aio-map-footer',row:[details_layout(),submit_layout()]}}/>)
+    return (<RVD layout={{ className: 'aio-input-map-footer', row: [details_layout(), submit_layout()] }} />)
 }
-export function getDistance(p1,p2) {
-    let {lat:lat1,lng:lon1} = p1;
-    let {lat:lat2,lng:lon2} = p2;
+export function getDistance(p1, p2) {
+    let { lat: lat1, lng: lon1 } = p1;
+    let { lat: lat2, lng: lon2 } = p2;
     let rad = Math.PI / 180;
     let radius = 6371; //earth radius in kilometers
     return Math.acos(Math.sin(lat2 * rad) * Math.sin(lat1 * rad) + Math.cos(lat2 * rad) * Math.cos(lat1 * rad) * Math.cos(lon2 * rad - lon1 * rad)) * radius; //result in Kilometers
 }
-class AIOInputValidate{
-    constructor(props){
-        this.props = props;
-        let error = this.getError()
-        if(error && !$('.aio-popup-alert-container').length){
-            let subtext;
-            try{
-                subtext = JSON.stringify(props);
+export function AIOValidation(props) {
+    let $$ = {
+        translate(text) {
+            if (!text) { return text }
+            let { lang } = props;
+            let dict = {
+                'should be contain': 'باید شامل',
+                'should be before': 'باید قبل از',
+                'cannot be after': 'نمی تواند بعد از',
+                'should be after': 'باید بعد از',
+                'cannot be before': 'نمی تواند قبل از',
+                'should not be contain': 'نمی تواند شامل',
+                'should be less than': 'باید کمتر از',
+                'should be more than': 'باید بیشتر از',
+                'could not be more than': 'نباید بزرگ تر از',
+                'could not be less than': 'نباید کوچک تر از',
+                'character(s)': 'کاراکتر',
+                'item(s)': 'مورد',
+                'should be equal': 'باید برابر',
+                'cannot be equal': 'نمی تواند برابر'
             }
-            catch{
-                subtext = '';
+            return lang === 'fa' ? dict[text] : text
+        },
+        getMessage(target, { be, validation, unit = '' }) {
+            let [a, b, params = {}] = validation;
+            let { title = props.title, target: targetPresentation = target, message } = params;
+            if (message) { return message }
+            return `${title} ${this.translate(be)} ${JSON.stringify(targetPresentation)} ${unit}` + (props.lang === 'fa' ? ' باشد' : '')
+        },
+        contain(target, validation, value) {
+            let config = { be: 'should be contain', validation };
+            if (target === 'number') { if (!/\d/.test(value)) { return this.getMessage('number', config) } }
+            else if (target === 'letter') { if (!/[a-zA-Z]/.test(value)) { return this.getMessage('letter', config) } }
+            else if (target === 'uppercase') { if (!/[A-Z]/.test(value)) { return this.getMessage('uppercase', config) } }
+            else if (target === 'lowercase') { if (!/[a-z]/.test(value)) { return this.getMessage('lowercase', config) } }
+            else if (target === 'symbol') { if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(value)) { return this.getMessage('symbol', config) } }
+            else if (typeof target.test === 'function') { if (!target.test(value)) { return this.getMessage(target.toString(), config) } }
+            else { if (value.indexOf(target) === -1 && target !== undefined) { return this.getMessage(target, config) } }
+        },
+        notContain(target, validation, value) {
+            let config = { be: 'should not be contain', validation };
+            if (target === 'number') { if (/\d/.test(value)) { return this.getMessage('number', config) } }
+            else if (target === 'letter') { if (/[a-zA-Z]/.test(value)) { return this.getMessage('letter', config) } }
+            else if (target === 'uppercase') { if (/[A-Z]/.test(value)) { return this.getMessage('uppercase', config) } }
+            else if (target === 'lowercase') { if (/[a-z]/.test(value)) { return this.getMessage('lowercase', config) } }
+            else if (target === 'symbol') { if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(value)) { return this.getMessage('symbol', config) } }
+            else if (typeof target.test === 'function') { if (target.test(value)) { return this.getMessage(target.toString(), config) } }
+            else { if (value.indexOf(target) !== -1) { return this.getMessage(target, config) } }
+        },
+        length(target, validation, value, unit, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'should be contain', unit }) }
+            if (value.length !== target) { return this.getMessage(target, { validation, be: 'should be contain', unit }) }
+        },
+        notLength(target, validation, value, unit, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'should not be contain', unit }) }
+            if (value.length === target) { return this.getMessage(target, { validation, be: 'should not be contain', unit }) }
+        },
+        lengthLess(target, validation, value, unit, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'should be less than', unit }) }
+            if (value.length >= target) { return this.getMessage(target, { validation, be: 'should be less than', unit }) }
+        },
+        lengthLessEqual(target, validation, value, unit, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'could not be more than', unit }) }
+            if (value.length > target) { return this.getMessage(target, { validation, be: 'could not be more than', unit }) }
+        },
+        lengthMore(target, validation, value, unit, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'should be more than', unit }) }
+            if (value.length <= target) { return this.getMessage(target, { validation, be: 'should be more than', unit }) }
+        },
+        lengthMoreEqual(target, validation, value, unit, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'could not be less than', unit }) }
+            if (value.length < target) { return this.getMessage(target, { validation, be: 'could not be less than', unit }) }
+        },
+        equal(target, validation, value, a, exact) {
+            if (exact) { this.getMessage(target, { validation, be: 'should be equal' }) }
+            if (JSON.stringify(value) !== JSON.stringify(target)) {
+                return this.getMessage(target, { validation, be: 'should be equal' })
             }
-            new AIOPopup().addAlert({text:error,type:'error',subtext})
+        },
+        not(target, validation, value, a, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'cannot be equal' }) }
+            if (JSON.stringify(value) === JSON.stringify(target)) {
+                return this.getMessage(target, { validation, be: 'cannot be equal' })
+            }
+        },
+        dateLess(target, validation, value, a, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'should be before' }) }
+            if (AIODate().isGreater(value, target) || AIODate().isEqual(value, target)) {
+                return this.getMessage(target, { validation, be: 'should be before' })
+            }
+        },
+        dateLessEqual(target, validation, value, a, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'cannot be after' }) }
+            if (AIODate().isGreater(value, target)) {
+                return this.getMessage(target, { validation, be: 'cannot be after' })
+            }
+        },
+        dateMore(target, validation, value, a, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'should be after' }) }
+            if (AIODate().isLess(value, target) || AIODate().isEqual(value, target)) {
+                return this.getMessage(target, { validation, be: 'should be after' })
+            }
+        },
+        dateMoreEqual(target, validation, value, a, exact) {
+            if (exact) { this.getMessage(target, { validation, be: 'cannot be before' }) }
+            if (AIODate().isLess(value, target)) {
+                return this.getMessage(target, { validation, be: 'cannot be before' })
+            }
+        },
+        less(target, validation, value, a, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'should be less than' }) }
+            if (typeof value === 'number' && typeof target === 'number' && value >= target) {
+                return this.getMessage(target, { validation, be: 'should be less than' })
+            }
+        },
+        lessEqual(target, validation, value, a, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'could not be more than' }) }
+            if (typeof value === 'number' && typeof target === 'number' && value > target) {
+                return this.getMessage(target, { validation, be: 'could not be more than' })
+            }
+        },
+        more(target, validation, value, a, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'should be more than' }) }
+            if (typeof value === 'number' && typeof target === 'number' && value <= target) {
+                return this.getMessage(target, { validation, be: 'should be more than' })
+            }
+        },
+        moreEqual(target, validation, value, a, exact) {
+            if (exact) { return this.getMessage(target, { validation, be: 'could not be less than' }) }
+            if (typeof value === 'number' && typeof target === 'number' && value < target) {
+                return this.getMessage(target, { validation, be: 'could not be less than' })
+            }
+        },
+        getResult(fn, target, validation, value, unit) {
+            target = Array.isArray(target) ? target : [target];
+            if (Array.isArray(target)) {
+                let matchedTargets = [];
+                let notMatchedTargets = [];
+                for (let i = 0; i < target.length; i++) {
+                    let result = this[fn](target[i], validation, value, unit)
+                    if (!result) { matchedTargets.push(target[i]) }
+                    else { notMatchedTargets.push(target[i]) }
+                }
+                if (matchedTargets.length) { return }
+                // if(notMatchedTargets.length > 3){
+                //   notMatchedTargets = [notMatchedTargets[0],notMatchedTargets[1],notMatchedTargets[2],'...']
+                // }
+                return this[fn](notMatchedTargets.join(' or '), validation, value, unit, true)
+            }
+            else {
+                let result = this[fn](target, validation, value, unit)
+                if (result) { return result }
+            }
+
+        },
+        getValidation() {
+            let { lang = 'en', value, validations = [] } = props;
+            let unit = '';
+            if (Array.isArray(value)) { unit = this.translate('item(s)') }
+            else if (typeof value === 'string') { unit = this.translate('character(s)') }
+            for (let i = 0; i < validations.length; i++) {
+                let [type, target, params = {}] = validations[i];
+                let result;
+                if (type === 'function') {
+                    result = target(value);
+                }
+                else if (type === 'required') {
+                    if (value === undefined || value === null || value === '' || value === false || value.length === 0) {
+                        let { title = props.title } = params;
+                        if (lang === 'en') { return `${title} is required` }
+                        if (lang === 'fa') { return `وارد کردن ${title} ضروری است` }
+                    }
+                }
+                else if (type === 'contain') { result = this.getResult('contain', target, validations[i], value) }
+                else if (type === '!contain') { result = this.getResult('notContain', target, validations[i], value) }
+                else if (type === 'length') { result = this.getResult('length', target, validations[i], value, unit) }
+                else if (type === '!length') { result = this.getResult('notLength', target, validations[i], value, unit) }
+                else if (type === 'length<') { result = this.getResult('lengthLess', target, validations[i], value, unit) }
+                else if (type === 'length<=') { result = this.getResult('lengthLessEqual', target, validations[i], value, unit) }
+                else if (type === 'length>') { result = this.getResult('lengthMore', target, validations[i], value, unit) }
+                else if (type === 'length>=') { result = this.getResult('lengthMoreEqual', target, validations[i], value, unit) }
+                else if (type === '=') { result = this.getResult('equal', target, validations[i], value) }
+                else if (type === '!=') { result = this.getResult('not', target, validations[i], value) }
+                else if (type === '<') { result = this.getResult('less', target, validations[i], value) }
+                else if (type === '<=') { result = this.getResult('lessEqual', target, validations[i], value) }
+                else if (type === '>') { result = this.getResult('more', target, validations[i], value) }
+                else if (type === '>=') { result = this.getResult('moreEqual', target, validations[i], value) }
+                else if (type === 'date<') { result = this.getResult('dateLess', target, validations[i], value) }
+                else if (type === 'date<=') { result = this.getResult('dateLessEqual', target, validations[i], value) }
+                else if (type === 'date>') { result = this.getResult('dateMore', target, validations[i], value) }
+                else if (type === 'date>=') { result = this.getResult('dateMoreEqual', target, validations[i], value) }
+                if (result) { return result }
+            }
+            return ''
         }
     }
-    varTypes = {
-        'object':true,'array':true,'string':true,'number':true,'boolean':true,'undefined':true,'any':true,'function':true,'null':true,
+    props.translate = props.translate || function (text) { return text }
+    props.lang = props.lang || 'en';
+    let validation;
+    try { validation = $$.getValidation() } catch { validation = '' }
+    return validation;
+}
+
+class AIOInputValidate {
+    constructor(props) {
+        this.props = props;
+        let error = this.getError()
+        if (error && !$('.aio-popup-alert-container').length) {
+            let subtext;
+            try {subtext = JSON.stringify(props);} catch {subtext = '';}
+            new AIOPopup().addAlert({ text: error, type: 'error', subtext })
+        }
     }
+    varTypes = {'object': true, 'array': true, 'string': true, 'number': true, 'boolean': true, 'undefined': true, 'any': true, 'function': true, 'null': true}
     titr = 'aio-input error =>';
-    getTypes = ()=>{
+    getTypes = () => {
         return [
-            'text','number','textarea','color','password','file','image','select','multiselect','table','form',
-            'time','datepicker','list','checkbox','radio','tabs','slider','button'
+            'text', 'number', 'textarea', 'color', 'password', 'file', 'image', 'select', 'multiselect', 'table', 'form',
+            'time', 'datepicker', 'list', 'checkbox', 'radio', 'tabs', 'slider', 'button', 'map'
         ]
     }
-    getType = (v)=>{
-        if(Array.isArray(v)){return 'array'}
-        if(v === null){return 'undefined'}
-        return typeof v;
+    getType = (v) => {
+        if (Array.isArray(v)) { return 'array' }
+        return v === null?'undefined':typeof v;
     }
-    checkTypes = (value,types)=>{
-        if(types === 'any'){return}
+    checkTypes = (value, types) => {
+        if (types === 'any') { return }
         types = types.split('|');
         let res;
         let passed = false;
-        for(let i = 0; i < types.length; i++){
+        for (let i = 0; i < types.length; i++) {
             let type = types[i];
-            let error = this.checkType(value,type,types)
-            if(error){res = error}
-            else {passed = true}
+            let error = this.checkType(value, type, types)
+            if (error) { res = error }
+            else { passed = true }
         }
-        if(!passed){return res}
+        if (!passed) { return res }
     }
-    checkType = (value,type,types)=>{
-        let res = false;
-        let valueType = this.getType(value);
-        if(this.varTypes[type]){
-            if(valueType === type){res = true}
-        }
+    checkType = (value, type, types) => {
+        let res = false,valueType = this.getType(value);
+        if (this.varTypes[type]) {if (valueType === type) { res = true }}
         else {
             let typeString;
-            try{typeString = JSON.parse(type)} catch{typeString = type}
-            if(value === typeString){res = true}
+            try { typeString = JSON.parse(type) } catch { typeString = type }
+            if (value === typeString) { res = true }
         }
-        if(res === false){
+        if (res === false) {
             let res;
-            try{res = JSON.stringify(value)}
-            catch{res = value}
+            try { res = JSON.stringify(value) } catch { res = value }
             return `should be ${types.join('|')} but is ${res}`
         }
-
     }
-    getError = ()=>{
+    getError = () => {
         let types = this.getTypes();
-        let {type} = this.props;
-        if(types.indexOf(type) === -1){return `${this.titr} ${type} is invalid type`}
+        let { type } = this.props;
+        if (types.indexOf(type) === -1) { return `${this.titr} ${type} is invalid type` }
         let error = this.getMessage(type);
-        if(error){return error}
+        if (error) { return error }
     }
-    getValidateObject = (type)=>{
+    getValidateObject = (type) => {
+        let options = 'array|undefined', optionText = 'any', optionValue = 'any', optionBefore = 'any', optionAfter = 'any', optionSubtext = 'any', optionDisabled = 'any', optionAttrs = 'any', optionCheckIcon = 'any';
+        let style = 'function|object|undefined',disabled = 'boolean|undefined',subtext = 'number|string|function';
         let dic = {
-            text:{
-                type:'"text"',
-                inputAttrs:"object|undefined",
-                justNumber:"boolean|array|undefined",
-                value:'string|number|undefined',
-                options:'array|undefined',
-                maxLength:'number|undefined',
-                filter:'array',
-                loading:'any',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                caret:'any',
-                optionText:'any',
-                optionValue:'any',
-                optionAttrs:'any',
-                popover:'object|undefined',
-                disabled:'boolean|undefined',
-                placeholder:'any',
-                optionSubtext:'string|number|function|undefined',
-                optionBefore:'any',
-                optionAfter:'any',
-                optionDisabled:'string|function|boolean|undefined',
+            text: {
+                type: '"text"', value: 'string|number|undefined',inputAttrs: "object|undefined",placeholder: 'any',
+                options, optionText, optionValue, optionBefore, optionAfter, optionSubtext, optionDisabled, optionAttrs, optionCheckIcon,
+                justNumber: "boolean|array|undefined", maxLength: 'number|undefined', filter: 'array',
+                before: 'any', after: 'any', subtext,caret: 'any',popover: 'object|undefined',disabled, loading: 'any',
             },
-            textarea:{
-                type:'"textarea"',
-                value:'string|number|undefined',
-                inputAttrs:"object|undefined",
-                caret:'any',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                loading:'any',
-                maxLength:'number|undefined',
-                options:'array|undefined',
-                optionText:'any',
-                optionValue:'any',
-                optionAttrs:'any',
-                popover:'object|undefined',
-                disabled:'boolean|undefined',
-                placeholder:'any',
-                optionSubtext:'string|number|function|undefined',
-                optionBefore:'any',
-                optionAfter:'any',
-                optionDisabled:'string|function|boolean|undefined',
+            textarea: {
+                type: '"textarea"', value: 'string|number|undefined',maxLength: 'number|undefined',popover: 'object|undefined',
+                options, optionText, optionValue, optionBefore, optionAfter, optionSubtext, optionDisabled, optionAttrs, optionCheckIcon,
+                inputAttrs: "object|undefined",disabled,placeholder: 'any',caret: 'any',before: 'any', after: 'any', subtext,loading: 'any',
             },
-            number:{
-                type:'"number"',
-                inputAttrs:"object|undefined",
-                value:'""|number|undefined',
-                caret:'any',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                options:'array|undefined',
-                optionText:'any',
-                optionValue:'any',
-                optionAttrs:'any',
-                loading:'any',
-                swip:'boolean|undefined',
-                popover:'object|undefined',
-                disabled:'boolean|undefined',
-                placeholder:'any',
-                optionBefore:'any',
-                optionAfter:'any',
-                optionDisabled:'string|function|boolean|undefined',
-
+            number: {
+                type: '"number"',swip: 'boolean|undefined',popover: 'object|undefined',placeholder: 'any',
+                options, optionText, optionValue, optionBefore, optionAfter, optionSubtext, optionDisabled, optionAttrs, optionCheckIcon,
+                inputAttrs: "object|undefined",value: '""|number|undefined',caret: 'any',before: 'any', after: 'any', subtext,disabled, loading: 'any',
             },
-            password:{
-                type:'"password"',
-                inputAttrs:"object|undefined",
-                justNumber:"boolean|array|undefined",
-                value:'string|number|undefined',
-                maxLength:'number|undefined',
-                filter:'array',
-                loading:'any',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                visible:'boolean|undefined',
-                disabled:'boolean|undefined',
-                placeholder:'any',
-
+            radio: {
+                type: '"radio"', value: 'any',multiple: 'boolean|undefined',before: 'any', after: 'any', subtext,disabled, loading: 'any',
+                options, optionText, optionValue, optionBefore, optionAfter, optionSubtext, optionDisabled, optionAttrs, optionCheckIcon,
             },
-            color:{
-                type:'"color"',
-                inputAttrs:"object|undefined",
-                value:'string|number|undefined',
-                loading:'any',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                options:'array|undefined',
-                optionText:'any',
-                optionValue:'any',
-                optionAttrs:'any',
-                disabled:'boolean|undefined',
+            tabs: {
+                type: '"tabs"', value: 'any',before: 'any', after: 'any', subtext,disabled, loading: 'any',optionAttrs: 'any',
+                options, optionText, optionValue, optionBefore, optionAfter, optionSubtext, optionDisabled, optionAttrs, optionCheckIcon,
             },
-            checkbox:{
-                type:'"checkbox"',
-                text:'any',
-                value:'boolean|undefined',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                disabled:'boolean|undefined',
-                loading:'any',
-                checkIcon:'any', 
+            multiselect: {
+                type: '"multiselect"', value: 'array|undefined',before: 'any', after: 'any', subtext,text: 'any',
+                options, optionText, optionValue, optionBefore, optionAfter, optionSubtext, optionDisabled, optionAttrs, optionCheckIcon,
+                popover: 'object|undefined',hideTags: 'boolean|undefined',search: 'boolean|undefined',
+                caret: 'any',disabled, loading: 'any',optionTagBefore: 'any', optionTagAfter: 'any', optionTagAttrs: 'any',
             },
-            radio:{
-                type:'"radio"',
-                options:'array',
-                value:'any',
-                multiple:'boolean|undefined',
-                before:'any',
-                after:'any',
-                optionText:'any',
-                optionValue:'any',
-                subtext:'number|string|function',
-                disabled:'boolean|undefined',
-                loading:'any',
-                optionAttrs:'any',
-                optionSubtext:'string|number|function|undefined',
-                optionBefore:'any',
-                optionAfter:'any',
-                optionDisabled:'string|function|boolean|undefined',
-                optionCheckIcon:'any',
-                
+            password: {
+                type: '"password"', value: 'string|number|undefined',filter: 'array',disabled, loading: 'any',
+                before: 'any', after: 'any', subtext,visible: 'boolean|undefined',placeholder: 'any',
+                inputAttrs: "object|undefined",justNumber: "boolean|array|undefined",maxLength: 'number|undefined'
             },
-            tabs:{
-                type:'"tabs"',
-                options:'array',
-                value:'any',
-                before:'any',
-                after:'any',
-                optionText:'any',
-                optionValue:'any',
-                subtext:'number|string|function',
-                disabled:'boolean|undefined',
-                loading:'any',
-                optionAttrs:'any',
-                optionSubtext:'string|number|function|undefined',
-                optionBefore:'any',
-                optionAfter:'any',
-                optionDisabled:'string|function|boolean|undefined',
-                optionCheckIcon:'any',
-                
+            color: {
+                type: '"color"', value: 'string|number|undefined',
+                options, optionText, optionValue, optionAttrs,
+                inputAttrs: "object|undefined",before: 'any', after: 'any', subtext,disabled, loading: 'any',
             },
-            select:{
-                type:'"select"',
-                text:'any',
-                options:'array',
-                value:'number|string|undefined',
-                search:'boolean|undefined',
-                caret:'any',
-                optionAttrs:'function|string|undefined|object',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                loading:'any',
-                optionText:'any',
-                optionValue:'any',
-                optionAttrs:'any',
-                popover:'object|undefined',
-                disabled:'boolean|undefined',
-                placeholder:'any',
-                optionSubtext:'string|number|function|undefined',
-                optionClose:'boolean|function|string|undefined',
-                optionChecked:'string|function|boolean|undefined',
-                optionBefore:'any',
-                optionAfter:'any',
-                optionDisabled:'string|function|boolean|undefined',
-                optionCheckIcon:'any',
-                onSwap:'function|undefined',
+            checkbox: {
+                type: '"checkbox"', value: 'boolean|undefined',
+                text: 'any',before: 'any', after: 'any', subtext,disabled, loading: 'any',checkIcon: 'any',
             },
-            file:{
-                type:'"file"',
-                text:'any',
-                multiple:'boolean',
-                value:'any',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                inputAttrs:"object|undefined",
-                loading:'any',
-                disabled:'boolean|undefined',
-                center:'boolean|undefined',
+            select: {
+                type: '"select"', value: 'number|string|undefined',
+                text: 'any',caret: 'any',placeholder: 'any',options: 'array', optionText: 'any', optionValue: 'any',
+                search: 'boolean|undefined',optionAttrs: 'function|string|undefined|object',disabled, loading: 'any',
+                before: 'any', after: 'any', subtext,optionAttrs: 'any',popover: 'object|undefined',onSwap: 'function|undefined',
+                optionClose: 'any',optionChecked: 'string|function|boolean|undefined',optionDisabled: 'any',optionCheckIcon: 'any',
+                optionBefore: 'any', optionAfter: 'any', optionSubtext: 'string|number|function|undefined'
             },
-            multiselect:{
-                type:'"multiselect"',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                text:'any',
-                options:'array',
-                optionText:'any',
-                optionValue:'any',
-                optionAttrs:'any',
-                value:'array|undefined',
-                popover:'object|undefined',
-                hideTags:'boolean|undefined',
-                search:'boolean|undefined',
-                loading:'any',
-                caret:'any',
-                disabled:'boolean|undefined',
-                optionTagBefore:'any',
-                optionTagAfter:'any',
-                optionTagAttrs:'any',
-                optionCheckIcon:'any',
-                optionSubtext:'string|number|function|undefined',
-                optionBefore:'any',
-                optionAfter:'any',
-                optionDisabled:'string|function|boolean|undefined',
+            file: {
+                type: '"file"', value: 'any',text: 'any',multiple: 'boolean',before: 'any', after: 'any', subtext,
+                inputAttrs: "object|undefined",disabled, loading: 'any',center: 'boolean|undefined',
             },
-            slider:{
-                value:'number|array|undefined',
-                type:'"slider"',
-                before:'any',
-                after:'any',
-                start:'number|undefined',
-                step:'number|undefined',
-                end:'number|undefined',
-                disabled:'boolean|undefined',
-                loading:'any',
-                showValue:'boolean|"inline"|undefined',
-                lineStyle:'function|object|undefined',
-                fillStyle:'function|object|undefined',
-                pointStyle:'function|object|undefined',
-                valueStyle:'function|object|undefined',
-                labelStyle:'function|object|undefined',
-                scaleStyle:'function|object|undefined',
-                min:'number|undefined',
-                max:'number|undefined',
-                multiple:'boolean|undefined',
-                getPointHTML:'function|undefined',
-                getScaleHTML:'function|undefined',
-                direction:'"left"|"right"|"top"|"bottom"|undefined',
-                labelStep:'number|array|undefined',
-                scaleStep:'number|array|undefined',
-                editLabel:'function|undefined',
-                labelRotate:'number|function|undefined'
+            slider: {
+                value: 'number|array|undefined',type: '"slider"',before: 'any', after: 'any',
+                start: 'number|undefined', step: 'number|undefined', end: 'number|undefined', min: 'number|undefined', max: 'number|undefined',
+                disabled, loading: 'any',showValue: 'boolean|"inline"|undefined',
+                lineStyle: style, fillStyle: style, pointStyle: style, valueStyle: style, labelStyle: style, scaleStyle: style,
+                multiple: 'boolean|undefined',getPointHTML: 'function|undefined',getScaleHTML: 'function|undefined',
+                direction: '"left"|"right"|"top"|"bottom"|undefined',labelStep: 'number|array|undefined',
+                scaleStep: 'number|array|undefined',editLabel: 'function|undefined',labelRotate: 'number|function|undefined'
             },
-            form:{
-                type:'"form"',
-                inputs:'object',
-                value:'object',
-                labelAttrs:'object|function|undefined',
-                lang:'"en"|"fa"|undefined',
-                updateInput:'function|undefined',
-                inputClassName:'string|function|undefined',
-                inputStyle:'object|function|undefined',
+            form: {
+                type: '"form"',inputs: 'object',value: 'object',disabled,inputClassName: 'string|function|undefined',inputStyle: style,
+                labelAttrs: 'object|function|undefined',lang: '"en"|"fa"|undefined',updateInput: 'function|undefined'
             },
-            datepicker:{
-                value:'any',
-                type:'"datepicker"',
-                caret:'any',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                placeholder:'any',
-                loading:'any',
-                disabled:'boolean|undefined',
-                popover:'object|undefined',
-                calendarType:'"jalali"|"gregorian"|undefined',
-                unit:'"month"|"day"|"hour"',
-                pattern:'string|undefined',
+            datepicker: {
+                type: '"datepicker"', value: 'any',caret: 'any',popover: 'object|undefined',
+                before: 'any', after: 'any', subtext,placeholder: 'any',disabled, loading: 'any',
+                calendarType: '"jalali"|"gregorian"|undefined', unit: '"month"|"day"|"hour"', theme: 'array|undefined', size: 'number|undefined', startYear: 'string|number|undefined', endYear: 'string|number|undefined',
+                pattern: 'string|undefined',dateDisabled: 'array|undefined',dateAttrs: 'function|undefined',remove: 'boolean|undefined'
             },
-            image:{
-                type:'"image"',
-                value:'object|undefined',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                placeholder:'any',
-                attrs:'object|undefined',
-                width:'string|number|undefined',
-                height:'string|number|undefined',
-                preview:'boolean|undefined',
-                loading:'any',
-                disabled:'boolean|undefined',
+            image: {
+                type: '"image"', value: 'object|undefined',before: 'any', after: 'any', subtext,
+                placeholder: 'any',attrs: 'object|undefined',preview: 'boolean|undefined',disabled, loading: 'any',
+                width: 'string|number|undefined', height: 'string|number|undefined',
             },
-            time:{
-                type:'"time"',
-                value:'object|undefined',
-                before:'any',
-                after:'any',
-                subtext:'number|string|function',
-                loading:'any',
-                disabled:'boolean|undefined',
-                
+            time: {type: '"time"', value: 'object|undefined',before: 'any', after: 'any', subtext,disabled, loading: 'any'},
+            button: {
+                type: '"button"', value: 'any',before: 'any', after: 'any', subtext,
+                disabled, loading: 'any',caret: 'any',center: 'boolean|undefined',text: 'any',popover: 'object|undefined',
             },
-            button:{
-                type:'"button"',
-                before:'any',
-                after:'any',
-                loading:'any',
-                disabled:'boolean|undefined',
-                subtext:'number|string|function',
-                caret:'any',
-                value:'any',
-                center:'boolean|undefined',
-                text:'any',
-                popover:'object|undefined',   
+            list: {
+                type: '"list"', value: 'any',options: 'array',
+                size: 'number|undefined',width: 'number|undefined',decay: 'number|undefined',stop: 'number|undefined',
             },
-            list:{
-                type:'"list"',
-                value:'any',
-                options:'array',
-                size:'number|undefined',
-                width:'number|undefined'
+            table: {
+                type: '"table"', value: 'array|undefined',placeholder: 'any',onChangeSort: 'function|undefined',
+                columns: 'array|undefined',onSwap: 'function|undefined|true',getValue: 'object|undefined',
+                rowAttrs: 'function|undefined',excel: 'boolean|undefined',
+                toolbar: 'any', toolbarAttrs: 'function|object|undefined',
+                disabled, loading: 'any',paging: 'object|undefined',
+                rowGap: 'number|undefined', columnGap: 'number|undefined',
+                onAdd: 'function|object|undefined', onRemove: 'function|boolean|undefined',
+                onSearch: 'function|boolean|undefined',headerAttrs: 'function|object|undefined',
+                rowTemplate: 'function|undefined', rowsTemplate: 'function|undefined',
+                rowAfter: 'function|undefined', rowBefore: 'function|undefined'
             },
-            table:{
-                type:'"table"',
-                placeholder:'any',
-                value:'array|undefined',
-                columns:'array|undefined',
-                onSwap:'function|undefined|true',
-                getValue:'object|undefined',
-                rowAttrs:'function|undefined',
-                excel:'boolean|undefined',
-                toolbar:'any',
-                toolbarAttrs:'function|object|undefined',
-                rowGap:'number|undefined',
-                columnGap:'number|undefined',
-                onAdd:'function|object|undefined',
+            map: {
+                type: '"map"', value: 'object|undefined',onChangeAddress: 'function|undefined',
+                popup: 'object|undefined',mapConfig: 'object|undefined',before: 'any', after: 'any', subtext,disabled, loading: 'any'
             }
         }
         let privateObject = dic[type];
-        if(!privateObject){return}
-        let publicObject = {
-            attrs:'object|undefined',onChange:'function|undefined',rtl:'boolean|undefined',justify:'boolean|undefined'
-        }
-        return {...publicObject,...privateObject}
+        if (!privateObject) { return }
+        let publicObject = {attrs: 'object|undefined', onChange: 'function|undefined', rtl: 'boolean|undefined', justify: 'boolean|undefined'}
+        return { ...publicObject, ...privateObject }
     }
     getMessage = (type) => {
         let validProps = this.getValidateObject(type)
-        if(!validProps){
-            return `${type} validator is not implement`
-
-        }
-        for(let prop in this.props){
-            if(!validProps[prop]){return `${this.titr} in type="${type}", ${prop} is invalid props`}
-            let error = this.checkTypes(this.props[prop],validProps[prop])
-            if(error){
+        if (!validProps) { return `${type} validator is not implement` }
+        for (let prop in this.props) {
+            if (!validProps[prop]) { return `${this.titr} in type="${type}", ${prop} is invalid props` }
+            let error = this.checkTypes(this.props[prop], validProps[prop])
+            if (error) {
                 return `${this.titr} in type="${type}", ${prop} props ${error}`
             }
         }

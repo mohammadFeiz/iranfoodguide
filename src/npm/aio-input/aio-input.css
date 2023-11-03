@@ -11,6 +11,7 @@
     padding: 6px;
     background:#fff;
     gap:6px;
+    font-family:inherit;
 }
 
 .aio-input input {
@@ -295,11 +296,6 @@
     left: unset;
 }
 
-
-
-
-
-
 .aio-input-check-out {
     color: dodgerblue;
     border: 1px solid;
@@ -316,8 +312,6 @@
 .aio-input-check-out.round {
     border-radius:100%;
 }
-
-
 
 .aio-input-tabs {
     padding-bottom: 0;
@@ -411,8 +405,6 @@
     /* display: none; */
 }
 
-
-
 .aio-input-text input {
     border: none;
     width: 100%;
@@ -476,7 +468,9 @@
 .aio-input-slider-vertical .aio-input-slider-value {
     height: 100%;
 }
-
+.aio-input-slider-value{
+    overflow:visible;
+}
 .aio-input-number {
     height: 36px;
 }
@@ -500,7 +494,6 @@
     color: inherit;
     box-sizing: border-box;
 }
-
 
 .aio-input-text-subtext,
 .aio-input-password-subtext,
@@ -1235,7 +1228,7 @@
     color: #FFFFFF;
     cursor: pointer;
     display: inline-flex;
-    font-family: CircularStd, sans-serif;
+    font-family: CircularStd, sans-serif inherit;
     font-size: 1rem;
     height: auto;
     justify-content: center;
@@ -1567,29 +1560,38 @@
     width:fit-content;
 }
 @import url('https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.css');
+.aio-input-map-container{
+    width:100%;
+    height:240px;
+    position: relative;
+    overflow:hidden;
+    border:1px solid #ddd;
+    font-family: inherit;
+    min-height:240px;
+}
+.aio-input-map{
+    direction: rtl;
+}
 .leaflet-control{
     display: none;
 }
-.aio-map{
-    position: relative;
-    overflow:hidden;
-}
-.aio-map-footer{
+.aio-input-map-footer{
     width:100%;
     z-index:10;
-    position: absolute;
     background:#fff;
     bottom:0;
-    width:100%;
+    width:calc(100% - 2px);
     border:1px solid #ddd;
     overflow:visible !important;
     border-radius:4px;
     padding:12px;
+    box-sizing: border-box;
     display:flex;
     border-radius:16px 16px 0 0;
     align-items: center;
+    font-family:inherit;
 }
-.aio-map-address{
+.aio-input-map-address{
     width:100%;
     font-size:12px;
     align-items: center;
@@ -1597,21 +1599,23 @@
     font-weight: bold;
     flex:1;
 }
-.aio-map-latlng{
+.aio-input-map-coords{
     width:100%;
     font-size:10px;
     align-items: center;
     text-align: right;
     flex:1;
 }
-.aio-map-submit-button{
+.aio-input-map-submit{
     border:none;
     background:dodgerblue;
     color:#fff;
     width:100%;
     height:30px;
     padding:0 16px;
+    box-sizing: border-box;
     border-radius:4px;
+    font-family: inherit;
 }
 .leaflet-marker-icon{
     display:flex;
@@ -1620,7 +1624,7 @@
     border:none;
     background:none;
 }
-.aio-map-marker-text{
+.aio-input-map-marker-text{
     position:absolute;
     top:calc(100% + 16px);
     width:fit-content;
@@ -1628,53 +1632,55 @@
     white-space: nowrap;
 }
 
-.aio-map-header{
-    position: absolute;
+.aio-input-map-header{
     direction:rtl;
     padding:12px;
-    width: 100%;
+    width: calc(100% - 2px);
     left: 0; 
     top: 0;
+    box-sizing: border-box;
     z-index: 1000;
     background:#fff;
     box-shadow:0 0 12px 0 rgba(0,0,0,0.4)
 }
-.aio-map-header-open{
+.aio-input-map-header-open{
     height:100%;
 }
-.aio-map-title{
+.aio-input-map-title{
     font-size:14px;
     flex:1;
     font-weight: bold;
 }
-.aio-map-close{
+.aio-input-map-close{
     width:36px;
 }
-.aio-map-search{
+.aio-input-map-search{
     border:1px solid #ddd;
     margin-top:12px;
     border-radius:4px;   
     color:#666;
 }
-.aio-map-search-results{
+.aio-input-map-serach-results{
     background: rgba(255,255,255,1);
     padding:12px 0;
+    box-sizing: border-box;
     overflow-y:auto;
     margin-top:3px;
     border-radius:4px;
     flex:1;
 }
-.aio-map-search-result{
+.aio-input-map-search-result{
     padding: 6px 12px;
+    box-sizing: border-box;
     font-size:12px;
     justify-content: center;
     border-bottom:1px solid #eee;
 }
-.aio-map-search-result-subtext{
+.aio-input-map-serach-result-subtext{
     font-size:90%;
     color:navy;
 }
-.aio-map-search-input{
+.aio-input-map-serach-input{
     width: 100%;
     height: 36px;
     box-sizing: border-box;
@@ -1684,11 +1690,11 @@
     border: none;
     color:inherit;
 }
-.aio-map-search-icon{
+.aio-input-map-serach-icon{
     background:#fff;
     border-radius:4px 0 0 4px;
     width:36px;
 }
-.aio-map-current-point{
+.aio-input-map-current-point{
     width:36px;
 }
