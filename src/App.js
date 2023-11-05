@@ -27,7 +27,7 @@ AIOInput.defaults.validate = true;
 export default class App extends Component {
   constructor(props) {
     super(props);
-    //this.baseUrl = 'https://localhost:7203'
+   // this.baseUrl = 'https://localhost:7203'
     this.baseUrl = 'https://iranfoodguide.ir'
     this.state = {
       loginClass: new AIOLogin({

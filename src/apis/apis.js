@@ -31,25 +31,32 @@ export default function getApiFunctions(obj) {
         backOffice: backOfficeApis(obj),
         profile: profileApis(obj),
         reserve: reserveApis(obj),
-        async add_or_edit_image({imageId,imageFile,type,imageUrl}){
+        async add_or_edit_image({imageObject,type}){
+            debugger
             //return MockApis.add_or_edit_image({type,imageUrl,imageObject})
             if(type === 'add'){
-                let apiUrl = `${baseUrl}/RestaurantFood/AddImage`;
+                let apiUrl = `${baseUrl}/Image/UploadImage`;
                 let formData = new FormData()
-                formData.append('imageFile', imageFile, imageFile.name)
+                formData.append('imageFile', imageObject.file, imageObject.file.name)
+                formData.append('title', imageObject.file.name)
+                formData.append('imageId', imageObject.id)
                 let body = formData;
                 let response = await Axios.post(apiUrl, body)
-                let {id,url} = response.data;
+                debugger
+                let {id,url} = response.data.data;
                 let result = {id,url};
                 return {response,result}
             }
             else if(type === 'edit'){
-                let apiUrl = `${baseUrl}/RestaurantFood/AddImage`;
+                let apiUrl = `${baseUrl}/Image/UploadImage`;
                 let formData = new FormData()
-                formData.append('imageFile', imageFile, imageFile.name)
+                formData.append('imageFile', imageObject.file, imageObject.file.name)
+                formData.append('title', imageObject.file.name)
+                formData.append('imageId', imageObject.id)
                 let body = formData;
                 let response = await Axios.post(apiUrl, body)
-                let {id,url} = response.data;
+                debugger
+                let {id,url} = response.data.data;
                 let result = {id,url};
                 return {response,result}
             }
