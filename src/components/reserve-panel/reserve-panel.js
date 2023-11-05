@@ -248,13 +248,13 @@ class ReserveForm extends Component {
             ]
         }
     }
-    async changeImages(imageObject,imageFile,imageUrl){
+    async changeImages(o){
         let {apis} = this.context;
-        let {onChange,item} = this.props;
-        let type = imageObject === false?'add':'edit'
+        let {item,onChange} = this.props;
+        let type = o.id === undefined?'add':'edit';
         apis.request({
             api:'add_or_edit_image',
-            parameter:{imageObject,imageFile,type,imageUrl},
+            parameter:{imageObject:o,type},
             description:`${type === 'add'?'افزودن':'ویرایش'} تصویر آیتم رزرو`,
             onSuccess:({url,id})=>{
                 let newImages;
@@ -269,7 +269,7 @@ class ReserveForm extends Component {
         let { timeTypes } = this.state;
         let images = [...item.images]
         while(images.length < 3){
-            images.push({url:''})
+            images.push(false)
         }
         return (
             <AIOInput
@@ -293,7 +293,9 @@ class ReserveForm extends Component {
                                             html: (
                                                 <AIOInput
                                                     type='image' attrs={{ className: 'reserve-panel-image' }} value={o} placeholder='انتخاب تصویر' width={96}
-                                                    onChange={({file,url})=>this.changeImages(o,file,url)}
+                                                    onChange={(o)=>{
+                                                        this.changeImages(o)
+                                                    }}
                                                 />
                                             )
                                         }
