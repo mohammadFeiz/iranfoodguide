@@ -269,7 +269,7 @@ class ReserveForm extends Component {
         let { timeTypes } = this.state;
         let images = [...item.images]
         while(images.length < 3){
-            images.push(false)
+            images.push({url:''})
         }
         return (
             <AIOInput
@@ -288,7 +288,7 @@ class ReserveForm extends Component {
                             column: [
                                 { html: 'تصاویر' },
                                 {
-                                    row: item.images.map((o,i) => {
+                                    row: images.map((o,i) => {
                                         return {
                                             html: (
                                                 <AIOInput
