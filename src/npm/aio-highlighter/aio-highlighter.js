@@ -1,5 +1,5 @@
 import React ,{Component}from "react";
-import RVD from './../react-virtual-dom/react-virtual-dom';
+import RVD from 'react-virtual-dom';
 import AIOStorage from './../../npm/aio-storage/aio-storage';
 import anime from "animejs/lib/anime.es.js";
 import "./aio-highlighter.css";

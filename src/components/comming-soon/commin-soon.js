@@ -3,7 +3,7 @@ import logo from './../../svgs/logo';
 import png1 from './../../images/png1.png';
 import comminsoonSVG from './../../svgs/commin-soon';
 import iranfoodguideSVG from './../../svgs/iranfoodguide';
-import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
+import RVD from './../../npm/react-virtual-dom';
 import AppContext from "../../app-context";
 import './comming-soon.css';
 export default class CommingSoon extends Component {

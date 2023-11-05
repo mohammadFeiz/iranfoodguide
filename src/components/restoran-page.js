@@ -1,7 +1,7 @@
 import React, { Component, useContext } from 'react';
-import RVD from './../npm/react-virtual-dom/react-virtual-dom';
+import RVD from './../npm/react-virtual-dom';
 import AIOInput from '../npm/aio-input/aio-input';
-import AIODate from '../npm/aio-date/aio-date';
+import AIODate from '../npm/aio-date';
 import AIOStorage from './../npm/aio-storage/aio-storage';
 import Map from './../npm/map/map';
 import { Icon } from '@mdi/react';

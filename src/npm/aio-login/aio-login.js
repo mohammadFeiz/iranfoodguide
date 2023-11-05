@@ -1,5 +1,5 @@
 import React, { Component, createRef } from 'react';
-import RVD from './../react-virtual-dom/react-virtual-dom';
+import RVD from 'react-virtual-dom';
 import AIOStorage from './../aio-storage/aio-storage';
 import AIOInput from './../aio-input/aio-input';
 import { Icon } from '@mdi/react';

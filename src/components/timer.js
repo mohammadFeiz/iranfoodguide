@@ -1,6 +1,6 @@
 import React,{Component} from "react";
-import RVD from './../npm/react-virtual-dom/react-virtual-dom';
-import AIODate from './../npm/aio-date/aio-date';
+import RVD from './../npm/react-virtual-dom';
+import AIODate from './../npm/aio-date';
 import { icons } from "../icons";
 export default class Timer extends Component{
     constructor(props){

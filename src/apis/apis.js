@@ -15,6 +15,7 @@ import shandiz_image from '../images/shandiz_image.png';
 import pasta_alferedo from '../images/pasta_alferedo.png';
 import ghaem_image from '../images/ghaem_image.png';
 import ghaem_logo from '../images/ghaem_logo.png';
+import AIOStorage from './../npm/aio-storage/aio-storage';
 
 /**********************restoran data model**************************************** */
 //name: String,image: String,logo: String,latitude: Number,longitude: Number,startTime:0,endTime:0,
@@ -30,6 +31,30 @@ export default function getApiFunctions(obj) {
         backOffice: backOfficeApis(obj),
         profile: profileApis(obj),
         reserve: reserveApis(obj),
+        async add_or_edit_image({imageObject,imageFile,type,imageUrl}){
+            //return MockApis.add_or_edit_image({type,imageUrl,imageObject})
+            if(type === 'add'){
+                let apiUrl = `${baseUrl}/RestaurantFood/AddImage`;
+                let formData = new FormData()
+                formData.append('imageFile', imageFile, imageFile.name)
+                let body = formData;
+                let response = await Axios.post(apiUrl, body)
+                let {id,url} = response.data;
+                let result = {id,url};
+                return {response,result}
+            }
+            else if(type === 'edit'){
+                let imageId = imageObject.id;
+                let apiUrl = `${baseUrl}/RestaurantFood/AddImage`;
+                let formData = new FormData()
+                formData.append('imageFile', imageFile, imageFile.name)
+                let body = formData;
+                let response = await Axios.post(apiUrl, body)
+                let {id,url} = response.data;
+                let result = {id,url};
+                return {response,result}
+            }
+        },
         async peygiriye_sefaresh(orderId) {
             return { result: { statusId: 1, totalPrice: 12344444, id: 88678 } }
             let url = `${baseUrl}/Order/InquiryOrder`;
@@ -150,7 +175,21 @@ export default function getApiFunctions(obj) {
 
 
 const MockApis = {
-
+    add_or_edit_image({type,imageUrl,imageObject}){
+        let storage = AIOStorage('ifgreservemockserver');
+        let images = storage.load({name:'images',def:[]})
+        if(type === 'add'){
+            let id = 'sss' + Math.round(Math.random() * 10000000)
+            let newImages = images.concat({id,url:imageUrl});
+            storage.save({name:'images',value:newImages})
+            return {result:{id,url:imageUrl}}
+        }
+        else {
+            let newImages = images.map((o)=>o.id === imageObject.id?{...o,url:imageUrl}:o);
+            storage.save({name:'images',value:newImages})
+            return {result:{id:imageObject.id,url:imageUrl}}
+        }
+    },
     safheye_sefaresh(res) {
         let result = [
             {

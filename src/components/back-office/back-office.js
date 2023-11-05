@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import AIOInput from './../../npm/aio-input/aio-input';
-import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
+import RVD from './../../npm/react-virtual-dom';
 import Restorans from "./restorans";
 import BOContext from "./back-office-context";
 import { Icon } from "@mdi/react";

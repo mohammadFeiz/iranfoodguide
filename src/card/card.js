@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import RVD from '../npm/react-virtual-dom/react-virtual-dom';
+import RVD from '../npm/react-virtual-dom';
 import calculateDistance from "../npm/aio-functions/calculate-distance";
 import { icons } from "../icons";
 import './card.css';

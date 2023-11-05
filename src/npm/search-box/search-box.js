@@ -1,5 +1,5 @@
 import React,{Component} from "react";
-import RVD from './../react-virtual-dom/react-virtual-dom';
+import RVD from 'react-virtual-dom';
 import AIOInput from "../aio-input/aio-input";
 import {Icon} from "@mdi/react";
 import { mdiDeleteOutline, mdiHistory, mdiMagnify } from "@mdi/js";

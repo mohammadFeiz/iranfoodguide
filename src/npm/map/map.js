@@ -1,5 +1,5 @@
 import React, { Component, useEffect, useRef, useState, createRef } from "react";
-import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
+import RVD from 'react-virtual-dom';
 import Axios from 'axios';
 import { Icon } from '@mdi/react';
 import { mdiClose, mdiCrosshairsGps, mdiLoading, mdiMagnify } from '@mdi/js';

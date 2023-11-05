@@ -1,5 +1,5 @@
 import React,{Component} from "react";
-import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
+import RVD from './../../npm/react-virtual-dom';
 import SplitNumber from "../../npm/aio-functions/split-number";
 import PopupHeader from './../../components/popup-header';
 import AppContext from "../../app-context";

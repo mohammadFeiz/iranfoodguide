@@ -19,22 +19,46 @@
 ///////////////////////////////////////////////////////////////////////////
 import AIOStorage from './../npm/aio-storage/aio-storage';
 export default function reserveApis({ baseUrl,Axios,helper }) {
-    function MapReserveItems(data = []){
+    function ReserveItemToClient(o){
         try{
-            return data.map((o) => {
-                return {
-                    id:o.id,
-                    name: o.name, // نام آیتم
-                    description: o.description, // توضیحات آیتم
-                    countType: o.countType || false, //سفارس بر اساس تعداد می باشد یا خیر
-                    minCount: o.minLimitCount, //حداقل تعداد قابل سفارش
-                    maxCount: o.maxLimitCount, //حداکثر تعداد قابل سفارش
-                    timeType: o.isDaily ? "day" : "hour", // واحد زمانی آیتم روز یا ساعت
-                    price: o.price, // قیمت واحد
-                    returnAmount: o.isReturnAmount, //آیا رقم روی فاکتور بر می گردد؟
-                    preOrderTime: isNaN(o.preOrderTime)?0:o.preOrderTime//مدت زمانی که طول میکشه سفارش آماده بشه
-                }
-            });
+            let res = {
+                id:o.id,
+                images:[],
+                name: o.name || '', // نام آیتم
+                description: o.description || '', // توضیحات آیتم
+                countType: o.countType || false, //سفارس بر اساس تعداد می باشد یا خیر
+                minCount: isNaN(o.minLimitCount)?0:o.minLimitCount, //حداقل تعداد قابل سفارش
+                maxCount: isNaN(o.maxLimitCount)?0:o.maxLimitCount, //حداکثر تعداد قابل سفارش
+                timeType: o.isDaily === 1 ? "day" : "hour", // واحد زمانی آیتم روز یا ساعت
+                price: isNaN(o.price)?0:o.price, // قیمت واحد
+                returnAmount: o.isReturnAmount || false, //آیا رقم روی فاکتور بر می گردد؟
+                preOrderTime: isNaN(o.preOrderTime)?0:o.preOrderTime//مدت زمانی که طول میکشه سفارش آماده بشه
+            }
+            return res
+        }
+        catch(error){
+            helper.showAlert({type:'error',text:'map reserve item error',subtext:error.message});
+            return []
+        }
+    }
+    async function ReserveItemToServer(item,type){
+        try{
+            return {
+                "images":item.images || [],
+                "id": type === 'edit' ? item.id : undefined,
+                "Id": type === 'edit' ? item.id : undefined,
+                "name": item.name || '',
+                "restaurantId": 30,//restoranId
+                "description": item.description || '',
+                "maxLimitCount": item.maxCount || 0,
+                "minLimitCount": item.minCount || 0,
+                "countType": item.countType || false,
+                "guestCount": 0,
+                "price": item.price || 0,
+                "isReturnAmount": item.returnAmount || false,
+                "preOrderTime": item.preOrderTime || 0,
+                "isDaily": item.timeType === 'day'
+            }
         }
         catch(error){
             helper.showAlert({type:'error',text:'map reserve items error',subtext:error.message});
@@ -43,41 +67,26 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
     }
     return {
         get_restoran_reserve_items: async ({ restoranId }) => {
+            //return getMockApis.get_restoran_reserve_items();
             let url = `${baseUrl}/RestaurantReservasionPlan/Search`;
             //create from searchObject
             //let { pageSize = 1000, pageNumber = 1, selected_tags = [], searchValue } = searchObject;
             let body = {
-
                 // RecordsPerPage: pageSize,// تعداد ریزالت در هر صفحه
                 // pageNumber: pageNumber,// شماره صفحه
                 restaurantId: 30// array id tags
             }
             let response = await Axios.post(url, body);
             let data = response.data.data.items
-            debugger
-            let result = MapReserveItems(data)
+            let result = data.map((o)=>ReserveItemToClient(o))
             return { response, result }
         },
         add_or_edit_restoran_reserve_item: async ({ restoranId, item, type }) => {
+            //return getMockApis.add_or_edit_restoran_reserve_item({item,type})
             //restoranId آی دی رستوران
             //item آیتم رزرو رستوران برای افزودن
             //type "add" | "edit"
-            debugger
-            let body = {
-                "id": type === 'edit' ? item.id : undefined,
-                "Id": type === 'edit' ? item.id : undefined,
-                "name": item.name,
-                "restaurantId": 30,//restoranId
-                "description": item.description,
-                "maxLimitCount": item.maxCount || 0,
-                "minLimitCount": item.minCount || 0,
-                "countType": item.countType,
-                "guestCount": 0,
-                "price": item.price,
-                "isReturnAmount": item.returnAmount,
-                "PreOrderTimeCount": item.preOrderTime || 0,
-                "isDaily": item.timeType === 'day'?true:false
-            }
+            let body = ReserveItemToServer(item,type);
             let response, result;
             if (type === 'add') {
                 response = await Axios.post(`${baseUrl}/RestaurantReservasionPlan/Create`, body);
@@ -87,10 +96,8 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
                 response = await Axios.put(`${baseUrl}/RestaurantReservasionPlan/Edit`, body);
                 result = true
             }
+
             return { response, result }
-
-
-            return { mock: true }
         },
         remove_restoran_reserve_item: async ({ restoranId, itemId }) => {
             let url = `${baseUrl}/RestaurantReservasionPlan?Id=${itemId.toString()}`;
@@ -138,6 +145,7 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
 
 const getMockApis = {
     get_restoran_reserve_items(parameter,{mockStorage}){
+        debugger
         let storage = AIOStorage('ifgreservemockserver');
         let res = storage.load({name:'items',def:[]})
         return {result:res}

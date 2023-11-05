@@ -1,14 +1,14 @@
 import React, { Component, useState } from "react";
-import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
+import RVD from './../../npm/react-virtual-dom';
 import AIOInput from "../../npm/aio-input/aio-input";
-import AIODate from "../../npm/aio-date/aio-date";
+import AIODate from "../../npm/aio-date";
 import AIOStorage from './../../npm/aio-storage/aio-storage';
 import ICS from './../../npm/aio-content-slider/aio-content-slider';
 import AppContext from "../../app-context";
 import './reserve-panel.css';
 import { Icon } from '@mdi/react';
 import { mdiAlert, mdiCheck, mdiCheckCircle, mdiCheckCircleOutline, mdiChevronDown, mdiChevronLeft, mdiClose, mdiCloseCircle, mdiDelete, mdiPlusThick } from "@mdi/js";
-export default class Profile extends Component {
+export default class ReservePanel extends Component {
     static contextType = AppContext;
     constructor(props) {
         super(props);
@@ -29,7 +29,7 @@ export default class Profile extends Component {
     }
     addItem() {
         let addItem = {
-            id: Math.round(Math.random() * 100000), image1: {url:''}, image2: {url:''}, image3: {url:''}, isSubmited: false, added: false, name: '', description: '',
+            id: Math.round(Math.random() * 100000), images: [], isSubmited: false, added: false, name: '', description: '',
             countType: false, minCount: false, maxCount: false, countUnit: 'عدد', returnAmount: false, timeType: '', price: '', preOrderTime: 0, timeLimits: [[], [], [], [], [], [], []], hasError: true
         }
         let { reserveItems } = this.state;
@@ -65,17 +65,6 @@ export default class Profile extends Component {
                 newItem = { ...newItem, added: true, isSubmited: true }
                 if (type === 'add') { newItem.id = p.id; }
                 this.changeItem(newItem);
-                for(let i = 0; i < 2; i++){
-                    let imageKey = 'image' + (i + 1);
-                    if(newItem[imageKey]){
-                        let res = await apis.request({
-                            api:'edit_restoran_reserve_item_image',
-                            description:'ذخیره تصاویر آیتم رزرو رستوران',
-                            parameter:{image:item[imageKey],itemId:newItem.id},
-                            onError:()=>this.changeItem({...newItem,[imageKey]:undefined})
-                        })
-                    }
-                }
             }
         })
 
@@ -171,6 +160,7 @@ export default class Profile extends Component {
     }
 }
 class ReserveForm extends Component {
+    static contextType = AppContext;
     constructor(props) {
         super(props);
         this.state = {
@@ -258,9 +248,29 @@ class ReserveForm extends Component {
             ]
         }
     }
+    async changeImages(imageObject,imageFile,imageUrl){
+        let {apis} = this.context;
+        let {onChange,item} = this.props;
+        let type = imageObject === false?'add':'edit'
+        apis({
+            api:'add_or_edit_image',
+            parameter:{imageObject,imageFile,type,imageUrl},
+            description:`${type === 'add'?'افزودن':'ویرایش'} تصویر آیتم رزرو`,
+            onSuccess:({url,id})=>{
+                let newImages;
+                if(type === 'add'){newImages = item.images.concat({url,id});}
+                else {newImages = item.images.map((o)=>o.id === id?{id,url}:o);}
+                onChange({ ...item, images: newImages, isSubmited: false })
+            }
+        })
+    }
     render() {
         let { item, onChange } = this.props;
         let { timeTypes } = this.state;
+        let images = [...item.images]
+        while(images.length < 3){
+            images.push(false)
+        }
         return (
             <AIOInput
                 type='form' lang='fa'
@@ -278,12 +288,12 @@ class ReserveForm extends Component {
                             column: [
                                 { html: 'تصاویر' },
                                 {
-                                    row: ['1', '2', '3'].map((o) => {
+                                    row: item.images.map((o,i) => {
                                         return {
                                             html: (
                                                 <AIOInput
-                                                    type='image' attrs={{ className: 'reserve-panel-image' }} value={item['image' + o]} placeholder='انتخاب تصویر' width={96}
-                                                    onChange={(imageObject) => onChange({ ...item, ['image' + o]: imageObject, isSubmited: false })}
+                                                    type='image' attrs={{ className: 'reserve-panel-image' }} value={o} placeholder='انتخاب تصویر' width={96}
+                                                    onChange={({file,url})=>this.changeImages(o,file,url)}
                                                 />
                                             )
                                         }

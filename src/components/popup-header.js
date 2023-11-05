@@ -1,5 +1,5 @@
 import React,{Component} from "react";
-import RVD from './../npm/react-virtual-dom/react-virtual-dom';
+import RVD from './../npm/react-virtual-dom';
 import AppContext from "../app-context";
 import { Icon } from '@mdi/react';
 import { mdiChevronRight } from "@mdi/js";

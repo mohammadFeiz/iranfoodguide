@@ -1,16 +1,15 @@
 import React, { Component, useEffect, useState } from 'react';
 //import AIOShopBackOffice from './back-office';
 import AIOStorage from '../aio-storage/aio-storage';
-import AIOPopup from '../aio-popup/aio-popup';
+import AIOPopup from 'aio-popup';
 import { Icon } from '@mdi/react';
 import { mdiStar, mdiStarOutline, mdiStarHalfFull, mdiCircleSmall, mdiCart, mdiChevronDown, mdiChevronLeft, mdiPlus, mdiMinus, mdiTrashCanOutline, mdiMagnify, mdiPlusThick, mdiClose, mdiContentSave, mdiDelete } from '@mdi/js';
-import RVD from '../react-virtual-dom/react-virtual-dom';
+import RVD from 'react-virtual-dom';
 import AIOInput from '../aio-input/aio-input';
 import SplitNumber from '../aio-functions/split-number';
 import { makeAutoObservable } from "mobx";
 import { observer } from "mobx-react-lite";
 import Search from './../aio-functions/search';
-import AIOValidation from '../aio-validation/aio-validation';
 import './aio-shop.css';
 
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {

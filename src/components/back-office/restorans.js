@@ -2,7 +2,7 @@ import React, { Component, createContext } from "react";
 import AIOPopup from "../../npm/aio-popup/aio-popup";
 import AIOInput from './../../npm/aio-input/aio-input';
 import AIOSHOP from './../../npm/aio-shop/aio-shop';
-import RVD from './../../npm/react-virtual-dom/react-virtual-dom';
+import RVD from './../../npm/react-virtual-dom';
 import Map from './../../npm/map/map';
 import BOContext from "./back-office-context";
 import { Icon } from "@mdi/react";

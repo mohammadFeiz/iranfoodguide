@@ -4,7 +4,7 @@ import BackOffice from './components/back-office/back-office';
 import AIOStorage from './npm/aio-storage/aio-storage';
 import AIOService from './npm/aio-service/aio-service';
 import AIOInput from './npm/aio-input/aio-input';
-import RVD from './npm/react-virtual-dom/react-virtual-dom';
+import RVD from './npm/react-virtual-dom';
 import AIOLogin from './npm/aio-login/aio-login';
 import getApiFunctions from './apis/apis';
 import AppContext from './app-context';

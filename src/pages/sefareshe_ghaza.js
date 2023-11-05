@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import RVD from './../npm/react-virtual-dom/react-virtual-dom';
+import RVD from './../npm/react-virtual-dom';
 import ACS from './../npm/aio-content-slider/aio-content-slider';
 import Card from './../card/card';
 import Timer from "../components/timer";
