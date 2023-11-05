@@ -31,7 +31,7 @@ export default function getApiFunctions(obj) {
         backOffice: backOfficeApis(obj),
         profile: profileApis(obj),
         reserve: reserveApis(obj),
-        async add_or_edit_image({imageObject,imageFile,type,imageUrl}){
+        async add_or_edit_image({imageId,imageFile,type,imageUrl}){
             //return MockApis.add_or_edit_image({type,imageUrl,imageObject})
             if(type === 'add'){
                 let apiUrl = `${baseUrl}/RestaurantFood/AddImage`;
@@ -44,7 +44,6 @@ export default function getApiFunctions(obj) {
                 return {response,result}
             }
             else if(type === 'edit'){
-                let imageId = imageObject.id;
                 let apiUrl = `${baseUrl}/RestaurantFood/AddImage`;
                 let formData = new FormData()
                 formData.append('imageFile', imageFile, imageFile.name)
