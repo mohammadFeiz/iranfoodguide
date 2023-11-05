@@ -252,7 +252,7 @@ class ReserveForm extends Component {
         let {apis} = this.context;
         let {onChange,item} = this.props;
         let type = imageObject === false?'add':'edit'
-        apis({
+        apis.request({
             api:'add_or_edit_image',
             parameter:{imageObject,imageFile,type,imageUrl},
             description:`${type === 'add'?'افزودن':'ویرایش'} تصویر آیتم رزرو`,
