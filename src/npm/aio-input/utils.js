@@ -253,7 +253,7 @@ export class AIOInputValidate {
             number: {
                 type: '"number"',swip: 'boolean|undefined',popover: 'object|undefined',placeholder: 'any',
                 options, optionText, optionValue, optionBefore, optionAfter, optionSubtext, optionDisabled, optionAttrs, optionCheckIcon,
-                inputAttrs: "object|undefined",value: '""|number|undefined',caret: 'any',before: 'any', after: 'any', subtext,disabled, loading: 'any',
+                inputAttrs: "object|undefined",value: '""|number|undefined|false|null',caret: 'any',before: 'any', after: 'any', subtext,disabled, loading: 'any',
             },
             radio: {
                 type: '"radio"', value: 'any',multiple: 'boolean|undefined',before: 'any', after: 'any', subtext,disabled, loading: 'any',
@@ -315,7 +315,7 @@ export class AIOInputValidate {
                 pattern: 'string|undefined',dateDisabled: 'array|undefined',dateAttrs: 'function|undefined',remove: 'boolean|undefined'
             },
             image: {
-                type: '"image"', value: 'object|undefined',before: 'any', after: 'any', subtext,
+                type: '"image"', value: 'object|undefined|false|null',before: 'any', after: 'any', subtext,
                 placeholder: 'any',attrs: 'object|undefined',preview: 'boolean|undefined',disabled, loading: 'any',
                 width: 'string|number|undefined', height: 'string|number|undefined',
             },

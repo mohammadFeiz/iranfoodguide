@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import AIOStorage from './../../npm/aio-storage/aio-storage';
+import AIOStorage from 'aio-storage';
 import { Icon } from '@mdi/react';
 import { mdiMenu, mdiChevronRight, mdiChevronLeft, mdiChevronDown } from '@mdi/js';
 import RVD from 'react-virtual-dom';

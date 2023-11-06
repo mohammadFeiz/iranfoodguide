@@ -17,7 +17,7 @@
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
-import AIOStorage from './../npm/aio-storage/aio-storage';
+import AIOStorage from 'aio-storage';
 export default function reserveApis({ baseUrl,Axios,helper }) {
     function ReserveItemToClient(o){
         try{
@@ -66,8 +66,8 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
         }
     }
     return {
-        get_restoran_reserve_items: async ({ restoranId }) => {
-            //return getMockApis.get_restoran_reserve_items();
+        get_restoran_reserve_items: async ({ restoranId },{mock}) => {
+            if(mock.reserve){return getMockApis.get_restoran_reserve_items();}
             let url = `${baseUrl}/RestaurantReservasionPlan/Search`;
             //create from searchObject
             //let { pageSize = 1000, pageNumber = 1, selected_tags = [], searchValue } = searchObject;
@@ -81,8 +81,8 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
             let result = data.map((o)=>ReserveItemToClient(o))
             return { response, result }
         },
-        add_or_edit_restoran_reserve_item: async ({ restoranId, item, type }) => {
-            //return getMockApis.add_or_edit_restoran_reserve_item({item,type})
+        add_or_edit_restoran_reserve_item: async ({ restoranId, item, type },{mock}) => {
+            if(mock.reserve){return getMockApis.add_or_edit_restoran_reserve_item({item,type})}
             //restoranId آی دی رستوران
             //item آیتم رزرو رستوران برای افزودن
             //type "add" | "edit"
@@ -99,7 +99,8 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
 
             return { response, result }
         },
-        remove_restoran_reserve_item: async ({ restoranId, itemId }) => {
+        remove_restoran_reserve_item: async ({ restoranId, itemId },{mock}) => {
+            if(mock.reserve){return getMockApis.remove_restoran_reserve_item({itemId})}
             let url = `${baseUrl}/RestaurantReservasionPlan?Id=${itemId.toString()}`;
             let response = await Axios.delete(url);
             return { response, result: true }
@@ -144,13 +145,13 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
 
 
 const getMockApis = {
-    get_restoran_reserve_items(parameter,{mockStorage}){
-        debugger
+    get_restoran_reserve_items(){
         let storage = AIOStorage('ifgreservemockserver');
         let res = storage.load({name:'items',def:[]})
         return {result:res}
     },
-    add_or_edit_restoran_reserve_item({restoranId,item,type},{mockStorage}){
+    add_or_edit_restoran_reserve_item(parameter){
+        let {item,type} = parameter;
         let storage = AIOStorage('ifgreservemockserver');
         let items = storage.load({name:'items',def:[]})
         if(type === 'add'){
@@ -163,14 +164,17 @@ const getMockApis = {
         else {
             items = items.map((o)=>o.id === item.id?item:o);
             storage.save({name:'items',value:items})
+            return {result:true}
         }
         
     },
-    remove_restoran_reserve_item({restoranId,itemId},{mockStorage}){
+    remove_restoran_reserve_item(parameter){
+        let {itemId} = parameter
         let storage = AIOStorage('ifgreservemockserver');
         let items = storage.load({name:'items',def:[]})
         items = items.filter((o)=>o.id !== itemId);
         storage.save({name:'items',value:items})
+        return {result:true}
     },
     get_restoran_reserve_capacity(parameter,{mockStorage}){
         let result = [

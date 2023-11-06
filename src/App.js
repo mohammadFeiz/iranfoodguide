@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import RSA from './npm/react-super-app/react-super-app';
 import BackOffice from './components/back-office/back-office';
-import AIOStorage from './npm/aio-storage/aio-storage';
+import AIOStorage from 'aio-storage';
 import AIOService from './npm/aio-service/aio-service';
 import AIOInput from './npm/aio-input/aio-input';
 import RVD from './npm/react-virtual-dom';
@@ -166,6 +166,9 @@ class IranFoodGuide extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      mock:{
+        reserve:false
+      },
       rsa: new RSA({ rtl: true }),
       appSetting: appSetting(),
       isRegistered: props.isRegistered,

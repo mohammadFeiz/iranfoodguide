@@ -1,6 +1,6 @@
 import React, { Component, useEffect, useState } from 'react';
 //import AIOShopBackOffice from './back-office';
-import AIOStorage from '../aio-storage/aio-storage';
+import AIOStorage from 'aio-storage';
 import AIOPopup from 'aio-popup';
 import { Icon } from '@mdi/react';
 import { mdiStar, mdiStarOutline, mdiStarHalfFull, mdiCircleSmall, mdiCart, mdiChevronDown, mdiChevronLeft, mdiPlus, mdiMinus, mdiTrashCanOutline, mdiMagnify, mdiPlusThick, mdiClose, mdiContentSave, mdiDelete } from '@mdi/js';

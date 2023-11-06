@@ -1,6 +1,6 @@
 import React, { Component, ReactNode, useEffect, useState } from 'react';
 //import AIOShopBackOffice from './back-office';
-import AIOStorage from '../aio-storage/aio-storage';
+import AIOStorage from 'aio-storage';
 import AIOPopup from 'aio-popup';
 import { Icon } from '@mdi/react';
 import {

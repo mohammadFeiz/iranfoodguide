@@ -1,9 +1,6 @@
 import React, { Component, useState } from "react";
 import RVD from './../../npm/react-virtual-dom';
 import AIOInput from "../../npm/aio-input/aio-input";
-import AIODate from "../../npm/aio-date";
-import AIOStorage from './../../npm/aio-storage/aio-storage';
-import ICS from './../../npm/aio-content-slider/aio-content-slider';
 import AppContext from "../../app-context";
 import './reserve-panel.css';
 import { Icon } from '@mdi/react';
@@ -24,7 +21,7 @@ export default class ReservePanel extends Component {
         apis.request({
             api: 'reserve.get_restoran_reserve_items', parameter: { restoranId },
             description: 'دریافت خدمات رزرو رستوران در پنل ادمین', def: [],
-            onSuccess: (reserveItems) => this.setState({ reserveItems })
+            onSuccess: (reserveItems) => this.setState({ reserveItems:reserveItems.map((o)=>{return {...o,isSubmited:true,added:true}}) })
         })
     }
     addItem() {
@@ -48,23 +45,30 @@ export default class ReservePanel extends Component {
             }
         })
     }
-    changeItem(newItem) {
+    //آیتمی که اد شده آی دی فیک داره که بعد از اعلام به سرور با آی دی واقعی ویرایشش می کنیم . پس در ادد برای پیدا کردنش آی دی فیک را ارسال می کنیم 
+    changeItem(newItem,fakeId) {
+        let id = fakeId === undefined?newItem.id:fakeId
         let { reserveItems } = this.state;
-        let newItems = reserveItems.map((o, i) => o.id === newItem.id ? { ...newItem } : o);
+        let newItems = reserveItems.map((o, i) => o.id === id ? { ...newItem } : o);
         this.setState({ reserveItems: newItems });
     }
     submit(item) {
         let { apis } = this.context;
         let { restoranId } = this.state;
         let type = item.added === false ? 'add' : 'edit'
+        let fakeId = type === 'add'?item.id:undefined;
         let newItem = { ...item }
         apis.request({
             api: 'reserve.add_or_edit_restoran_reserve_item', parameter: { restoranId, item: newItem, type },
             description: `${type === 'add' ? 'ذخیره' : 'ویرایش'} خدمت رزرو رستوران در پنل ادمین`,
             onSuccess: async (p) => {
                 newItem = { ...newItem, added: true, isSubmited: true }
-                if (type === 'add') { newItem.id = p.id; }
-                this.changeItem(newItem);
+                if (type === 'add') { 
+                    this.changeItem({...newItem,id:p.id},fakeId);
+                }
+                else {
+                    this.changeItem(newItem);
+                }
             }
         })
 
@@ -102,7 +106,8 @@ export default class ReservePanel extends Component {
         }
     }
     form_header(item, open, index) {
-        let { isSubmited, id, name, hasError } = item;
+        let { id, name, hasError } = item;
+        console.log(item)
         return {
             style: { background: 'orange', color: '#fff', height: 36 },
             row: [
@@ -116,11 +121,11 @@ export default class ReservePanel extends Component {
                     show: !hasError,
                     html: (
                         <AIOInput
-                            type='button' text={isSubmited ? 'ثبت شده' : 'ثبت'}
+                            type='button' text={item.isSubmited ? 'ثبت شده' : 'ثبت'}
                             before={<Icon path={mdiCheckCircle} size={1} />}
                             attrs={{
-                                style: { color: isSubmited ? 'green' : 'red', fontWeight: 'bold' },
-                                onClick: isSubmited ? undefined : () => this.submit(item)
+                                style: { color: item.isSubmited ? 'green' : 'red', fontWeight: 'bold' },
+                                onClick: item.isSubmited ? undefined : () => this.submit(item)
                             }}
                         />
                     ),
@@ -248,19 +253,33 @@ class ReserveForm extends Component {
             ]
         }
     }
-    async changeImages(o){
+    async changeImages(changedImageObject,id){
         let {apis} = this.context;
         let {item,onChange} = this.props;
-        let type = o.id === undefined?'add':'edit';
+        let type = id === false?'add':'edit';
         apis.request({
             api:'add_or_edit_image',
-            parameter:{imageObject:o,type},
+            parameter:{imageObject:changedImageObject,type},
             description:`${type === 'add'?'افزودن':'ویرایش'} تصویر آیتم رزرو`,
             onSuccess:({url,id})=>{
                 let newImages;
                 if(type === 'add'){newImages = item.images.concat({url,id});}
                 else {newImages = item.images.map((o)=>o.id === id?{id,url}:o);}
                 onChange({ ...item, images: newImages, isSubmited: false })
+            }
+        })
+    }
+    async removeImage(id){
+        let {apis} = this.context;
+        let {item,onChange} = this.props;
+        apis.request({
+            api:'remove_image',
+            parameter:id,
+            description:`حذف تصویر آیتم رزرو`,
+            onSuccess:()=>{
+                let newImages = item.images.filter((o)=>o.id !== id);
+                let newItem = {...item,images:newImages,isSubmited:false}
+                onChange(newItem)
             }
         })
     }
@@ -289,12 +308,15 @@ class ReserveForm extends Component {
                                 { html: 'تصاویر' },
                                 {
                                     row: images.map((o,i) => {
+                                        let id = typeof o === false?false:o.id;
                                         return {
                                             html: (
                                                 <AIOInput
                                                     type='image' attrs={{ className: 'reserve-panel-image' }} value={o} placeholder='انتخاب تصویر' width={96}
-                                                    onChange={(o)=>{
-                                                        this.changeImages(o)
+                                                    onChange={(changedImageObject)=>{
+
+                                                        if(!changedImageObject){this.removeImage(id)}
+                                                        else {this.changeImages(changedImageObject,id)}
                                                     }}
                                                 />
                                             )

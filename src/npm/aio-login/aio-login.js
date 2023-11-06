@@ -1,6 +1,6 @@
 import React, { Component, createRef } from 'react';
 import RVD from 'react-virtual-dom';
-import AIOStorage from './../aio-storage/aio-storage';
+import AIOStorage from 'aio-storage';
 import AIOInput from './../aio-input/aio-input';
 import { Icon } from '@mdi/react';
 import { mdiCellphone, mdiLock, mdiLoading, mdiAccount, mdiAccountBoxOutline, mdiEmail, mdiChevronRight } from '@mdi/js';

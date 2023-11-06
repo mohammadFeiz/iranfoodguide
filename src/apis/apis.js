@@ -15,7 +15,7 @@ import shandiz_image from '../images/shandiz_image.png';
 import pasta_alferedo from '../images/pasta_alferedo.png';
 import ghaem_image from '../images/ghaem_image.png';
 import ghaem_logo from '../images/ghaem_logo.png';
-import AIOStorage from './../npm/aio-storage/aio-storage';
+import AIOStorage from 'aio-storage';
 
 /**********************restoran data model**************************************** */
 //name: String,image: String,logo: String,latitude: Number,longitude: Number,startTime:0,endTime:0,
@@ -31,18 +31,18 @@ export default function getApiFunctions(obj) {
         backOffice: backOfficeApis(obj),
         profile: profileApis(obj),
         reserve: reserveApis(obj),
-        async add_or_edit_image({imageObject,type}){
-            debugger
-            //return MockApis.add_or_edit_image({type,imageUrl,imageObject})
+        async add_or_edit_image({imageObject,type},{mock}){
+            if(mock.reserve){return MockApis.add_or_edit_image({type,imageObject})}
+            let {file:imageFile,id:imageId} = imageObject;
             if(type === 'add'){
                 let apiUrl = `${baseUrl}/Image/UploadImage`;
                 let formData = new FormData()
-                formData.append('imageFile', imageObject.file, imageObject.file.name)
-                formData.append('title', imageObject.file.name)
-                formData.append('imageId', imageObject.id)
+                formData.append('imageFile', imageFile, imageFile.name)
+                formData.append('title', imageFile.name)
+                formData.append('imageId', imageId)
                 let body = formData;
+                debugger;
                 let response = await Axios.post(apiUrl, body)
-                debugger
                 let {id,url} = response.data.data;
                 let result = {id,url};
                 return {response,result}
@@ -50,16 +50,20 @@ export default function getApiFunctions(obj) {
             else if(type === 'edit'){
                 let apiUrl = `${baseUrl}/Image/UploadImage`;
                 let formData = new FormData()
-                formData.append('imageFile', imageObject.file, imageObject.file.name)
-                formData.append('title', imageObject.file.name)
-                formData.append('imageId', imageObject.id)
+                formData.append('imageFile', imageFile, imageFile.name)
+                formData.append('title', imageFile.name)
+                formData.append('imageId', imageId)
                 let body = formData;
+                debugger;
                 let response = await Axios.post(apiUrl, body)
-                debugger
                 let {id,url} = response.data.data;
                 let result = {id,url};
                 return {response,result}
             }
+        },
+        async remove_image(id,{mock}){
+            if(mock.reserve){return MockApis.remove_image(id);}
+            return {result:'remove_image not implemented'}
         },
         async peygiriye_sefaresh(orderId) {
             return { result: { statusId: 1, totalPrice: 12344444, id: 88678 } }
@@ -179,22 +183,30 @@ export default function getApiFunctions(obj) {
     }
 }
 
-
 const MockApis = {
-    add_or_edit_image({type,imageUrl,imageObject}){
+    add_or_edit_image({type,imageObject}){
+        debugger
+        let {id,url,file} = imageObject;
         let storage = AIOStorage('ifgreservemockserver');
         let images = storage.load({name:'images',def:[]})
         if(type === 'add'){
-            let id = 'sss' + Math.round(Math.random() * 10000000)
-            let newImages = images.concat({id,url:imageUrl});
+            id = 'sss' + Math.round(Math.random() * 10000000)
+            let newImages = images.concat({id,url});
             storage.save({name:'images',value:newImages})
-            return {result:{id,url:imageUrl}}
+            return {result:{id,url}}
         }
         else {
-            let newImages = images.map((o)=>o.id === imageObject.id?{...o,url:imageUrl}:o);
+            let newImages = images.map((o)=>o.id === id?{...o,url}:o);
             storage.save({name:'images',value:newImages})
-            return {result:{id:imageObject.id,url:imageUrl}}
+            return {result:{id,url}}
         }
+    },
+    remove_image(id){
+        let storage = AIOStorage('ifgreservemockserver');
+        let images = storage.load({name:'images',def:[]})
+        let newImages = images.filter((o)=>o.id !== id);
+        storage.save({name:'images',value:newImages})
+        return {result:true}
     },
     safheye_sefaresh(res) {
         let result = [
