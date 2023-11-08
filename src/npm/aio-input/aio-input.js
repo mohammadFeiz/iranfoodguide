@@ -402,8 +402,9 @@ class Popover {
         return (dom) => {
             let popover = { ...AIOInput.defaults.popover, ...this.getProp('popover', {}) }
             let render = this.getRender(popover);
-            let body = this.getBody(popover, render)
-            let { rtl, position = 'popover', header } = popover;
+            let body = this.getBody(popover, render);
+            let rtl = this.getProp('rtl');
+            let { position = 'popover', header } = popover;
             return {
                 onClose: () => this.toggle(false),
                 rtl, header, position, header,
@@ -608,6 +609,21 @@ class Input extends Component {
             this.rrt = setTimeout(() => this.setState({ value: propsValue, prevValue: propsValue }), 0)
         }
     }
+    convertPersianDigits(value){
+        try{
+            value = value.toString();
+            let res = '';
+            for(let i = 0; i < value.length; i++){
+                let dic = {
+                    "۰":"0","۱":"1","۲":"2","۳":"3","۴":"4","۵":"5","۶":"6","۷":"7","۸":"8","۹":"9"
+                }
+                res += dic[value[i]] || value[i];
+            }
+            value = res;
+        }
+        catch{value = value}
+        return value
+    }
     change(value, onChange) {
         let { properties, types } = this.context;
         let {blurChange,maxLength = Infinity,justNumber,filter = []} = properties;
@@ -615,6 +631,7 @@ class Input extends Component {
         if (types.type === 'number') { if (value) { value = +value; } }
         else if (types.hasKeyboard) {
             if (value) {
+                value = this.convertPersianDigits(value);
                 if (justNumber) {
                     value = value.toString();
                     let lastChar = value[value.length - 1];
@@ -788,8 +805,6 @@ class Form extends Component {
         return a === undefined ? def : a;
     }
     setValueByField(obj = {}, field, value) {
-        field = field.replaceAll('[', '.');
-        field = field.replaceAll(']', '');
         var fields = field.split('.');
         var node = obj;
         for (let i = 0; i < fields.length - 1; i++) {
@@ -2624,7 +2639,7 @@ class MapUnit extends Component {
         if (this.area) { this.area.remove() }
         let { mapConfig = {} } = this.props;
         let { area } = mapConfig;
-        if (area) {
+        if (area && this.L && this.map) {
             let { color = 'dodgerblue', opacity = 0.1, radius = 1000, lat, lng } = area;
             this.area = this.L.circle([lat, lng], { color, fillColor: color, fillOpacity: opacity, radius }).addTo(this.map);
         }
@@ -2685,14 +2700,18 @@ class MapUnit extends Component {
     flyTo(lat, lng, zoom = this.state.zoom) {
         let animate = getDistance(this.state.value, { lat, lng }) > 0.3;
         if (!lat || !lng) { return }
-        this.map.flyTo([lat, lng], zoom, { animate, duration: 1 });
+        this.map.flyTo([lat, lng], undefined, { animate, duration: 1 });
     }
     panTo(lat, lng) { this.map.panTo({ lat, lng }) }
     async updateAddress({ lat, lng }) {
-        let { onChangeAddress = () => { } } = this.props;
-        let address = await this.getAddress({ lat, lng });
-        this.setState({ address });
-        onChangeAddress(address);
+        clearTimeout(this.timeout);
+        this.setState({addressLoading:true})
+        this.timeout = setTimeout(async ()=>{
+            let { onChangeAddress = () => { } } = this.props;
+            let address = await this.getAddress({ lat, lng });
+            this.setState({ address,addressLoading:false });
+            onChangeAddress(address);
+        },1000);
     }
     change({ lat, lng }) {
         let { onChange = () => { } } = this.props;
@@ -2709,25 +2728,24 @@ class MapUnit extends Component {
     //maptype: "dreamy" | 'standard-day'  
     init() {
         let { mapApiKeys, onChange, popup, isPopup, mapConfig = {}, disabled, attrs = {} } = this.props;
-        let { marker = true, traffic = false, zoomControl = false, maptype = 'dreamy-gold', poi = true, zoomable = true } = mapConfig;
+        let { marker = true, traffic = false, zoomControl = false, maptype = 'dreamy-gold', poi = true } = mapConfig;
         let { value, zoom } = this.state;
         let config = {
             key: mapApiKeys.map, maptype, poi, traffic,
             center: [value.lat, value.lng], zoom,
             dragging: !disabled,
             scrollWheelZoom: 'center',
-            minZoom: zoomable ? undefined : zoom,
-            maxZoom: zoomable ? undefined : zoom,
+            //minZoom: zoomable ? undefined : zoom,
+            //maxZoom: zoomable ? undefined : zoom,
             zoomControl
         }
         let map = new window.L.Map(this.dom.current, config);
         let L = window.L,myMap = map;
         this.map = myMap; this.L = L;
-        if (marker) { this.marker = L.marker([value.lat, value.lng]).addTo(myMap); }
+        if (marker && myMap) { this.marker = L.marker([value.lat, value.lng]).addTo(myMap); }
         myMap.on('click', (e) => {
             if (attrs.onClick) { return }
-            if (popup && !isPopup) { this.setState({ showPopup: true }) }
-            else if (onChange) { let { lat, lng } = e.latlng; this.map.panTo({ lat, lng }) }
+            if (onChange) { let { lat, lng } = e.latlng; this.map.panTo({ lat, lng }) }
         });
         if (!disabled) {
             myMap.on('move', (e) => {
@@ -2758,10 +2776,18 @@ class MapUnit extends Component {
         let { zoom: pzoom } = mapConfig;
         let { prevValue, prevZoom: szoom } = this.state;
         let { value } = this.props;
-        if (JSON.stringify(prevValue) !== JSON.stringify(value) || pzoom !== szoom) {
+        if (
+            JSON.stringify(prevValue) !== JSON.stringify(value) 
+            //|| pzoom !== szoom
+        ) {
             setTimeout(() => {
-                this.flyTo(value.lat, value.lng, pzoom, 'componentDidUpdate');
-                this.setState({ prevValue: value, prevZoom: pzoom })
+                this.flyTo(
+                    value.lat, 
+                    value.lng, szoom, 'componentDidUpdate');
+                this.setState({ 
+                    prevValue: value, 
+                    //prevZoom: pzoom 
+                })
             }, 0)
         }
         this.handleArea()
@@ -2790,7 +2816,7 @@ class MapUnit extends Component {
     handleMarkers() {
         let { mapConfig = {} } = this.props;
         let { markers = [] } = mapConfig;
-        if (!markers) { markers = [] }
+        if (!markers || !this.map || !this.L) { markers = [] }
         if (this.markers.length) {
             for (let i = 0; i < this.markers.length; i++) { this.markers[i].remove(); }
             this.markers = [];
@@ -2816,7 +2842,7 @@ class MapUnit extends Component {
             if (popup === true) { popup = {} }
             let props = {
                 ...this.props, ...popup, value,
-                mapConfig: { ...this.props.mapConfig, ...popup.mapConfig },
+                mapConfig: {...popup.mapConfig },
                 isPopup: true, popup: false,
                 onClose: () => this.setState({ showPopup: false }),
                 attrs: { ...attrs, style: { width: '100%', height: '100%', top: 0, position: 'fixed', left: 0, zIndex: 1000000, ...attrs.style }, onClick: undefined },
@@ -2829,13 +2855,16 @@ class MapUnit extends Component {
         return null
     }
     render() {
-        let { attrs = {} } = this.props;
+        let { attrs = {},mapConfig = {},popup,isPopup } = this.props;
         return (
             <>
                 <MapContext.Provider value={this.getContext()}>
                     <RVD
                         layout={{
-                            className: 'aio-input-map-container', style: attrs.style,
+                            className: 'aio-input-map-container' + (mapConfig.draggable === false?' not-draggable':''), style: attrs.style,
+                            onClick:()=>{
+                                if (popup && !isPopup) { this.setState({ showPopup: true }) }
+                            },
                             column: [{ html: <MapHeader /> }, { flex: 1, attrs: { ref: this.dom }, html: '' }, { html: <MapFooter /> }]
                         }}
                     />
@@ -2865,8 +2894,8 @@ function MapHeader() {
         clearTimeout(timeout);
         timeout = setTimeout(async () => {
             try {
-                let param = { headers: { 'Api-Key': mapApiKeys.service } }
-                let url = `https://api.neshan.org/v1/search?term=${searchValue}&lat=${lat}&lng=${lng}`;
+                let param = { headers: { 'Api-Key': mapApiKeys.service,'Authorization':false } }
+                let url = `https://api.neshan.org/v1/search?term=${decodeURI(searchValue)}&lat=${lat}&lng=${lng}`;
                 setLoading(true); let res = await Axios.get(url, param); setLoading(false)
                 if (res.status !== 200) { return }
                 setSearchResult(res.data.items)
@@ -2940,6 +2969,9 @@ function MapFooter() {
         return { html: (<button className='aio-input-map-submit' onClick={async () => {onChange(rootState.value); onClose()}}>تایید موقعیت</button>) }
     }
     function details_layout() {
+        if(rootState.addressLoading){
+            return {flex:1,html:<Icon path={mdiLoading} size={1} spin={0.4}/>,align:'v'}
+        }
         return { flex: 1, column: [{ html: rootState.address, className: 'aio-input-map-address' }, { show: !!lat && !!lng, html: () => `${lat} - ${lng}`, className: 'aio-input-map-coords' }] }
     }
     return (<RVD layout={{ className: 'aio-input-map-footer', row: [details_layout(), submit_layout()] }} />)

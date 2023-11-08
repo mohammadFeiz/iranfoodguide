@@ -4,7 +4,6 @@ import SplitNumber from "../npm/aio-functions/split-number";
 import { Icon } from '@mdi/react';
 import { mdiAccount, mdiAccountCircleOutline, mdiChevronRight, mdiLock, mdiMapMarker, mdiPlusCircle, mdiPlusThick } from '@mdi/js';
 import AIOInput from "../npm/aio-input/aio-input";
-import Map from './../npm/map/map';
 import Timer from "../components/timer";
 import AppContext from "../app-context";
 import Card from "../card/card";
@@ -54,10 +53,10 @@ export default class Profile extends Component {
         }
     }
     openModal(key) {
-        let { rsa,logout } = this.context;
+        let { rsa,loginClass } = this.context;
         let { addModal } = rsa;
         if(key === 'exit'){
-            logout();
+            loginClass.logout();
         }
         if (key === 'ettelaate_shakhsi') {
             addModal({ position:'fullscreen',header: false, body: {render:() => <Ettelaate_shakhsi /> }})
@@ -355,29 +354,6 @@ class Address_form extends Component {
             type: !!model ? 'edit' : 'add'
         }
     }
-    onMapClick() {
-        let {model} = this.state;
-        let { rsa } = this.context;
-        rsa.addModal({
-            header: false,
-            position: 'fullscreen',
-            body: {
-                render:() => (
-                    <Add_address_map 
-                        onSubmit={(latitude, longitude, address) => {
-                            let { model } = this.state;
-                            model.latitude = latitude;
-                            model.longitude = longitude;
-                            model.address = address;
-                            this.setState({ model })
-                        }}
-                        latitude={model.latitude}
-                        longitude={model.longitude} 
-                    />
-                )
-            }
-        })
-    }
     onSubmit(){
         let {onSubmit} = this.props;
         let {model} = this.state;
@@ -397,13 +373,12 @@ class Address_form extends Component {
                                 html: () => {
                                     let {model} = this.state;
                                     return (
-                                        <Map
-                                            msf={true}
-                                            delay={320}
-                                            latitude={model.latitude}
-                                            longitude={model.longitude}
-                                            style={{ height: 120, width: '100%' }}
-                                            onClick={() => this.onMapClick()}
+                                        <AIOInput
+                                            type='map' value={{lat:model.latitude,lng:model.longitude}}
+                                            onChangeAddress={(address)=>this.setState({ model:{...this.state.model,address} })}
+                                            mapConfig={{draggable:false}}
+                                            popup={{mapConfig:{title:'انتخاب موقعیت',search:true}}}
+                                            onChange={({lat,lng}) => this.setState({ model:{...this.state.model,latitude:lat,longitude:lng} })}
                                         />
                                     )
                                 }
@@ -431,43 +406,6 @@ class Address_form extends Component {
                     column: [
                         { html: <PopupHeader title={type === 'add' ? 'افزودن آدرس جدید' : 'ویرایش آدرس'} /> },
                         this.form_layout()
-                    ]
-                }}
-            />
-        )
-    }
-}
-class Add_address_map extends Component {
-    static contextType = AppContext;
-    body_layout() {
-        let { latitude, longitude } = this.props;
-        let { onSubmit } = this.props;
-        let { rsa } = this.context;
-        return {
-            flex: 1,
-            html: (
-                <Map
-                    delay={320}
-                    latitude={latitude} longitude={longitude}
-                    style={{ width: '100%', height: '100%', position: 'absolute' }}
-                    onChange={(latitude, longitude, address) => {
-                        onSubmit(latitude, longitude, address);
-                        rsa.removeModal()
-                    }}
-                    search={true}
-                />
-            )
-        }
-    }
-    render() {
-        return (
-            <RVD
-                layout={{
-                    className:'app-popup',
-                    column: [
-                        { html: <PopupHeader title='افزودن آدرس از روی نقشه' /> },
-                        this.body_layout(),
-
                     ]
                 }}
             />

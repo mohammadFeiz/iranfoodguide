@@ -3,7 +3,6 @@ import RVD from './../npm/react-virtual-dom';
 import AIOInput from '../npm/aio-input/aio-input';
 import AIODate from '../npm/aio-date';
 import AIOStorage from 'aio-storage';
-import Map from './../npm/map/map';
 import { Icon } from '@mdi/react';
 import { mdiArrowRight, mdiChevronDown, mdiChevronUp, mdiClock, mdiClose, mdiComment, mdiDelete, mdiTable, mdiWallet } from '@mdi/js';
 import { icons } from './../icons';
@@ -722,9 +721,9 @@ class Address extends Component{
   map_layout(latitude,longitude){
     return {
       html:(
-        <Map
-          latitude={latitude}
-          longitude={longitude}
+        <AIOInput
+          type='map' lat={latitude} lng={longitude}
+          mapConfig={{draggable:false}}
           style={{width:84,height:84,borderRadius:12}}
         />
       )

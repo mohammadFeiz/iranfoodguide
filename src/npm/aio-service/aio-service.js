@@ -53,7 +53,10 @@ export default class AIOservice{
     this.getError = getError;
     this.setToken = (token)=>{
       let res = token || this.token;
-      if(res){Axios.defaults.headers.common['Authorization'] = `Bearer ${res}`;}
+      if(res){
+        this.token = res;
+        Axios.defaults.headers.common['Authorization'] = `Bearer ${res}`;
+      }
     }
     let param = {helper,storage:this.storage,baseUrl:this.baseUrl,id:this.id,Axios:this.Axios,setToken:this.setToken.bind(this)};
     this.apiFunctions = getApiFunctions(param);
@@ -275,3 +278,51 @@ function AIOServiceValidate({id,loader,getApiFunctions,cacheVersions}){
   }
   if(error){alert(error); console.log(error)}
 }
+
+function ValidateApi(schema,object,description){
+  let $$ = {
+      varTypes:{'object': true, 'array': true, 'string': true, 'number': true, 'boolean': true, 'undefined': true, 'any': true, 'function': true, 'null': true},
+      checkTypes(value, types){
+          if (types === 'any') { return }
+          types = types.split('|');
+          let res;
+          let passed = false;
+          for (let i = 0; i < types.length; i++) {
+              let type = types[i];
+              let error = this.checkType(value, type, types)
+              if (error) { res = error }
+              else { passed = true }
+          }
+          if (!passed) { return res }
+      },
+      checkType(value, type, types){
+          let res = false,valueType = this.getType(value);
+          if (this.varTypes[type]) {if (valueType === type) { res = true }}
+          else {
+              let typeString;
+              try { typeString = JSON.parse(type) } catch { typeString = type }
+              if (value === typeString) { res = true }
+          }
+          if (res === false) {
+              let res;
+              try { res = JSON.stringify(value) } catch { res = value }
+              return `should be ${types.join('|')} but is ${res}`
+          }
+      },
+      getType(v){
+          if (Array.isArray(v)) { return 'array' }
+          return v === null?'undefined':typeof v;
+      },
+      validate(){
+          if(!schema || !object){return}
+          for (let prop in object) {
+              if (!schema[prop]) { return `${description} error, ${prop} is invalid props` }
+              let error = this.checkTypes(object[prop], schema[prop])
+              if (error) {
+                  return `${description}, ${prop} props ${error}`
+              }
+          }
+      }
+  }
+  return $$.validate()
+} 

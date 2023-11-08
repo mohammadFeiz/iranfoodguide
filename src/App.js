@@ -24,6 +24,10 @@ import URL from './npm/aio-functions/url';
 import './App.css';
 //تنظیمات دیفالت AIOInput
 AIOInput.defaults.validate = true;
+AIOInput.defaults.mapApiKeys = {
+  map:'web.35e83d6326f549209b49716be286996d',
+  service:'service.8f415c084c3f41838bcdec5b14d85e40'
+}
 export default class App extends Component {
   constructor(props) {
     super(props);
@@ -41,11 +45,21 @@ export default class App extends Component {
         //     { type: 'text', label: 'شبا', field: 'sheba' },
         //   ]
         // },
-        onAuth: ({ token, logout, userId }) => this.setState({ token, logout, userId, isLogin: true }),
+        onAuth: ({ token, userId }) => {
+          let {apis} = this.state;
+          apis.setToken(token);
+          this.setState({ userId, isLogin: true })
+        },
         checkToken: async (token, obj) => await this.checkToken(token, obj),
         onSubmit: this.onSubmit.bind(this)
       }),
       isLogin: false,
+      apis:new AIOService({
+        baseUrl: this.baseUrl + '/api', getApiFunctions, id: 'iranfoodguid',
+        getError: (res, obj) => {
+          if (!res.data.isSuccess) { return res.data.message || 'خطای تعریف نشده' }
+        }
+      })
     }
   }
   async checkToken(token, { userId }) {
@@ -72,7 +86,6 @@ export default class App extends Component {
     }
   }
   async onSubmit(model, mode) {
-    Axios.defaults.headers.common['Authorization'] = ``;
     if (mode === 'OTPNumber') {
       let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.login.userId })
       if (!response.data.isSuccess) { return { mode: 'Error', error: response.data.message } }
@@ -108,10 +121,10 @@ export default class App extends Component {
   }
   render() {
     //return <IranFoodGuide/>
-    let { loginClass, isLogin, token, logout, userId } = this.state;
+    let { loginClass, isLogin,apis } = this.state;
     if (isLogin) {
       if (!this.isRegistered) { loginClass.removeToken() }
-      return <IranFoodGuide isRegistered={this.isRegistered} token={token} personId={this.personId} logout={logout} mobile={this.mobile} roles={[]} baseUrl={this.baseUrl} />
+      return <IranFoodGuide isRegistered={this.isRegistered} personId={this.personId} loginClass={loginClass} apis={apis} mobile={this.mobile} roles={[]} baseUrl={this.baseUrl} />
     }
     let renderLogin = this.renderLogin()
     return (
@@ -165,10 +178,13 @@ function appSetting() {
 class IranFoodGuide extends Component {
   constructor(props) {
     super(props);
+    props.apis.setProperty('getState',()=>this.state)
     this.state = {
       mock:{
         reserve:false
       },
+      loginClass:props.loginClass,
+      apis:props.apis,
       rsa: new RSA({ rtl: true }),
       appSetting: appSetting(),
       isRegistered: props.isRegistered,
@@ -178,7 +194,6 @@ class IranFoodGuide extends Component {
       restoran_tags_dic: {},
       mobile: props.mobile,
       personId: props.personId,
-      logout: props.logout,
       profile: {},
       discounts: [],
       addresses: [],
@@ -208,13 +223,6 @@ class IranFoodGuide extends Component {
         })
       }
     }
-    this.state.apis = new AIOService({
-      getState: () => this.state,
-      baseUrl: props.baseUrl + '/api', token: props.token, getApiFunctions, id: 'iranfoodguid',
-      getError: (res, obj) => {
-        if (!res.data.isSuccess) { return res.data.message || 'خطای تعریف نشده' }
-      }
-    })
   }
   changeStore(obj, caller) {
     this.setState(obj);

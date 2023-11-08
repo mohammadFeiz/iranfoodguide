@@ -3,7 +3,6 @@ import AIOPopup from "../../npm/aio-popup/aio-popup";
 import AIOInput from './../../npm/aio-input/aio-input';
 import AIOSHOP from './../../npm/aio-shop/aio-shop';
 import RVD from './../../npm/react-virtual-dom';
-import Map from './../../npm/map/map';
 import BOContext from "./back-office-context";
 import { Icon } from "@mdi/react";
 import Search from './../../npm/aio-functions/search';
@@ -248,11 +247,15 @@ class RestoranForm extends Component {
         }
         else { 
             html = (
-                <Map
-                    apiKey='web.c6d5b589faf947e1b6143fa8977eb9b7'
+                <AIOInput
+                    type='map'
                     style={{ width: '100%', height: '100%' }}
-                    latitude={model.latitude}
-                    longitude={model.longitude}
+                    mapConfig={{draggable:false}}
+                    popup={{title:'انتخاب موقعیت'}}
+                    lat={model.latitude}
+                    lng={model.longitude}
+                    onChangeAddress={(address)=>this.setState({ model: { ...model,address } })}
+                    onChange={(lat,lng)=>this.setState({ model: { ...model, latitude:lat, longitude:lng } })}
                 />
             ) 
         }
@@ -263,13 +266,7 @@ class RestoranForm extends Component {
                 {
                     style: { border: '1px dashed #333' },
                     html: (
-                        <RVD
-                            layout={{
-                                onClick: () => this.openMap(), align: 'vh',
-                                style: { fontSize: 12, width: '100%', height: 84, color:'red' },
-                                html, align: 'vh', className: 'bold'
-                            }}
-                        />
+                        <RVD layout={{align: 'vh',html, align: 'vh', className: 'bold',style: { fontSize: 12, width: '100%', height: 84, color:'red' }}}/>
                     )
                 }
             ]
@@ -418,29 +415,6 @@ class RestoranForm extends Component {
                 }}
             />
         )
-    }
-    openMap() {
-        let { popup, model } = this.state;
-        popup.addModal({
-            header:{title: 'انتخاب موقعیت'}, position: 'fullscreen',
-            animate: false,
-            body: {
-                render:() => {
-                    return (
-                        <Map
-                            apiKey='web.c6d5b589faf947e1b6143fa8977eb9b7'
-                            style={{ width: '100%', height: '100%' }}
-                            latitude={model.latitude}
-                            longitude={model.longitude}
-                            onSubmit={(latitude, longitude, address) => {
-                                this.setState({ model: { ...model, latitude, longitude, address } });
-                                popup.removeModal();
-                            }}
-                        />
-                    )
-                }
-            }
-        })
     }
     openFoods() {
         let { popup, model} = this.state;

@@ -49,7 +49,6 @@
 
 .aio-input-value {
     display: flex;
-    /* flex-direction: column; */
     width: 100%;
     position: relative;
     overflow:hidden;
@@ -568,7 +567,8 @@
 
 .aio-input-form-label {
     font-size: 85%;
-    margin-bottom: 3px;
+    margin-bottom: 6px;
+    padding:0 6px;
 }
 
 .aio-input-form-body {
@@ -1570,6 +1570,13 @@
     border:1px solid #ddd;
     font-family: inherit;
     min-height:240px;
+}
+.aio-input-map-container.not-draggable:after{
+    content:'';
+    position: absolute;
+    width: 100%;
+    height:100%;
+    z-index:1000;
 }
 .aio-input-map{
     direction: rtl;
