@@ -254,9 +254,10 @@ class ReserveForm extends Component {
         }
     }
     async changeImages(changedImageObject,id){
+        debugger
         let {apis} = this.context;
         let {item,onChange} = this.props;
-        let type = id === false?'add':'edit';
+        let type = !id?'add':'edit';
         apis.request({
             api:'add_or_edit_image',
             parameter:{imageObject:changedImageObject,type},
@@ -287,6 +288,7 @@ class ReserveForm extends Component {
         let { item, onChange } = this.props;
         let { timeTypes } = this.state;
         let images = [...item.images]
+        debugger
         while(images.length < 3){
             images.push(false)
         }

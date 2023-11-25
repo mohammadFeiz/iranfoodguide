@@ -14,20 +14,22 @@ export default class Profile extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            items: [
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'اطلاعات شخصی', id: 'ettelaate_shakhsi' },
+            items: []
+        }
+    }
+    componentDidMount(){
+        let {isRegistered} = this.context;
+        this.setState({
+            items:[
+                { icon: <Icon path={mdiAccount} size={1} />, text: isRegistered?'ویرایش اطلاعات کاربری':'ثبت نام در ایران فود', id: 'ettelaate_shakhsi' },
                 { icon: <Icon path={mdiLock} size={1} />, text: 'تنظیم یا ویرایش رمز عبور', id: 'password',show:()=>this.context.isRegistered },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'آدرس ها', id: 'address_ha' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'تخفیف ها',id:'takhfif_ha' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'رستوران های محبوب',id:'restoran_haye_mahboob' },
-                //{ icon: <Icon path={mdiAccount} size={1} />, text: 'نظرات من' },
-                //{ icon: <Icon path={mdiAccount} size={1} />, text: 'شبکه اجتماعی غذا' },
-                //{ icon: <Icon path={mdiAccount} size={1} />, text: 'دعوت از دوستان' },
-                //{ icon: <Icon path={mdiAccount} size={1} />, text: 'تنظیمات' },
-                //{ icon: <Icon path={mdiAccount} size={1} />, text: 'قوانین' },
+                { icon: <Icon path={mdiAccount} size={1} />, text: 'لغو حساب کاربری',id:'removeAccount' },
                 { icon: <Icon path={mdiAccount} size={1} />, text: 'خروج',id:'exit' }
             ]
-        }
+        })
     }
     kife_pool_layout(){
         let { mojoodiye_kife_pool,rsa } = this.context;
@@ -53,24 +55,48 @@ export default class Profile extends Component {
         }
     }
     openModal(key) {
-        let { rsa,loginClass } = this.context;
+        let { rsa,loginClass,apis } = this.context;
         let { addModal } = rsa;
-        if(key === 'exit'){
+        if(key === 'removeAccount'){
+            addModal({ 
+                position:'center',
+                header: {title:'لغو حساب کاربری'}, 
+                body: {attrs:{className:'p-12'},render:() => 'آیا از لغو حساب کاربری خود اطمینان دارید؟' },
+                footer:{
+                    buttons:[
+                        ['بله',{
+                            onClick:()=>{
+                                apis.request({
+                                    api:'profile.removeAccount',
+                                    onSuccess:()=>{
+                                        loginClass.removeToken();
+                                        window.location.reload();
+                                    }
+                                })
+                            },
+                            className:'secondary-button'
+                        }],
+                        ['خیر',{onClick:()=>rsa.removeModal(),className:'primary-button'}]
+                    ]
+                }
+            })
+        }
+        else if(key === 'exit'){
             loginClass.logout();
         }
-        if (key === 'ettelaate_shakhsi') {
+        else if (key === 'ettelaate_shakhsi') {
             addModal({ position:'fullscreen',header: false, body: {render:() => <Ettelaate_shakhsi /> }})
         }
-        if (key === 'password') {
+        else if (key === 'password') {
             addModal({ position:'fullscreen',header: false, body: {render:() => <Passwrod /> }})
         }
-        if (key === 'address_ha') {
+        else if (key === 'address_ha') {
             addModal({ position:'fullscreen',header: false, body: {render:() => <Address_ha /> }})
         }
-        if (key === 'takhfif_ha') {
+        else if (key === 'takhfif_ha') {
             addModal({ position:'fullscreen',header: false, body: {render:() => <Takhfif_ha /> }})
         }
-        if (key === 'restoran_haye_mahboob') {
+        else if (key === 'restoran_haye_mahboob') {
             addModal({ position:'fullscreen',header: false, body: {render:() => <Restoran_haye_mahboob /> }})
         }
     }
@@ -134,14 +160,12 @@ class Ettelaate_shakhsi extends Component {
     }
     componentDidMount() {
         let { profile } = this.context;
+        debugger
         this.setState({ profile })
     }
     form_layout() {
-        let { profile,mobile } = this.state;
-        let { appSetting } = this.context;
-        let inputs = appSetting.profileFields.filter(({editable})=>editable).map(({type,label,clientField})=>{
-            return { input:{type}, label, field: `value.${clientField}` }
-        })
+        let { profile } = this.state;
+        let { loginClass,isRegistered,apis,changeStore,mobile,rsa } = this.context;
         return {
             flex: 1, className: 'ofy-auto',
             column: [
@@ -153,36 +177,27 @@ class Ettelaate_shakhsi extends Component {
                     ]
                 },
                 {
-                    html: (
-                        <AIOInput
-                            type='form' lang='fa' value={profile} onChange={(profile) => this.setState({ profile })}
-                            inputs={{props:{gap:12},column:inputs}}
-                        />
-                    )
+                    html: loginClass.render({
+                        profile:{
+                            fields:[
+                                '*firstName_text_نام',
+                                '*lastName_text_نام خانوادگی',
+                                '*email_text_ایمیل',
+                                '*sheba_text_شماره شبا'],
+                            model:profile,
+                            submitText:isRegistered?'ویرایش اطلاعات کاربری':'ثبت نام در ایران فود',
+                            onSubmit:({profile})=>{
+                                apis.request({
+                                    api:'profile.setProfile',parameter:{profile,isRegistered,mobile},
+                                    onSuccess:()=>{changeStore({profile},'<Ettelaate_shakhsi/> => footer_layout'); rsa.removeModal()},
+                                    description:'ثبت اطلاعات پروفایل',
+                                    message:{success:true}
+                                })
+                            }
+                        }
+                    })
                 }
             ]
-        }
-    }
-    footer_layout() {
-        let {apis,changeStore,isRegistered,mobile} = this.context; 
-        return {
-            align: 'vh',
-            className: 'p-24',
-            html: (
-                <button className= 'button-1 w-100 h-36' onClick={()=>{
-                    let {profile} = this.state;
-                    apis.request({
-                        api:'profile.setProfile',
-                        parameter:{profile,isRegistered,mobile},
-                        onSuccess:()=>{
-                            changeStore({profile},'<Ettelaate_shakhsi/> => footer_layout')
-                            window.location.reload();
-                        },
-                        description:'ثبت اطلاعات پروفایل',
-                        message:{success:true}
-                    })
-                }}>ثبت تغییرات</button>
-            )
         }
     }
     render() {
@@ -193,7 +208,6 @@ class Ettelaate_shakhsi extends Component {
                     column: [
                         { html: <PopupHeader title='اطلاعات شخصی' /> },
                         this.form_layout(),
-                        this.footer_layout()
                     ]
                 }}
             />

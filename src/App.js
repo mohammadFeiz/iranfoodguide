@@ -2,10 +2,9 @@ import React, { Component } from 'react';
 import RSA from './npm/react-super-app/react-super-app';
 import BackOffice from './components/back-office/back-office';
 import AIOStorage from 'aio-storage';
-import AIOService from './npm/aio-service/aio-service';
-import AIOInput from './npm/aio-input/aio-input';
+import AIOService from 'aio-service';
 import RVD from './npm/react-virtual-dom';
-import AIOLogin from './npm/aio-login/aio-login';
+import AIOLogin from 'aio-login';
 import getApiFunctions from './apis/apis';
 import AppContext from './app-context';
 import { dictionary } from './dictionary';
@@ -17,17 +16,11 @@ import logo2 from './images/logo2.png';
 import { icons } from './icons';
 import Sefareshe_ghaza from './pages/sefareshe_ghaza';
 import Profile from './pages/profile';
-import RestoranPage from './components/restoran-page';
 import ReservePanel from './components/reserve-panel/reserve-panel';
 import URL from './npm/aio-functions/url';
 
 import './App.css';
 //تنظیمات دیفالت AIOInput
-AIOInput.defaults.validate = true;
-AIOInput.defaults.mapApiKeys = {
-  map:'web.35e83d6326f549209b49716be286996d',
-  service:'service.8f415c084c3f41838bcdec5b14d85e40'
-}
 export default class App extends Component {
   constructor(props) {
     super(props);
@@ -37,21 +30,13 @@ export default class App extends Component {
       loginClass: new AIOLogin({
         id: 'iranfoodguide', otpLength: 6, modes: ['OTPNumber', 'phoneNumber'],
         timer: 10,
-        // register:{
-        //   fields:[
-        //     { type: 'text', label: 'نام', field: 'firstName', required: true },
-        //     { type: 'text', label: 'نام خانوادگی', field: 'lastName', required: true },
-        //     { type: 'text', label: 'ایمیل', field: 'email', required: true },
-        //     { type: 'text', label: 'شبا', field: 'sheba' },
-        //   ]
-        // },
         onAuth: ({ token, userId }) => {
           let {apis} = this.state;
           apis.setToken(token);
           this.setState({ userId, isLogin: true })
         },
         checkToken: async (token, obj) => await this.checkToken(token, obj),
-        onSubmit: this.onSubmit.bind(this)
+        onSubmit: this.onSubmit.bind(this),
       }),
       isLogin: false,
       apis:new AIOService({
@@ -88,31 +73,36 @@ export default class App extends Component {
   async onSubmit(model, mode) {
     if (mode === 'OTPNumber') {
       let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.login.userId })
-      if (!response.data.isSuccess) { return { mode: 'Error', error: response.data.message } }
+      if (!response.data.isSuccess) { return response.data.message }
       let isRegistered = !!response.data.data.isRegistered;
       this.isRegistered = isRegistered;
       this.mobile = model.login.userId;
-      return { nextMode: 'OTPCode' }
+      let {loginClass} = this.state;
+      loginClass.setMode('OTPCode')
     }
     else if (mode === 'OTPCode') {
       let response = await Axios.post(`${this.baseUrl}/Users/TokenWithCode`, { mobileNumber: model.login.userId, code: model.login.password.toString() });
       if (response.data.isSuccess) {
+        let {loginClass} = this.state;
         this.personId = response.data.data.personId
         this.mobile = model.login.userId;
-        return { nextMode: 'auth', token: response.data.data.access_token };
+        loginClass.setToken(response.data.data.access_token)
+        loginClass.setMode('auth');
       }
-      else { return { nextMode: 'error', error: response.data.message }; }
+      else { return response.data.message }
     }
     else if (mode === 'phoneNumber') {
       let { userId, password } = model.login;
       let response = await Axios.post(`${this.baseUrl}/Users/Token`, { Username: userId, Password: password, grant_type: "password" });
       if (response.data.isSuccess) {
+        let {loginClass} = this.state;
         this.personId = response.data.data.personId;
         this.isRegistered = !!this.personId;
         this.mobile = userId;
-        return { nextMode: 'auth', token: response.data.data.access_token };
+        loginClass.setToken(response.data.data.access_token)
+        loginClass.setMode('auth')
       }
-      else { return { nextMode: 'error', error: response.data.message }; }
+      else { return response.data.message }
     }
   }
   renderLogin() {
@@ -132,28 +122,13 @@ export default class App extends Component {
         layout={{
           className: 'fullscreen login-page',
           column: [
+            {size: 160,column: [{ flex: 1 },{ html: <img src={logo2} />, align: 'vh' },{ size: 16 }]},
             {
-              size: 160,
-              column: [
-                { flex: 1 },
-                { html: <img src={logo2} />, align: 'vh' },
-                { size: 16 }
-              ]
-            },
-            {
-              flex: 1,
-              className: 'login-page-form',
+              flex: 1,className: 'login-page-form',
               column: [
                 { html: '', className: 'login-bg' },
                 { html: '', className: 'login-bg-make-dark' },
-                {
-                  className: 'login-page-header',
-                  column: [
-                    { flex: 1 },
-                    { html: <img src={logo} />, align: 'vh' },
-                    { flex: 1 }
-                  ]
-                },
+                {className: 'login-page-header',column: [{ flex: 1 },{ html: <img src={logo} />, align: 'vh' },{ flex: 1 }]},
                 { className: 'p-t-0 ofy-auto', html: renderLogin, flex: 1, align: 'h' },
               ]
             }

@@ -313,3 +313,17 @@ button,input{
 .aio-input-datepicker-today{
   background:#FF5900;
 }
+
+
+.primary-button{
+  background:#FF5900;
+  color:#fff;
+  font-size:12px;
+  border-radius:4px;
+}
+.secondary-button{
+  color:#FF5900;
+  background:#fff;
+  border:1px solid; 
+  border-radius:4px;
+}

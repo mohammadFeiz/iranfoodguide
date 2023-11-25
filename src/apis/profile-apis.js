@@ -1,6 +1,6 @@
-export default function profileApis({baseUrl,Axios}){
+export default function profileApis({ baseUrl, Axios }) {
     return {
-        setProfile:async ({ profile, mobile,isRegistered })=> {
+        setProfile: async ({ profile, mobile, isRegistered }) => {
             let url = `${baseUrl}/People/${isRegistered ? 'UpdateProfile' : 'CreateProfile'}`
             let body = {
                 "Id": profile.id,
@@ -18,25 +18,33 @@ export default function profileApis({baseUrl,Axios}){
             let response = await Axios.post(url, body);
             return { response }
         },
-        setPassword:async ( {mobile,password}) =>{
-            //var baseUrl1 = 'https://localhost:7203'
-              var baseUrl1 = 'https://iranfoodguide.ir'
-                 let url = `${baseUrl1}/Users/ChangePasswordByAdmin`
-                 let body = {
-                     "MobileNumber": mobile,
-                     "NewPassword": password,
-                 }
-                 let response = await Axios.post(url, body);
-                 return { response }
+        removeAccount: async (parameter, { mobile }) => {
+            baseUrl = baseUrl.replace('/api', '');
+            let url = `${baseUrl}/Users/DeleteUserProfileAsync`
+            let body = {
+                "mobileNumber": mobile,
+            }
+            let response = await Axios.post(url, body);
+            return { response }
         },
-        getProfile:async (parameter,{personId}) => {
+        setPassword: async ({ mobile, password }) => {
+            baseUrl = baseUrl.replace('/api','');
+            let url = `${baseUrl}/Users/ChangePasswordByAdmin`
+            let body = {
+                "MobileNumber": mobile,
+                "NewPassword": password,
+            }
+            let response = await Axios.post(url, body);
+            return { response }
+        },
+        getProfile: async (parameter, { personId }) => {
             let url = `${baseUrl}/People/search`
             let body = { "Id": personId }
             let response = await Axios.post(url, body);
             let result = response.data.data.items[0]
             return { response, result }
         },
-        getAddresses:async (parameter,{personId}) => {//لیست آدرس ها
+        getAddresses: async (parameter, { personId }) => {//لیست آدرس ها
             let url = `${baseUrl}/People/GetPeopleAddress`
             let body = {
                 "PersonId": personId
@@ -69,7 +77,7 @@ export default function profileApis({baseUrl,Axios}){
             // ];
             return { response, result }
         },
-        takhfif_ha:async (parameter,{personId}) => {
+        takhfif_ha: async (parameter, { personId }) => {
             return getMockApis.takhfif_ha()
             let url = `${baseUrl}/PersonDiscount/Search`;
             let body = { "PersonId": personId }
@@ -77,7 +85,7 @@ export default function profileApis({baseUrl,Axios}){
             let result = response.data.data.items;
             return { response, result };
         },
-        addressForm:async ({ address, type },{personId}) =>{
+        addressForm: async ({ address, type }, { personId }) => {
             if (type === 'add') {
                 let url = `${baseUrl}/People/CreatePeopleAddress`;
                 let body = {
@@ -97,16 +105,16 @@ export default function profileApis({baseUrl,Axios}){
 
             }
         },
-        mojoodiye_kife_pool:async () => {
+        mojoodiye_kife_pool: async () => {
             return getMockApis.mojoodiye_kife_pool()
         },
-        
-             
+
+
     }
 }
 
 const getMockApis = {
-    getProfile:()=> {
+    getProfile: () => {
         let result = {
             firstName: 'احمد',//نام
             lastName: 'بهرامی',//نام خانوادگی
@@ -114,9 +122,9 @@ const getMockApis = {
             email: 'feiz.ms@gmail.com',//آدرس ایمیل
             sheba: '1234567',//شماره شبا
         }
-        return {result}
+        return { result }
     },
-    getAddresses:() =>{
+    getAddresses: () => {
         let result = [//لیست آدرس ها
             {
                 title: 'خانه',
@@ -131,9 +139,9 @@ const getMockApis = {
                 longitude: 51.394777
             }
         ]
-        return {result}
+        return { result }
     },
-    takhfif_ha:(res) => {
+    takhfif_ha: (res) => {
         let result = [
             {
                 amounts: [{ percent: 10, amount: 100000 }], description: 'تخفیف خرید شیرینی',
@@ -152,13 +160,13 @@ const getMockApis = {
                 code: '31234545332343', endDate: '1401/12/21/13/0', order: 0
             },
         ]
-        return {result}
+        return { result }
     },
     mojoodiye_kife_pool() {
         return { result: 123245666 }
     },
-    
-    
-    
-    
+
+
+
+
 }
