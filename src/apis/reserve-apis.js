@@ -44,7 +44,7 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
     async function ReserveItemToServer(item,type){
         try{
             return {
-                "images":item.images || [],
+                "images":item.images.map((o)=>{return {imageId:o}}) || [],
                 "id": type === 'edit' ? item.id : undefined,
                 "Id": type === 'edit' ? item.id : undefined,
                 "name": item.name || '',
