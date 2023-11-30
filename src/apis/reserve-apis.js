@@ -44,7 +44,7 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
     async function ReserveItemToServer(item,type){
         try{
             return {
-                "images":item.images.map((o)=>{return {imageId:o}}) || [],
+                "images":item.images.map((o)=>{return {imageId:o.id}}) || [],
                 "id": type === 'edit' ? item.id : undefined,
                 "Id": type === 'edit' ? item.id : undefined,
                 "name": item.name || '',
@@ -86,7 +86,8 @@ export default function reserveApis({ baseUrl,Axios,helper }) {
             //restoranId آی دی رستوران
             //item آیتم رزرو رستوران برای افزودن
             //type "add" | "edit"
-            let body = ReserveItemToServer(item,type);
+            debugger
+            let body = await ReserveItemToServer(item,type);
             let response, result;
             if (type === 'add') {
                 response = await Axios.post(`${baseUrl}/RestaurantReservasionPlan/Create`, body);
