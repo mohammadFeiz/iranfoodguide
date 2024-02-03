@@ -30,7 +30,11 @@ export type I_rsa_addModal = {
         title:string,subtitle?:string,attrs?:any,backButton?:boolean,
         buttons?:[text:React.ReactNode,attrs?:any][]
     },
-    body:{render:(p:{state:any,setState:(p:any)=>void})=>React.ReactNode,attrs?:any}
+    body:{render:(p:{state:any,setState:(p:any)=>void})=>React.ReactNode,attrs?:any},
+    footer?:{
+        attrs?:any,
+        buttons?:[text:React.ReactNode,attrs?:any][]
+    }
 }
 export type I_rsa_addSnakebar = {
     type:'info' | 'warning' | 'error' | 'success',
@@ -154,7 +158,9 @@ export type I_address = {
     floor: string,
     id: any,
     description: string,
-    phone: string
+    phone: string,
+    latitude:number,
+    longitude:number
 }
 export type I_address_server = any
 export type I_takhfif = {
@@ -162,7 +168,8 @@ export type I_takhfif = {
     code:string,
     endDate:string,
     order:number,
-    description:string
+    description:string,
+    expirationDate:string
 }
 export type I_takhfif_amount = {percent?:number,amount?:number}
 export type I_restoran_sort_option = {text:I_restoran_sort_text,value:I_restoran_sort_value}

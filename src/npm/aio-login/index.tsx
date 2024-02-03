@@ -7,7 +7,7 @@ import { mdiCellphone, mdiLock, mdiLoading, mdiAccount, mdiAccountBoxOutline, md
 import AIOPopup from 'aio-popup';
 import './index.css';
 export type I_AIOLogin = {
-    setToken:(token:string | false)=>void,getToken:()=>string,
+    setToken:(token:string | false)=>void,getToken:()=>string,removeToken:()=>void,
     setUserInfo:(userInfo:any)=>void,getUserInfo:()=>any,updateUserInfo:(key:string,value:any)=>any,
     getUserId:()=>string,
     setMode:(mode:I_AL_mode)=>void,
@@ -83,11 +83,13 @@ export default class AIOlogin {
     getUserId:()=>string;
     getToken:()=>string;
     setToken:(token:string)=>void;
+    removeToken:()=>void;
     isRegistered:()=>boolean;
     constructor(props:I_AL_props) {
         let storage = AIOStorage(`-AIOLogin-${props.id}`);
         this.getToken = ()=>storage.load({ name: 'token' });
         this.setToken = (token:string)=>storage.save({ name: 'token', value:token });
+        this.removeToken = ()=>storage.save({ name: 'token', value:false });
         this.setUserInfo = (userInfo:any)=>storage.save({ name: 'userInfo', value:userInfo });
         this.updateUserInfo = (key:string,value:any)=>{
             let userInfo = this.getUserInfo();

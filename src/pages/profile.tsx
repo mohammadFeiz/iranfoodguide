@@ -9,7 +9,7 @@ import AppContext from "../app-context";
 import Card from "../card/card";
 import PopupHeader from "../components/popup-header";
 import Wallet from "./../components/wallet/wallet.tsx";
-import { I_state } from "../typs";
+import { I_address, I_profile, I_state, I_takhfif } from "../typs";
 type I_Profile_item = { icon: React.ReactNode, text: string, id: string,show?:()=>boolean }
 
 export default function Profile() {
@@ -61,13 +61,7 @@ export default function Profile() {
                     buttons:[
                         ['بله',{
                             onClick:()=>{
-                                apis.request({
-                                    api:'profile.removeAccount',
-                                    onSuccess:()=>{
-                                        Login.removeToken();
-                                        window.location.reload();
-                                    }
-                                })
+                                apis.request({api:'profile.removeAccount',onSuccess:()=>{Login.removeToken(); window.location.reload();}})
                             },
                             className:'secondary-button'
                         }],
@@ -80,19 +74,19 @@ export default function Profile() {
             Login.logout();
         }
         else if (key === 'ettelaate_shakhsi') {
-            addModal({ position:'fullscreen',header: false, body: {render:() => <Ettelaate_shakhsi /> }})
+            rsa.addModal({ position:'fullscreen',header: false, body: {render:() => <Ettelaate_shakhsi /> }})
         }
         else if (key === 'password') {
-            addModal({ position:'fullscreen',header: false, body: {render:() => <Passwrod /> }})
+            rsa.addModal({ position:'fullscreen',header: false, body: {render:() => <Passwrod /> }})
         }
         else if (key === 'address_ha') {
-            addModal({ position:'fullscreen',header: false, body: {render:() => <Address_ha /> }})
+            rsa.addModal({ position:'fullscreen',header: false, body: {render:() => <Address_ha /> }})
         }
         else if (key === 'takhfif_ha') {
-            addModal({ position:'fullscreen',header: false, body: {render:() => <Takhfif_ha /> }})
+            rsa.addModal({ position:'fullscreen',header: false, body: {render:() => <Takhfif_ha /> }})
         }
         else if (key === 'restoran_haye_mahboob') {
-            addModal({ position:'fullscreen',header: false, body: {render:() => <Restoran_haye_mahboob /> }})
+            rsa.addModal({ position:'fullscreen',header: false, body: {render:() => <Restoran_haye_mahboob /> }})
         }
     }
     function header_layout() {
@@ -137,26 +131,15 @@ export default function Profile() {
     return (<RVD layout={{column: [header_layout(),body_layout()]}}/>)
 }
 
-class Ettelaate_shakhsi extends Component {
-    static contextType = AppContext;
-    constructor(props) {
-        super(props);
-        this.state = { profile: {} }
-    }
-    componentDidMount() {
-        let { profile } = this.context;
-        debugger
-        this.setState({ profile })
-    }
-    form_layout() {
-        let { profile } = this.state;
-        let { Login,apis,changeStore,rsa } = this.context;
+function Ettelaate_shakhsi() {
+    let { Login,apis,changeStore,rsa,profile }:I_state = useContext(AppContext);
+    function form_layout() {
         let mobile = Login.getUserId();
         let {isRegistered} = Login.getUserInfo();
         return {
             flex: 1, className: 'ofy-auto',
             column: [
-                {
+                !profile?false:{
                     column: [
                         { html: <Icon path={mdiAccountCircleOutline} size={2.8} />, style: { color: '#888' }, align: 'vh' },
                         { html: `${profile.firstName} ${profile.lastName}`, align: 'vh', className: 'fs-14 bold' },
@@ -187,29 +170,23 @@ class Ettelaate_shakhsi extends Component {
             ]
         }
     }
-    render() {
-        return (
-            <RVD
-                layout={{
-                    className: 'app-popup',
-                    column: [
-                        { html: <PopupHeader title='اطلاعات شخصی' /> },
-                        this.form_layout(),
-                    ]
-                }}
-            />
-        )
-    }
+    return (
+        <RVD
+            layout={{
+                className: 'app-popup',
+                column: [
+                    { html: <PopupHeader title='اطلاعات شخصی' /> },
+                    form_layout(),
+                ]
+            }}
+        />
+    )
 }
-class Passwrod extends Component {
-    static contextType = AppContext;
-    constructor(props) {
-        super(props);
-        this.state = { model:{password: ''} }
-    }
-    form_layout() {
-        let { model } = this.state;
-        let {Login} = this.context;
+function Passwrod() {
+    let {Login,apis,rsa}:I_state = useContext(AppContext);
+    let [model,setModel] = useState<{password:string}>({password:''})
+    function header_layout(){return { html: <PopupHeader title='تغییر رمز عبور' /> }}
+    function form_layout() {
         let mobile = Login.getUserId();
         let inputs = [
             { input:{type:'text',disabled:true}, label:'شماره همراه', field: mobile },
@@ -222,7 +199,7 @@ class Passwrod extends Component {
                     html: (
                         <AIOInput
                             inputStyle={{height:36}}
-                            type='form' lang='fa' value={model} onChange={(model) => this.setState({ model })}
+                            type='form' lang='fa' value={model} onChange={(model) => setModel(model)}
                             inputs={{props:{gap:12},column:inputs}}
                         />
                     )
@@ -230,14 +207,12 @@ class Passwrod extends Component {
             ]
         }
     }
-    footer_layout() {
-        let {apis,rsa} = this.context;
+    function footer_layout() {
         return {
             align: 'vh',
             className: 'p-24',
             html: (
                 <button className= 'button-1 w-100 h-36' onClick={()=>{
-                    let {model} = this.state;
                     apis.request({
                         api:'profile.setPassword',
                         parameter:model.password,
@@ -249,47 +224,30 @@ class Passwrod extends Component {
             )
         }
     }
-    render() {
-        return (
-            <RVD
-                layout={{
-                    className: 'app-popup',
-                    column: [
-                        { html: <PopupHeader title='تغییر رمز عبور' /> },
-                        this.form_layout(),
-                        this.footer_layout()
-                    ]
-                }}
-            />
-        )
-    }
+    return (<RVD layout={{className: 'app-popup',column: [header_layout(),form_layout(),footer_layout()]}}/>)
 }
-class Address_ha extends Component {
-    static contextType = AppContext;
-    async onSubmit(address,type){
-        let {changeStore,rsa,apis,addresses} = this.context;
+function Address_ha() {
+    let {changeStore,rsa,apis,addresses}:I_state = useContext(AppContext);
+    async function onSubmit(address:I_address,type:'add'|'edit'){
         await apis.request({
             api:'profile.addressForm',
             parameter:{address,type},
             onSuccess:()=>{
                 if(type === 'add'){addresses.push(address);}
                 else{addresses = addresses.map((o)=>address.id === o.id?address:o)}
-                changeStore({addresses},`<Address_ha/> => onSubmit`);
+                changeStore('addresses',addresses,`<Address_ha/> => onSubmit`);
                 rsa.removeModal()
             },
-            description:()=>`${type === 'add'?'افزودن':'ویرایش'} آدرس `,
+            description:`${type === 'add'?'افزودن':'ویرایش'} آدرس `,
             message:{success:true}
         })
     }
-    add_layout() {
+    function header_layout(){return { html: <PopupHeader title='آدرس ها' /> }}
+    function add_layout() {
         return {
             size: 48, className: 'p-h-12',
             onClick:()=>{
-                let { rsa } = this.context;
-                rsa.addModal({
-                    header: false,
-                    body: {render:() => <Address_form onSubmit={(address) => this.onSubmit(address,'add')} />}
-                })
+                rsa.addModal({header: false,body: {render:() => <AddressForm type='add' onSubmit={(address:I_address) => onSubmit(address,'add')} />}})
             },
             row: [
                 { size: 36, html: <Icon path={mdiPlusThick} size={1} />, align: 'vh' },
@@ -297,8 +255,7 @@ class Address_ha extends Component {
             ]
         }
     }
-    cards_layout() {
-        let { addresses } = this.context;
+    function cards_layout() {
         return {
             flex: 1, className: 'ofy-auto',
             column: addresses.map((o) => {
@@ -307,62 +264,31 @@ class Address_ha extends Component {
                     size: 72, className: 'm-12 m-t-0 br-12',
                     style: { border: '1px solid #aaa' },
                     onClick: () => {
-                        let { rsa } = this.context;
                         rsa.addModal({
                             position:'fullscreen',header: false,
-                            body: {render:() => <Address_form model={o} onSubmit={(model) => this.onSubmit(model,'edit')} />}
+                            body: {render:() => <AddressForm type='edit' model={o} onSubmit={(address:I_address) => onSubmit(address,'edit')} />}
                         })
                     },
                     row: [
                         { size: 72, align: 'vh', html: <Icon path={mdiMapMarker} size={1.6} /> },
-                        {
-                            flex: 1,
-                            column: [
-                                { flex: 1 },
-                                { html: title, className: 'fs-14 bold' },
-                                { html: address, className: 'fs-12' },
-                                { flex: 1 }
-                            ]
-                        }
+                        {flex: 1,align:'v',column: [{ html: title, className: 'fs-14 bold' },{ html: address, className: 'fs-12' }]}
                     ]
                 }
             })
         }
     }
-    render() {
-        return (
-            <RVD
-                layout={{
-                    className: 'app-popup',
-                    column: [
-                        { html: <PopupHeader title='آدرس ها' /> },
-                        this.add_layout(),
-                        this.cards_layout(),
-
-                    ]
-                }}
-            />
-        )
-    }
+    return (<RVD layout={{className: 'app-popup',column: [header_layout(),add_layout(),cards_layout()]}}/>)
 }
-class Address_form extends Component {
-    static contextType = AppContext;
-    constructor(props) {
-        super(props);
-        let { model } = props;
-        this.state = {
-            error: true,
-            model: model || {},
-            type: !!model ? 'edit' : 'add'
-        }
+type I_AddressForm = {type:'add' | 'edit',model?:I_address,onSubmit:(address:I_address)=>void}
+function AddressForm(props:I_AddressForm) {
+    let {}:I_state = useContext(AppContext);
+    let {type,onSubmit} = props;
+    let [model,setModel] = useState<I_address>(props.model || ({} as I_address))
+    function submit(){onSubmit(model)}
+    function header_layout(){
+        return { html: <PopupHeader title={type === 'add' ? 'افزودن آدرس جدید' : 'ویرایش آدرس'} /> }
     }
-    onSubmit(){
-        let {onSubmit} = this.props;
-        let {model} = this.state;
-        onSubmit(model)
-    }
-    form_layout() {
-        let {model,type} = this.state;
+    function form_layout() {
         return {
             flex: 1,
             html: (
@@ -373,71 +299,48 @@ class Address_form extends Component {
                         column:[
                             {
                                 html: () => {
-                                    let {model} = this.state;
                                     return (
                                         <AIOInput
                                             type='map' value={{lat:model.latitude,lng:model.longitude}}
-                                            onChangeAddress={(address)=>this.setState({ model:{...this.state.model,address} })}
+                                            onChangeAddress={(address:string)=>setModel({...model,address})}
                                             mapConfig={{draggable:false}}
                                             popup={{mapConfig:{title:'انتخاب موقعیت',search:true}}}
-                                            onChange={({lat,lng}) => this.setState({ model:{...this.state.model,latitude:lat,longitude:lng} })}
+                                            onChange={({lat,lng}) => this.setState({ model:{...model,latitude:lat,longitude:lng} })}
                                         />
                                     )
                                 }
                             },
-                            { input:{type: 'text'}, label: 'عنوان آدرس', field: 'value.title' },
-                            { input:{type: 'text'}, label: 'آدرس دقیق', field: 'value.address' },
-                            { input:{type: 'text'}, label: 'پلاک', field: 'value.number' },
-                            { input:{type: 'text'}, label: 'واحد', field: 'value.unit' },
-                            { input:{type: 'text'}, label: 'تلفن ثابت', field: 'value.phone' },
+                            { input:{type: 'text'}, label: 'عنوان آدرس', field: 'value.title',validations:[['required']] },
+                            { input:{type: 'text'}, label: 'آدرس دقیق', field: 'value.address',validations:[['required']] },
+                            { input:{type: 'text'}, label: 'پلاک', field: 'value.number',validations:[['required']] },
+                            { input:{type: 'text'}, label: 'واحد', field: 'value.unit',validations:[['required']] },
+                            { input:{type: 'text'}, label: 'تلفن ثابت', field: 'value.phone',validations:[['required']] },
                         ]
                     }}
-                    onChange={(model, error) => this.setState({ model, error })}
-                    onSubmit={() => this.onSubmit()}
+                    onChange={(model) => setModel(model)}
+                    onSubmit={() => submit()}
                     submitText={type === 'add' ? 'ثبت آدرس جدید' : 'ویرایش آدرس'}
                 />
             )
         }
     }
-    render() {
-        let { type } = this.state;
-        return (
-            <RVD
-                layout={{
-                    className:'app-popup',
-                    column: [
-                        { html: <PopupHeader title={type === 'add' ? 'افزودن آدرس جدید' : 'ویرایش آدرس'} /> },
-                        this.form_layout()
-                    ]
-                }}
-            />
-        )
-    }
+    return (<RVD layout={{className:'app-popup',column: [header_layout(),form_layout()]}}/>)
 }
-class Takhfif_ha extends Component{
-    static contextType = AppContext;
-    constructor(props) {
-        super(props);
-        this.state = { takhfif_ha: [] }
-    }
-    componentDidMount() {
-        let { takhfif_ha } = this.context;
-        this.setState({ takhfif_ha })
-    }
-    cards_layout() {
-        let { takhfif_ha } = this.state;
+function Takhfif_ha(){
+    let {takhfif_ha}:I_state = useContext(AppContext);
+    function header_layout(){return { html: <PopupHeader title='تخفیف ها' /> }}
+    function cards_layout() {
         return {
             flex: 1, className: 'ofy-auto',
-            column: takhfif_ha.map((o) => {
+            column: takhfif_ha.map((o:I_takhfif) => {
                 let { amounts,description,code,expirationDate,order } = o;
                 return {
-                    className: 'm-12 m-t-0 br-12 p-h-12',
-                    style: { border: '1px solid #aaa' },
+                    className: 'm-12 m-t-0 br-12 p-h-12',style: { border: '1px solid #aaa' },
                     column:[
                         {html:description,size:36,align:'v',className:'bold'},
                         {
                             column:amounts.map(({percent,amount},i)=>{
-                                let row = [{html:'تخفیف'}];
+                                let row:{html:string,className?:string}[] = [{html:'تخفیف'}];
                                 if(percent){
                                     row.push({html:`${percent}%`,className:'bold'})
                                 }
@@ -446,9 +349,7 @@ class Takhfif_ha extends Component{
                                         row.push({html:'تا سقف'});
                                         row.push({html:`${amount} تومان`,className:'bold'});
                                     }
-                                    else{
-                                        row.push({html:`${amount} تومان`,className:'bold'})
-                                    }
+                                    else{row.push({html:`${amount} تومان`,className:'bold'})}
                                 }
                                 return {
                                     size:36,
@@ -460,63 +361,38 @@ class Takhfif_ha extends Component{
                                 }
                             }) 
                         },
-                        {
-                            size:36,align:'v',
-                            row:[
-                                {html:code,className:'bold'},
-                                {flex:1},
-                                {html:<Timer endDate={expirationDate}/>}
-                            ]
-                        }
+                        {size:36,align:'v',row:[{html:code,className:'bold'},{flex:1},{html:<Timer endDate={expirationDate}/>}]}
                     ]
                 }
             })
         }
     }
-    render() {
-        return (
-            <RVD
-                layout={{
-                    className: 'app-popup fs-12',
-                    column: [
-                        { html: <PopupHeader title='تخفیف ها' /> },
-                        this.cards_layout(),
-
-                    ]
-                }}
-            />
-        )
-    }
+    return (<RVD layout={{className: 'app-popup fs-12',column: [header_layout(),cards_layout()]}}/>)
 }
-class Restoran_haye_mahboob extends Component{
-    static contextType = AppContext;
-    state = {items:[]}
-    async componentDidMount(){
-        let {apis} = this.context;
+function Restoran_haye_mahboob(){
+    let {apis}:I_state = useContext(AppContext);
+    let [items,setItems] = useState([])
+    function getItems(){
         apis.request({
-            api:'restoran_haye_mahboob',
-            description:'دریافت لیست رستوران های محبوب',
-            onSuccess:(items)=>this.setState({items})
+            api:'restoran_haye_mahboob',description:'دریافت لیست رستوران های محبوب',
+            onSuccess:(items)=>setItems(items)
         })
     }
-    render(){
-        let {items} = this.state;
-        return (
-            <RVD
-                layout={{
-                    style:{background:'#fff',height:'100%'},
-                    column:[
-                        {html:<PopupHeader title='رستوران های محبوب'/>},
-                        {
-                            flex:1,gap:24,className:'ofy-auto',
-                            column:items.map((o)=>{
-                                return {className:'p-h-24',html:<Card type='restoran_card' {...o}/>}
-                            })
-                        }
-                    ]
-                }}
-            />          
-        )
-    }
+    return (
+        <RVD
+            layout={{
+                style:{background:'#fff',height:'100%'},
+                column:[
+                    {html:<PopupHeader title='رستوران های محبوب'/>},
+                    {
+                        flex:1,gap:24,className:'ofy-auto',
+                        column:items.map((o)=>{
+                            return {className:'p-h-24',html:<Card type='restoran_card' {...o}/>}
+                        })
+                    }
+                ]
+            }}
+        />          
+    )
 }
 
