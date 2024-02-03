@@ -46,11 +46,12 @@ class RestoranCard extends Component {
     }
     tags_layout(tags){
         if(!tags || !tags.length){return false}
-        let {restoran_tags_dic} = this.context;
         return {
             gap: 3,flex:1,className:'ofx-auto rvd-hidden-scrollbar',
             row: tags.map((o,i) => {
-                return {align: 'vh',html: <div key={i} className='card-tag'>{restoran_tags_dic[o.id]}</div>}
+                let {restoran_tags} = this.context;
+                let tag = restoran_tags.find((rt)=>rt.id === o.id);
+                return {align: 'vh',html: <div key={i} className='card-tag'>{tag.name}</div>}
             })
         }
     }

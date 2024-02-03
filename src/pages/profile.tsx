@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import RVD from './../npm/react-virtual-dom';
+import React, { Component, useContext, useEffect, useState } from "react";
+import RVD from '../npm/react-virtual-dom';
 import SplitNumber from "../npm/aio-functions/split-number";
 import { Icon } from '@mdi/react';
 import { mdiAccount, mdiAccountCircleOutline, mdiChevronRight, mdiLock, mdiMapMarker, mdiPlusCircle, mdiPlusThick } from '@mdi/js';
@@ -8,34 +8,31 @@ import Timer from "../components/timer";
 import AppContext from "../app-context";
 import Card from "../card/card";
 import PopupHeader from "../components/popup-header";
-import Kife_pool from "../components/kife-pool/kife-pool";
-export default class Profile extends Component {
-    static contextType = AppContext;
-    constructor(props) {
-        super(props);
-        this.state = {
-            items: []
-        }
+import Wallet from "./../components/wallet/wallet.tsx";
+import { I_state } from "../typs";
+type I_Profile_item = { icon: React.ReactNode, text: string, id: string,show?:()=>boolean }
+
+export default function Profile() {
+    let {rsa,apis,Login,wallet,profile}:I_state = useContext(AppContext);
+    let [items,setItems] = useState<I_Profile_item[]>([])
+    function getItems(){
+        let {isRegistered} = Login.getUserInfo();
+        let items:I_Profile_item[] = [
+            { icon: <Icon path={mdiAccount} size={1} />, text: isRegistered?'ویرایش اطلاعات کاربری':'ثبت نام در ایران فود', id: 'ettelaate_shakhsi' },
+            { icon: <Icon path={mdiLock} size={1} />, text: 'تنظیم یا ویرایش رمز عبور', id: 'password',show:()=>isRegistered },
+            { icon: <Icon path={mdiAccount} size={1} />, text: 'آدرس ها', id: 'address_ha' },
+            { icon: <Icon path={mdiAccount} size={1} />, text: 'تخفیف ها',id:'takhfif_ha' },
+            { icon: <Icon path={mdiAccount} size={1} />, text: 'رستوران های محبوب',id:'restoran_haye_mahboob' },
+            { icon: <Icon path={mdiAccount} size={1} />, text: 'لغو حساب کاربری',id:'removeAccount' },
+            { icon: <Icon path={mdiAccount} size={1} />, text: 'خروج',id:'exit' }
+        ]
+        setItems(items)
     }
-    componentDidMount(){
-        let {isRegistered} = this.context;
-        this.setState({
-            items:[
-                { icon: <Icon path={mdiAccount} size={1} />, text: isRegistered?'ویرایش اطلاعات کاربری':'ثبت نام در ایران فود', id: 'ettelaate_shakhsi' },
-                { icon: <Icon path={mdiLock} size={1} />, text: 'تنظیم یا ویرایش رمز عبور', id: 'password',show:()=>this.context.isRegistered },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'آدرس ها', id: 'address_ha' },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'تخفیف ها',id:'takhfif_ha' },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'رستوران های محبوب',id:'restoran_haye_mahboob' },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'لغو حساب کاربری',id:'removeAccount' },
-                { icon: <Icon path={mdiAccount} size={1} />, text: 'خروج',id:'exit' }
-            ]
-        })
-    }
-    kife_pool_layout(){
-        let { mojoodiye_kife_pool,rsa } = this.context;
+    useEffect(()=>{getItems()},[])
+    function wallet_layout(){
         return {
             onClick:()=>{
-                rsa.addModal({ header: false, body: {render:() => <Kife_pool />} })
+                rsa.addModal({ header: false, body: {render:() => <Wallet />} })
             },
             column: [
                 { flex: 1 },
@@ -45,7 +42,7 @@ export default class Profile extends Component {
                     className: 'h-24 br-12 p-h-6',
                     row: [
                         { html: 'کیف پول', className: 'fs-10' },
-                        { html: SplitNumber(mojoodiye_kife_pool), className: 'fs-12 bold' },
+                        { html: SplitNumber(wallet), className: 'fs-12 bold' },
                         { html: 'تومان', className: 'fs-10' },
                         { html: <Icon path={mdiPlusCircle} size={0.7} /> }
                     ]
@@ -54,11 +51,9 @@ export default class Profile extends Component {
             ]
         }
     }
-    openModal(key) {
-        let { rsa,loginClass,apis } = this.context;
-        let { addModal } = rsa;
+    function openModal(key) {
         if(key === 'removeAccount'){
-            addModal({ 
+            rsa.addModal({ 
                 position:'center',
                 header: {title:'لغو حساب کاربری'}, 
                 body: {attrs:{className:'p-12'},render:() => 'آیا از لغو حساب کاربری خود اطمینان دارید؟' },
@@ -69,7 +64,7 @@ export default class Profile extends Component {
                                 apis.request({
                                     api:'profile.removeAccount',
                                     onSuccess:()=>{
-                                        loginClass.removeToken();
+                                        Login.removeToken();
                                         window.location.reload();
                                     }
                                 })
@@ -82,7 +77,7 @@ export default class Profile extends Component {
             })
         }
         else if(key === 'exit'){
-            loginClass.logout();
+            Login.logout();
         }
         else if (key === 'ettelaate_shakhsi') {
             addModal({ position:'fullscreen',header: false, body: {render:() => <Ettelaate_shakhsi /> }})
@@ -100,8 +95,9 @@ export default class Profile extends Component {
             addModal({ position:'fullscreen',header: false, body: {render:() => <Restoran_haye_mahboob /> }})
         }
     }
-    header_layout() {
-        let { profile,mobile } = this.context;
+    function header_layout() {
+        if(!profile){return false}
+        let mobile = Login.getUserId();
         return {
             className: 'p-6',
             row: [
@@ -118,15 +114,15 @@ export default class Profile extends Component {
                         { flex: 1 }
                     ]
                 },
-                this.kife_pool_layout()
+                wallet_layout()
             ]
         }
     }
-    body_layout() {
-        let { items } = this.state;
+    function body_layout() {
         return {
             flex: 1, className: 'ofy-auto',
-            column: items.filter(({show = ()=>true})=>show()).map(({ icon, text, id }) => {
+            column: items.filter(({show = ()=>true})=>show()).map((item:I_Profile_item) => {
+                let { icon, text, id } = item;
                 return {
                     size: 48,
                     onClick: () => this.openModal(id),
@@ -138,18 +134,7 @@ export default class Profile extends Component {
             })
         }
     }
-    render() {
-        return (
-            <RVD
-                layout={{
-                    column: [
-                        this.header_layout(),
-                        this.body_layout()
-                    ]
-                }}
-            />
-        )
-    }
+    return (<RVD layout={{column: [header_layout(),body_layout()]}}/>)
 }
 
 class Ettelaate_shakhsi extends Component {
@@ -165,7 +150,9 @@ class Ettelaate_shakhsi extends Component {
     }
     form_layout() {
         let { profile } = this.state;
-        let { loginClass,isRegistered,apis,changeStore,mobile,rsa } = this.context;
+        let { Login,apis,changeStore,rsa } = this.context;
+        let mobile = Login.getUserId();
+        let {isRegistered} = Login.getUserInfo();
         return {
             flex: 1, className: 'ofy-auto',
             column: [
@@ -177,7 +164,7 @@ class Ettelaate_shakhsi extends Component {
                     ]
                 },
                 {
-                    html: loginClass.render({
+                    html: Login.render({
                         profile:{
                             fields:[
                                 '*firstName_text_نام',
@@ -188,8 +175,8 @@ class Ettelaate_shakhsi extends Component {
                             submitText:isRegistered?'ویرایش اطلاعات کاربری':'ثبت نام در ایران فود',
                             onSubmit:({profile})=>{
                                 apis.request({
-                                    api:'profile.setProfile',parameter:{profile,isRegistered,mobile},
-                                    onSuccess:()=>{changeStore({profile},'<Ettelaate_shakhsi/> => footer_layout'); rsa.removeModal()},
+                                    api:'profile.setProfile',parameter:profile,
+                                    onSuccess:()=>{changeStore('profile',profile,'<Ettelaate_shakhsi/> => footer_layout'); rsa.removeModal()},
                                     description:'ثبت اطلاعات پروفایل',
                                     message:{success:true}
                                 })
@@ -222,7 +209,8 @@ class Passwrod extends Component {
     }
     form_layout() {
         let { model } = this.state;
-        let {mobile} = this.context;
+        let {Login} = this.context;
+        let mobile = Login.getUserId();
         let inputs = [
             { input:{type:'text',disabled:true}, label:'شماره همراه', field: mobile },
             { input:{type:'password'}, label:'رمز عبور', field: `value.password` }
@@ -243,7 +231,7 @@ class Passwrod extends Component {
         }
     }
     footer_layout() {
-        let {apis,rsa,changeStore,isRegistered,profile,mobile} = this.context;
+        let {apis,rsa} = this.context;
         return {
             align: 'vh',
             className: 'p-24',
@@ -252,7 +240,7 @@ class Passwrod extends Component {
                     let {model} = this.state;
                     apis.request({
                         api:'profile.setPassword',
-                        parameter:{mobile,password:model.password},
+                        parameter:model.password,
                         onSuccess:()=>rsa.removeModal(),
                         description:'ثبت رمز عبور',
                         message:{success:true}

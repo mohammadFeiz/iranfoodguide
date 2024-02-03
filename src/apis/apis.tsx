@@ -1,5 +1,5 @@
 import backOfficeApis from "./back-office-apis";
-import profileApis from "./profile-apis";
+import profileApis from "./profile-apis.tsx";
 import reserveApis from "./reserve-apis";
 import frame210 from '../images/Frame 210.png';
 import cat_irani_src from '../images/cat-irani.png';
@@ -16,6 +16,7 @@ import pasta_alferedo from '../images/pasta_alferedo.png';
 import ghaem_image from '../images/ghaem_image.png';
 import ghaem_logo from '../images/ghaem_logo.png';
 import AIOStorage from 'aio-storage';
+import { I_imageId, I_restoran, I_restoran_server } from "../typs.tsx";
 
 /**********************restoran data model**************************************** */
 //name: String,image: String,logo: String,latitude: Number,longitude: Number,startTime:0,endTime:0,
@@ -24,42 +25,26 @@ import AIOStorage from 'aio-storage';
 /**********************restoran_tags data model**************************************** */
 //name: '',id: ''
 /************************************************************** */
-
+export type I_add_or_edit_image_p = {imageFile:any,imageId?:I_imageId}
+export type I_add_or_edit_image_r = {id:I_imageId,url:string}
 export default function getApiFunctions(obj) {
     let { baseUrl, Axios,helper } = obj;
     return {
         backOffice: backOfficeApis(obj),
         profile: profileApis(obj),
         reserve: reserveApis(obj),
-        async add_or_edit_image({imageObject,type},{mock}){
-            if(mock.reserve){return MockApis.add_or_edit_image({type,imageObject})}
-            let {file:imageFile,id:imageId} = imageObject;
-            if(type === 'add'){
-                let apiUrl = `${baseUrl}/Image/UploadImage`;
-                let formData = new FormData()
-                formData.append('imageFile', imageFile, imageFile.name)
-                formData.append('title', imageFile.name)
-                formData.append('imageId', imageId)
-                let body = formData;
-                debugger;
-                let response = await Axios.post(apiUrl, body)
-                let {id,url} = response.data.data;
-                let result = {id,url};
-                return {response,result}
-            }
-            else if(type === 'edit'){
-                let apiUrl = `${baseUrl}/Image/UploadImage`;
-                let formData = new FormData()
-                formData.append('imageFile', imageFile, imageFile.name)
-                formData.append('title', imageFile.name)
-                formData.append('imageId', imageId)
-                let body = formData;
-                debugger;
-                let response = await Axios.post(apiUrl, body)
-                let {id,url} = response.data.data;
-                let result = {id,url};
-                return {response,result}
-            }
+        async add_or_edit_image(p:I_add_or_edit_image_p){
+            let {imageFile,imageId} = p;
+            let apiUrl = `${baseUrl}/Image/UploadImage`;
+            let formData = new FormData()
+            formData.append('imageFile', imageFile, imageFile.name)
+            formData.append('title', imageFile.name)
+            formData.append('imageId', imageId)
+            let body = formData;
+            let response = await Axios.post(apiUrl, body)
+            let {id,url} = response.data.data;
+            let result:I_add_or_edit_image_r = {id,url};
+            return {response,result}
         },
         async remove_image(id,{mock}){
             if(mock.reserve){return MockApis.remove_image(id);}
@@ -123,10 +108,10 @@ export default function getApiFunctions(obj) {
             let result;
             return { response, result }
         },
-        async search_restorans(parameter, { MapRestorans }) {
+        async search_restorans(parameter, { restoranToClient }) {
             let response;
             let data = [];
-            let result = MapRestorans(data);
+            let result = data.map((o:I_restoran_server)=>{let res:I_restoran = restoranToClient(o); return res});
             return { response, result }
         },
         async safheye_sefaresh() {
@@ -137,21 +122,22 @@ export default function getApiFunctions(obj) {
             let result = response.data.data;
             return { response, result };
         },
-        async restoran_haye_mahboob(parameter, { personId }) {
+        async restoran_haye_mahboob(parameter, { Login }) {
+            let {id} = Login.getUserInfo();
             let url = `${baseUrl}/RestaurantFavoruite/search`
-            let body = { "PersonId": personId }
+            let body = { "PersonId": id }
             let response = await Axios.post(url, body);
             let result = response.data.data.items;
             return { response, result }
         },
-        async tarikhcheye_kife_pool() {
-            return MockApis.tarikhcheye_kife_pool(helper)
+        async getWalletHistory() {
+            return MockApis.getWalletHistory(helper)
         },
         async tarikhche_ye_jostojoo() {
-            return MockApis.tarikhche_ye_jostojoo(helper)
+            return MockApis.tarikhche_ye_jostojoo()
         },
         async hazfe_tarikhche_ye_jostojoo() {
-            return MockApis.hazfe_tarikhche_ye_jostojoo(helper)
+            return MockApis.hazfe_tarikhche_ye_jostojoo()
         },
         async restoran_comments({ id, pageSize, pageNumber }) {
             //id => آی دی رستوران
@@ -184,23 +170,6 @@ export default function getApiFunctions(obj) {
 }
 
 const MockApis = {
-    add_or_edit_image({type,imageObject}){
-        debugger
-        let {id,url,file} = imageObject;
-        let storage = AIOStorage('ifgreservemockserver');
-        let images = storage.load({name:'images',def:[]})
-        if(type === 'add'){
-            id = 'sss' + Math.round(Math.random() * 10000000)
-            let newImages = images.concat({id,url});
-            storage.save({name:'images',value:newImages})
-            return {result:{id,url}}
-        }
-        else {
-            let newImages = images.map((o)=>o.id === id?{...o,url}:o);
-            storage.save({name:'images',value:newImages})
-            return {result:{id,url}}
-        }
-    },
     remove_image(id){
         let storage = AIOStorage('ifgreservemockserver');
         let images = storage.load({name:'images',def:[]})
@@ -352,7 +321,7 @@ const MockApis = {
         ]
         return { result }
     },
-    tarikhcheye_kife_pool(helper) {
+    getWalletHistory(helper) {
         let data = [
             { date: new Date().getTime(), amount: '123456789', type: 'in' },
             { date: new Date().getTime(), amount: '123456789', type: 'out' },
