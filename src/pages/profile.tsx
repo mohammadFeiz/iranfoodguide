@@ -333,7 +333,7 @@ function Takhfif_ha(){
         return {
             flex: 1, className: 'ofy-auto',
             column: takhfif_ha.map((o:I_takhfif) => {
-                let { amounts,description,code,expirationDate,order } = o;
+                let { amounts,description,code,endDate,order } = o;
                 return {
                     className: 'm-12 m-t-0 br-12 p-h-12',style: { border: '1px solid #aaa' },
                     column:[
@@ -361,7 +361,7 @@ function Takhfif_ha(){
                                 }
                             }) 
                         },
-                        {size:36,align:'v',row:[{html:code,className:'bold'},{flex:1},{html:<Timer endDate={expirationDate}/>}]}
+                        {size:36,align:'v',row:[{html:code,className:'bold'},{flex:1},{html:<Timer endDate={endDate}/>}]}
                     ]
                 }
             })

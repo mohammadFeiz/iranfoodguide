@@ -169,7 +169,6 @@ export type I_takhfif = {
     endDate:string,
     order:number,
     description:string,
-    expirationDate:string
 }
 export type I_takhfif_amount = {percent?:number,amount?:number}
 export type I_restoran_sort_option = {text:I_restoran_sort_text,value:I_restoran_sort_value}

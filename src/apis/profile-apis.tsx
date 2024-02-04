@@ -1,5 +1,7 @@
+import  Axios from "axios";
 import { I_address, I_address_server, I_profile, I_takhfif } from "../typs";
-
+import AIOStorage from 'aio-storage';
+import $ from 'jquery';
 export default function profileApis({ baseUrl, Axios }) {
     return {
         setProfile: async (profile,{Login}) => {
@@ -15,7 +17,8 @@ export default function profileApis({ baseUrl, Axios }) {
                 "mobileNumbers": [{"mobileNumber": mobile,"isDefault": true}]
             }
             let response = await Axios.post(url, body);
-            return { response }
+            let result = true;
+            return { response,result }
         },
         removeAccount: async (parameter, { Login }) => {
             baseUrl = baseUrl.replace('/api', '');
@@ -52,6 +55,8 @@ export default function profileApis({ baseUrl, Axios }) {
                 let address:I_address = {
                     title: o.title,
                     address: o.address,
+                    latitude:o.latitude,
+                    longitude:o.longitude,
                     number: '30',
                     unit: '4',
                     floor: '2',
@@ -158,9 +163,192 @@ const getMockApis:I_getMockApis = {
     },
     getWalletAmount() {
         return { result: 123245666 }
-    },
-
-
-
-
+    }
 }
+
+
+type I_AIOStorage = {
+    save:(p:{name:string,value:any})=>void,
+    load:(p:{name:string,def?:any})=>any
+}
+type I_Moxios_api = {
+    url:(p:{baseUrl:string,parameter:any,appState:any})=>string,
+    method:'post' | 'get' | 'delete' | 'put',
+    mock?:boolean,
+    getBody?:(p:{parameter:any,appState:any})=>any,
+    getMockResult?:(p:{setStorage:(key:string,value:any)=>void,getStorage:(key:string)=>any,parameter:any,appState:any})=>any,
+    getResult:(p:{parameter:any,appState:any,response:any})=>any,
+    cache?:{name:string,time:number},
+    config?:I_Moxios_config
+}
+type I_Moxios_props = {id:string,apis:{[name:string]:I_Moxios_api},getAppState:()=>any,baseUrl:string,token?:string,loader?:()=>React.ReactNode}
+type I_Moxios_config = {
+    loading?:boolean,loadingParent?:string
+}
+class Moxios{
+    token:string;
+    id:string;
+    onCatch:()
+    storage:I_AIOStorage;
+    setProperty:(property:string,value:any)=>void;
+    getAppState:()=>any;
+    setStorage:(key:string,value:any)=>void;
+    getStorage:(name:string,def?:any)=>any;
+    setToken:(token?:string)=>void;
+    getLoading:(id:string)=>string;
+    loader:()=>React.ReactNode;
+    handleLoading:(state:boolean,apiName:string,loading:boolean,loadingParent:string)=>void;
+    getConfig:(p:{key:string,def?:any,baseConfig?:I_Moxios_config,parameterConfig?:I_Moxios_config})=>any;
+    constructor(p:I_Moxios_props){
+        let {id,apis,getAppState = ()=>{},baseUrl,token,loader,onCatch,getError} = p
+        this.loader = loader;
+        this.token = token;
+        this.onCatch = onCatch;
+        this.getError = getError;
+        this.id = id;
+        let storage = AIOStorage(id);
+        this.storage = storage;
+        this.getAppState = getAppState;
+        this.setProperty = (property,value)=>this[property] = value;
+        this.setStorage = (name:string,value:any)=>storage.save({name,value})
+        this.getStorage = (name,def)=>storage.load({name,def});
+        this.setToken = (token?:string)=>{let res = token || this.token; if(res){this.token = res; Axios.defaults.headers.common['Authorization'] = `Bearer ${res}`;}}
+        this.getConfig = (p:{key:string,def?:any,baseConfig?:I_Moxios_config,parameterConfig?:I_Moxios_config}) => {
+            let {key,def,baseConfig,parameterConfig} = p;
+            let parameterResult = (parameterConfig || {})[key];
+            if(parameterResult !== undefined){return parameterResult}
+            let baseResult = (baseConfig || {})[key];
+            if(baseResult !== undefined){return baseResult}
+            return def;
+        }
+        this.getResult = async (parameter) => {
+            let {
+              parameter,
+              onCatch = this.onCatch,
+              getError = this.getError,
+            } = service;
+            try{
+                let apiFunction = this.getApisFunction(service);
+                if(!apiFunction){return this.handleError('apiFunction',service);}
+                let res = await apiFunction(parameter,this.getState());
+                let resError = this.handleError('apiFunctionReturn',{res,service})
+                if(resError){return resError;}
+                let {response,result} = res;
+                if(response){
+                  let error = getError(response,service);
+                  if(typeof error === 'string'){return error}
+                }
+                return result
+            }
+            catch(err){
+              let catchResult;
+              try{catchResult = onCatch(err,service)}
+              catch(err){catchResult = err.message || err.Message;}
+              if(catchResult === undefined){catchResult = err.message || err.Message}
+              console.log(err); 
+              return catchResult
+            }
+        }
+        this.getLoading = (id) => {
+            console.log(`aio-service show loading by ${id}`)
+            return (`
+              <div class="aio-service-loading" id="aio-service-${id}">
+                <div class="aio-service-loading-0">
+                  <div class="aio-service-loading-1">
+                    <div class="aio-service-loading-2" style="animation: 1s ease-in-out 0.0s infinite normal none running aioserviceloading;"></div>
+                    <div class="aio-service-loading-2" style="animation: 1s ease-in-out 0.1s infinite normal none running aioserviceloading;"></div>
+                    <div class="aio-service-loading-2" style="animation: 1s ease-in-out 0.2s infinite normal none running aioserviceloading;"></div>
+                    <div class="aio-service-loading-2" style="animation: 1s ease-in-out 0.3s infinite normal none running aioserviceloading;"></div>
+                    <div class="aio-service-loading-2" style="animation: 1s ease-in-out 0.4s infinite normal none running aioserviceloading;"></div>
+                  </div>
+                </div>
+              </div>
+            `)
+          }
+          this.handleLoading = (state,apiName,loading,loadingParent) => {
+            if(!loading){return}
+            if(state){$(loadingParent).append(this.loader?this.loader():this.getLoading(apiName));}
+            else{
+              let loadingDom = $('#aio-service-' + apiName);
+              if(!loadingDom.length){loadingDom = $('.aio-service-loading')}
+              loadingDom.remove()
+            }
+          }
+        for(let prop in apis){
+            let {url,method,mock,getBody,getResult,getMockResult,config:baseConfig} = apis[prop];
+            if(mock){
+                if(typeof getMockResult !== 'function'){alert('AIOService error : missing getMockResult function in mock mode(mock:true)'); continue}
+                this[prop] = (parameter?:any)=>{
+                    let appState = this.getAppState();
+                    let result = getMockResult({appState,parameter,getStorage:this.getStorage.bind(this),setStorage:this.setStorage.bind(this)})
+                    return {result};
+                }
+            }
+            else{
+                this[prop] = async (parameter:any,parameterConfig?:I_Moxios_config)=>{
+                    let cache = this.getConfig({key:'cache',baseConfig,parameterConfig})
+                    if(cache){let res = this.storage.load(cache); if(res !== undefined){return res}}
+                    let loading = this.getConfig({key:'loading',def:true,baseConfig,parameterConfig})
+                    let loadingParent = this.getConfig({key:'loadingParent',def:'body',baseConfig,parameterConfig})
+                    let description = this.getConfig({key:'description',def:prop,baseConfig,parameterConfig})
+                    let appState = this.getAppState();
+                    this.handleLoading(true,prop,loading,loadingParent);
+                    this.setToken();
+    
+                    let Url = url({baseUrl,appState,parameter});
+                    let response;
+                    try{
+                        response = await Axios[method](Url,getBody?getBody({parameter,appState}):undefined)
+                    }
+                    catch(err){response = err.message}
+                    if(typeof response === 'string'){
+                        if(message.error !== false){
+                          let text = message.error;
+                          if(text === undefined){text = `${description} با خطا روبرو شد`}
+                          helper.showAlert({type:'error',text,subtext:result});
+                        }
+                        return result;
+                      }
+                      else{
+                        if(message.success){
+                          let subtext = typeof message.success === 'function'?message.success(result):message.success;
+                          if(subtext === true){subtext = ''}
+                          helper.showAlert({type:'success',text:`${description} با موفقیت انجام شد`,subtext,time:message.time});
+                        }
+                      }
+                      return result;
+                    this.handleLoading(false,prop,loading,loadingParent);
+                    let result = getResult({parameter,appState:this.getAppState(),response});
+                    return {response,result}
+                }
+            }
+            
+        }
+    }
+}
+let moxios = new Moxios({
+    id:'ifg',
+    getAppState:()=>{},
+    baseUrl:'ifg',
+    apis:{
+        setProfile:{
+            url:({baseUrl,parameter,appState})=>`${baseUrl}/People/${!parameter.Login.getUserInfo().isregistered?'CreateProfile':'UpdateProfile'}`,
+            method:'post',mock:true,
+            getBody:({parameter,appState})=>{
+                let profile = parameter;
+                return {
+                    "Id": profile.id,
+                    "firstName": profile.firstName,
+                    "lastName": profile.lastName,
+                    "email": profile.email,
+                    "sheba": profile.sheba,
+                    "mobileNumbers": [{"mobileNumber": profile.mobile,"isDefault": true}]
+                }
+            },
+            getMockResult:({setStorage,getStorage,parameter,appState})=>{
+                setStorage('profile',parameter); return true
+            },
+            getResult:({parameter,appState,response})=>true,
+        }
+    }
+})

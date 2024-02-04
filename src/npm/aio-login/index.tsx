@@ -8,7 +8,7 @@ import AIOPopup from 'aio-popup';
 import './index.css';
 export type I_AIOLogin = {
     setToken:(token:string | false)=>void,getToken:()=>string,removeToken:()=>void,
-    setUserInfo:(userInfo:any)=>void,getUserInfo:()=>any,updateUserInfo:(key:string,value:any)=>any,
+    setUserInfo:(userInfo:any,key?:string)=>any,getUserInfo:(key?:string)=>any,updateUserInfo:(key:string,value:any)=>any,
     getUserId:()=>string,
     setMode:(mode:I_AL_mode)=>void,
     render:(p?:I_AL_render_parameter)=>React.ReactNode,
@@ -77,9 +77,9 @@ export default class AIOlogin {
     setMode:I_AL_setMode;
     render:I_AL_render;
     getActions:I_AL_getActions;
-    setUserInfo:(userInfo:any)=>void;
+    setUserInfo:(userInfo:any,key?:string)=>any;
     updateUserInfo:(key:string,value:any)=>any;
-    getUserInfo:()=>any;
+    getUserInfo:(key?:string)=>any;
     getUserId:()=>string;
     getToken:()=>string;
     setToken:(token:string)=>void;
@@ -90,7 +90,7 @@ export default class AIOlogin {
         this.getToken = ()=>storage.load({ name: 'token' });
         this.setToken = (token:string)=>storage.save({ name: 'token', value:token });
         this.removeToken = ()=>storage.save({ name: 'token', value:false });
-        this.setUserInfo = (userInfo:any)=>storage.save({ name: 'userInfo', value:userInfo });
+        this.setUserInfo = (userInfo:any,key?:string)=>storage.save({ name: `userInfo${key?'.' + key:''}`, value:userInfo });
         this.updateUserInfo = (key:string,value:any)=>{
             let userInfo = this.getUserInfo();
             userInfo = userInfo || {};
@@ -98,7 +98,7 @@ export default class AIOlogin {
             return userInfo
         };
         this.getUserId = ()=>storage.load({ name: 'userId' })
-        this.getUserInfo = ()=>storage.load({ name: 'userInfo' })
+        this.getUserInfo = (key?:string)=>storage.load({ name: `userInfo${key?'.' + key:''}` })
         this.setStorage = (key, value) => storage.save({ name: key, value });
         this.getStorage = (key:I_AL_storageKey) => {
             let token = storage.load({ name: 'token', def: false });
