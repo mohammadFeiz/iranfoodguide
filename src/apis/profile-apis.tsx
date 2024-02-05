@@ -206,6 +206,7 @@ class Moxios {
     handleLoading: (state: boolean, apiName: string, loading: boolean, loadingParent: string) => void;
     getConfig: (p: { key: string, def?: any, config: I_Moxios_config }) => any;
     getResult: (api:I_Moxios_api,parameter: any,parameterConfig:I_Moxios_config) => any;
+    showAlert:(text:string,subtext?:string,time?:number)=>void;
     constructor(p: I_Moxios_props) {
         let { id, apis, getAppState = () => { }, baseUrl, token, loader, onCatch, getError } = p
         this.loader = loader;
@@ -249,6 +250,12 @@ class Moxios {
                 return catchResult
             }
         }
+        this.showAlert = (text:string,subtext?:string,time?:number)=>{
+            alert(`
+                ${text}.
+                ${subtext?subtext:''}
+            `)
+        }
         this.getLoading = (id) => {
             console.log(`aio-service show loading by ${id}`)
             return (`
@@ -276,7 +283,7 @@ class Moxios {
         }
         for (let prop in apis) {
             let api = apis[prop];
-            let { url, method, mock, getBody, getResult, getMockResult, config: baseConfig } = api;
+            let { mock, getMockResult } = api;
             if (mock) {
                 if (typeof getMockResult !== 'function') { alert('AIOService error : missing getMockResult function in mock mode(mock:true)'); continue }
                 this[prop] = (parameter?: any) => {
@@ -287,28 +294,21 @@ class Moxios {
             }
             else {
                 this[prop] = async (parameter: any, parameterConfig?: I_Moxios_config) => {
-                    let config:I_Moxios_config = {...baseConfig,...parameterConfig};
+                    let config:I_Moxios_config = {...api.config,...parameterConfig};
                     let cache = this.getConfig({ key: 'cache', config })
                     if (cache) { let res = this.storage.load(cache); if (res !== undefined) { return res } }
                     let loading = this.getConfig({ key: 'loading', def: true, config })
                     let loadingParent = this.getConfig({ key: 'loadingParent', def: 'body', config })
                     let description = this.getConfig({ key: 'description', def: prop, config })
                     let message = this.getConfig({ key: 'message',def:{}, config })
-                    let appState = this.getAppState();
                     this.handleLoading(true, prop, loading, loadingParent);
                     this.setToken();
-
-                    let Url = url({ baseUrl, appState, parameter });
-                    let result;
-                    try {
-                        result = this.getResult(api,parameter,config)
-                    }
-                    catch (err) { result = err.message }
+                    let result = this.getResult(api,parameter,config)
                     if (typeof result === 'string') {
                         if (message.error !== false) {
                             let text = message.error;
                             if (text === undefined) { text = `${description} با خطا روبرو شد` }
-                            helper.showAlert({ type: 'error', text, subtext: result });
+                            this.showAlert(text,result );
                         }
                         return result;
                     }
@@ -316,15 +316,13 @@ class Moxios {
                         if (message.success) {
                             let subtext = typeof message.success === 'function' ? message.success(result) : message.success;
                             if (subtext === true) { subtext = '' }
-                            helper.showAlert({ type: 'success', text: `${description} با موفقیت انجام شد`, subtext, time: message.time });
+                            this.showAlert(`${description} با موفقیت انجام شد`, subtext,message.time);
                         }
                     }
-                    return result;
                     this.handleLoading(false, prop, loading, loadingParent);
-                    return { response, result }
+                    return result;
                 }
             }
-
         }
     }
 }
