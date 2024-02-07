@@ -169,32 +169,39 @@ const getMockApis: I_getMockApis = {
 
 type I_AIOStorage = {
     save: (p: { name: string, value: any }) => void,
-    load: (p: { name: string, def?: any }) => any
+    load: (p: { name: string, def?: any,time?:number }) => any
 }
-type I_Moxios_api = {
+type I_AIOService_api = {
     url: (p: { baseUrl: string, parameter: any, appState: any }) => string,
     method: 'post' | 'get' | 'delete' | 'put',
     mock?: boolean,
     getBody?: (p: { parameter: any, appState: any }) => any,
     getMockResult?: (p: { setStorage: (key: string, value: any) => void, getStorage: (key: string) => any, parameter: any, appState: any }) => any,
     getResult: (p: { parameter: any, appState: any, response: any }) => any,
+    config?: I_AIOService_config
+}
+type I_AIOService_onCatch = (err: any, config: I_AIOService_config) => string;
+type I_AIOService_getError = (response: any) => string | false;
+type I_AIOService_props = {
+    id: string, apis: { [name: string]: I_AIOService_api }, getAppState: () => any, baseUrl: string, token?: string, loader?: () => React.ReactNode,
+    onCatch?: I_AIOService_onCatch, getError?: I_AIOService_getError
+}
+type I_AIOService_config = {
+    loading?: boolean, loadingParent?: string,
+    message?:{error?:false | string,success?:((result:any)=>string|boolean) | string | boolean,time?:number},
+    onError?:(result:string)=>void,
+    onSuccess?:(result:any)=>void,
+    onCatch?: I_AIOService_onCatch, 
+    getError?: I_AIOService_getError,
+    def?:any,
+    description?:((parameter:any)=>string) | string,
     cache?: { name: string, time: number },
-    config?: I_Moxios_config
 }
-type I_Moxios_onCatch = (err: any, config: I_Moxios_config) => string;
-type I_Moxios_getError = (response: any) => string | false;
-type I_Moxios_props = {
-    id: string, apis: { [name: string]: I_Moxios_api }, getAppState: () => any, baseUrl: string, token?: string, loader?: () => React.ReactNode,
-    onCatch: I_Moxios_onCatch, getError: I_Moxios_getError
-}
-type I_Moxios_config = {
-    loading?: boolean, loadingParent?: string
-}
-class Moxios {
+class AIOService {
     token: string;
     id: string;
-    onCatch: (err: any, config: I_Moxios_config) => string;
-    getError: (response: any, confing: I_Moxios_config) => string | false;
+    onCatch: (err: any, config: I_AIOService_config) => string;
+    getError: (response: any, confing: I_AIOService_config) => string | false;
     storage: I_AIOStorage;
     setProperty: (property: string, value: any) => void;
     getAppState: () => any;
@@ -203,11 +210,11 @@ class Moxios {
     setToken: (token?: string) => void;
     getLoading: (id: string) => string;
     loader: () => React.ReactNode;
-    handleLoading: (state: boolean, apiName: string, loading: boolean, loadingParent: string) => void;
-    getConfig: (p: { key: string, def?: any, config: I_Moxios_config }) => any;
-    getResult: (api:I_Moxios_api,parameter: any,parameterConfig:I_Moxios_config) => any;
-    showAlert:(text:string,subtext?:string,time?:number)=>void;
-    constructor(p: I_Moxios_props) {
+    handleLoading: (state: boolean, apiName: string, config:I_AIOService_config) => void;
+    getConfig: (p: { key: string, def?: any, config: I_AIOService_config }) => any;
+    getResult: (api:I_AIOService_api,parameter: any,parameterConfig:I_AIOService_config) => any;
+    showAlert:(type:'success' | 'error',text:string,subtext?:string,time?:number)=>void;
+    constructor(p: I_AIOService_props) {
         let { id, apis, getAppState = () => { }, baseUrl, token, loader, onCatch, getError } = p
         this.loader = loader;
         this.token = token;
@@ -221,7 +228,7 @@ class Moxios {
         this.setStorage = (name: string, value: any) => storage.save({ name, value })
         this.getStorage = (name, def) => storage.load({ name, def });
         this.setToken = (token?: string) => { let res = token || this.token; if (res) { this.token = res; Axios.defaults.headers.common['Authorization'] = `Bearer ${res}`; } }
-        this.getConfig = (p: { key: string, def?: any, config: I_Moxios_config }) => {
+        this.getConfig = (p: { key: string, def?: any, config: I_AIOService_config }) => {
             let { key, def, config } = p;
             let result = config[key];
             return result === undefined?def:result
@@ -230,29 +237,28 @@ class Moxios {
             let {getResult,method,url,getBody} = api;
             let appState = this.getAppState();
             let Url = url({ baseUrl, appState, parameter });
-            let onCatch = this.getConfig({ key: 'onCatch', config })
+            let onCatch = this.getConfig({ key: 'onCatch',def:()=>{}, config })
             let getError = this.getConfig({ key: 'getError',def:()=>{}, config }) 
             try {
                 let response = await Axios[method](Url, getBody ? getBody({ parameter, appState }) : undefined)
-                let result = getResult({ parameter, appState, response });    
                 if (response) {
                     let error = getError(response);
                     if (typeof error === 'string') { return error }
                 }
-                return result
+                return getResult({ parameter, appState, response });
             }
             catch (err) {
                 let catchResult;
                 try { catchResult = onCatch(err) }
                 catch (err) { catchResult = err.message || err.Message; }
-                if (catchResult === undefined) { catchResult = err.message || err.Message }
+                if (!catchResult) { catchResult = err.message || err.Message }
                 console.log(err);
                 return catchResult
             }
         }
-        this.showAlert = (text:string,subtext?:string,time?:number)=>{
+        this.showAlert = (type:'success' | 'error',text:string,subtext?:string,time?:number)=>{
             alert(`
-                ${text}.
+                ${text}
                 ${subtext?subtext:''}
             `)
         }
@@ -272,8 +278,10 @@ class Moxios {
               </div>
             `)
         }
-        this.handleLoading = (state, apiName, loading, loadingParent) => {
+        this.handleLoading = (state, apiName, config) => {
+            let loading = this.getConfig({ key: 'loading', def: true, config })
             if (!loading) { return }
+            let loadingParent = this.getConfig({ key: 'loadingParent', def: 'body', config })        
             if (state) { $(loadingParent).append(this.loader ? this.loader() : this.getLoading(apiName)); }
             else {
                 let loadingDom = $('#aio-service-' + apiName);
@@ -287,53 +295,51 @@ class Moxios {
             if (mock) {
                 if (typeof getMockResult !== 'function') { alert('AIOService error : missing getMockResult function in mock mode(mock:true)'); continue }
                 this[prop] = (parameter?: any) => {
-                    let appState = this.getAppState();
+                    let appState:any = this.getAppState();
                     let result = getMockResult({ appState, parameter, getStorage: this.getStorage.bind(this), setStorage: this.setStorage.bind(this) })
                     return { result };
                 }
             }
             else {
-                this[prop] = async (parameter: any, parameterConfig?: I_Moxios_config) => {
-                    let config:I_Moxios_config = {...api.config,...parameterConfig};
-                    let cache = this.getConfig({ key: 'cache', config })
-                    if (cache) { let res = this.storage.load(cache); if (res !== undefined) { return res } }
-                    let loading = this.getConfig({ key: 'loading', def: true, config })
-                    let loadingParent = this.getConfig({ key: 'loadingParent', def: 'body', config })
-                    let description = this.getConfig({ key: 'description', def: prop, config })
-                    let message = this.getConfig({ key: 'message',def:{}, config })
-                    this.handleLoading(true, prop, loading, loadingParent);
+                this[prop] = async (parameter: any, config?: I_AIOService_config) => {
+                    let {message = {},onError,onSuccess,def,description = prop,cache} = config;
+                    if (cache) { let res = this.storage.load({name:cache.name,time:cache.time}); if (res !== undefined) { return res } }
+                    description = typeof description === 'function'?description(parameter):description;
                     this.setToken();
+                    this.handleLoading(true, prop, config);
                     let result = this.getResult(api,parameter,config)
-                    if (typeof result === 'string') {
-                        if (message.error !== false) {
-                            let text = message.error;
-                            if (text === undefined) { text = `${description} با خطا روبرو شد` }
-                            this.showAlert(text,result );
-                        }
-                        return result;
+                    if (typeof result === 'string' && message.error !== false) {
+                        let text = message.error || `${description} با خطا روبرو شد`;
+                        this.showAlert('error',text,result,message.time );
+                        if(onError){onError(result)}
+                        result = def
                     }
                     else {
                         if (message.success) {
                             let subtext = typeof message.success === 'function' ? message.success(result) : message.success;
                             if (subtext === true) { subtext = '' }
-                            this.showAlert(`${description} با موفقیت انجام شد`, subtext,message.time);
+                            this.showAlert('success',`${description} با موفقیت انجام شد`, subtext as string,message.time);
                         }
+                        if(result === undefined){result = def}
+                        if(cache){this.storage.save({name:cache.name,value:result})}
+                        if(onSuccess){onSuccess(result);}
                     }
-                    this.handleLoading(false, prop, loading, loadingParent);
+                    this.handleLoading(false, prop, config);
                     return result;
                 }
             }
         }
     }
 }
-let moxios = new Moxios({
+let apis = new AIOService({
     id: 'ifg',
     getAppState: () => { },
     baseUrl: 'ifg',
     apis: {
-        setProfile: {
+        profile_set: {
+            mock: true,
             url: ({ baseUrl, parameter, appState }) => `${baseUrl}/People/${!parameter.Login.getUserInfo().isregistered ? 'CreateProfile' : 'UpdateProfile'}`,
-            method: 'post', mock: true,
+            method: 'post', 
             getBody: ({ parameter, appState }) => {
                 let profile = parameter;
                 return {
@@ -345,10 +351,29 @@ let moxios = new Moxios({
                     "mobileNumbers": [{ "mobileNumber": profile.mobile, "isDefault": true }]
                 }
             },
-            getMockResult: ({ setStorage, getStorage, parameter, appState }) => {
-                setStorage('profile', parameter); return true
-            },
+            getMockResult: ({ setStorage, getStorage, parameter, appState }) => {setStorage('profile', parameter); return true},
             getResult: ({ parameter, appState, response }) => true,
+        },
+        profile_get:{
+            mock:true,
+            url:({baseUrl})=>`${baseUrl}/People/search`,method:'post',
+            getBody:({appState})=>{return {Id:appState.Login.getUserInfo().id}},
+            getResult:({response})=>response.data.data.items[0],
+            getMockResult:({getStorage})=>getStorage('profile')
+        },
+        profile_removeAccount:{
+            mock:true,
+            url:({baseUrl})=>baseUrl.replace('/api', ''),
+            method:'post',
+            getBody:({appState})=>{return { "mobileNumber": appState.Login.getUserId() }}
         }
     }
 })
+// removeAccount: async (parameter, { Login }) => {
+//     baseUrl = baseUrl.replace('/api', '');
+//     let url = `${baseUrl}/Users/DeleteUserProfileAsync`
+//     let mobile = Login.getUserId();
+//     let body = { "mobileNumber": mobile }
+//     let response = await Axios.post(url, body);
+//     return { response }
+// },
