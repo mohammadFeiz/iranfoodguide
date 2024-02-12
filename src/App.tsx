@@ -4,13 +4,10 @@ import BackOffice from './components/back-office/back-office.tsx';
 import AIOStorage from 'aio-storage';
 import AIOService from 'aio-service';
 import RVD from './npm/react-virtual-dom';
-import AIOLogin,{I_AIOLogin} from './npm/aio-login/index.tsx';
-import getApiFunctions from './apis/apis';
+import AIOLogin,{I_AIOLogin, I_AL_props} from './npm/aio-login/index.tsx';
+import APISClass, { I_APIClass, I_getWalletAmount_result } from './apis/APIClass.tsx';
 import AppContext from './app-context';
 import { dictionary } from './dictionary';
-import Axios from 'axios';
-import { Icon } from '@mdi/react';
-import { mdiClock, mdiComment, mdiTable, mdiWallet } from '@mdi/js';
 import logo from './images/logo.png';
 import logo2 from './images/logo2.png';
 import { icons } from './icons';
@@ -18,15 +15,15 @@ import Sefareshe_ghaza from './pages/sefareshe_ghaza';
 import Profile from './pages/profile.tsx';
 import ReservePanel from './components/reserve-panel/reserve-panel';
 import URL from './npm/aio-functions/url';
-import {I_get_restoran_sort_options_r} from './apis/back-office-apis.tsx';
 import './App.css';
-import { I_address, I_apis, I_profile, I_profile_server, I_restoran_server, I_tag, I_rsa, I_state, I_state_key, I_food_server, I_food, I_restoranId, I_foodToServer_r, I_rsa_props } from './typs.tsx';
-import { I_get_tags_p, I_get_tags_r } from './apis/back-office-apis.tsx';
+import { I_address, I_profile, I_restoran_server, I_tag, I_state, I_state_key, I_food_server, I_food, I_restoranId, I_foodToServer_r, I_rsa_props, I_discount, I_restoran_sort_option } from './typs.tsx';
+import LoginApis, { I_loginApis } from './apis/LoginApis.tsx';
 //تنظیمات دیفالت AIOInput
 type I_App = {}
 type I_App_state = {
   Login:I_AIOLogin,
-  apis:I_apis
+  APIS:any,
+  loginApis:I_loginApis
 }
 export default class App extends Component <I_App,I_App_state> {
   baseUrl:string;
@@ -34,94 +31,80 @@ export default class App extends Component <I_App,I_App_state> {
     super(props);
    // this.baseUrl = 'https://localhost:7203'
     this.baseUrl = 'https://iranfoodguide.ir'
-    this.state = {
-      Login: new AIOLogin({
-        id: 'iranfoodguide', otpLength: 6, modes: ['OTPNumber', 'phoneNumber'],timer: 10,
-        renderApp:({token})=>{
-          let {Login,apis} = this.state;
-          apis.setToken(token);
-          let {isRegistered} = Login.getUserInfo();
-          if(!isRegistered){Login.setToken(false)}
-          let props:I_IranFoodGuide = {Login,apis}
-          return (<IranFoodGuide {...props}/>)
-        },
-        renderLogin:(loginForm)=>{
-          return (
-            <RVD
-              layout={{
-                className: 'fullscreen login-page',
-                column: [
-                  {size: 160,column: [{ flex: 1 },{ html: <img src={logo2 as string} />, align: 'vh' },{ size: 16 }]},
-                  {
-                    flex: 1,className: 'login-page-form',
-                    column: [
-                      { html: '', className: 'login-bg' },
-                      { html: '', className: 'login-bg-make-dark' },
-                      {className: 'login-page-header',column: [{ flex: 1 },{ html: <img src={logo as string} />, align: 'vh' },{ flex: 1 }]},
-                      { className: 'p-t-0 ofy-auto', html: loginForm, flex: 1, align: 'h' },
-                    ]
-                  }
-                ]
-              }}
-            />
-          )
-        },
-        checkToken: async (token, obj) => await this.checkToken(token, obj),
-        onSubmit: this.onSubmit.bind(this),
-      }),
-      apis:new AIOService({
-        baseUrl: this.baseUrl + '/api', getApiFunctions, id: 'iranfoodguid',
-        getError: (res, obj) => {
-          if (!res.data.isSuccess) { return res.data.message || 'خطای تعریف نشده' }
+    let APIS = new APISClass({
+      id:'ifgapis',baseUrl: this.baseUrl + '/api',
+      getError: (res, obj) => {
+        if (!res.data.isSuccess) { return res.data.message || 'خطای تعریف نشده' }
+      }
+    })
+    let AIOLoginProps:I_AL_props = {
+      id: 'iranfoodguide', otpLength: 6, modes: ['OTPNumber', 'phoneNumber'],timer: 10,
+      renderApp:({token})=>{
+        let {Login,APIS} = this.state;
+        let {isRegistered} = Login.getUserInfo();
+        if(!isRegistered){Login.setToken(false)}
+        let props:I_IranFoodGuide = {Login,APIS}
+        return (<IranFoodGuide {...props}/>)
+      },
+      renderLogin:(loginForm)=>{
+        return (
+          <RVD
+            layout={{
+              className: 'fullscreen login-page',
+              column: [
+                {size: 160,column: [{ flex: 1 },{ html: <img src={logo2 as string} />, align: 'vh' },{ size: 16 }]},
+                {
+                  flex: 1,className: 'login-page-form',
+                  column: [
+                    { html: '', className: 'login-bg' },
+                    { html: '', className: 'login-bg-make-dark' },
+                    {className: 'login-page-header',column: [{ flex: 1 },{ html: <img src={logo as string} />, align: 'vh' },{ flex: 1 }]},
+                    { className: 'p-t-0 ofy-auto', html: loginForm, flex: 1, align: 'h' },
+                  ]
+                }
+              ]
+            }}
+          />
+        )
+      },
+      checkToken: async (token) => {
+        debugger
+        if(!token){return false}
+        let {Login,loginApis} = this.state;
+        let res = await loginApis.checkToken(token);
+        if(res === false){return false}
+        else if(typeof res === 'object'){
+          Login.updateUserInfo('id',res.id);
+          return true
         }
-      })
+      },
+      onSubmit: async (model, mode) => {
+        let {Login,loginApis} = this.state;
+        let { userId, password } = model.login;
+        if (mode === 'OTPNumber') {
+          let res = await loginApis.OTPNumber(userId);
+          if(res === false){return false}
+          Login.updateUserInfo('isRegistered',res.isRegistered)
+        }
+        else if (mode === 'OTPCode') {
+          let res = await loginApis.OTPCode({ mobileNumber: userId, code: password });
+          if(res === false){return false} 
+          Login.updateUserInfo('id',res.id);
+          Login.setToken(res.token);
+        }
+        else if (mode === 'phoneNumber') {
+          let res = await loginApis.PhoneNumber({ userId, password });
+          if(res === false){return false} 
+          Login.updateUserInfo('id',res.id);
+          Login.updateUserInfo('isRegistered',res.id !== undefined);
+          Login.setToken(res.token);
+        }
+        return true
+      },
     }
-  }
-  async checkToken(token, { userId }) {
-    let {Login} = this.state;
-    Axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    let response = await Axios.get(`${this.baseUrl}/Users/WhoAmI`);
-    let id;
-    try { id = response.data.data.id; }
-    catch { alert('missing id in response of /Users/WhoAmI'); return}
-    Login.updateUserInfo('id',id);
-    return !!response.data.isSuccess
-  }
-  async onSubmit(model, mode) {
-      let {Login} = this.state;
-    if (mode === 'OTPNumber') {
-      let response = await Axios.post(`${this.baseUrl}/Users/GenerateUserCode`, { mobileNumber: model.login.userId })
-      if (!response.data.isSuccess) { return response.data.message }
-      let isRegistered = !!response.data.data.isRegistered;
-      Login.updateUserInfo('isRegistered',isRegistered)
-      Login.setMode('OTPCode')
-    }
-    else if (mode === 'OTPCode') {
-      let response = await Axios.post(`${this.baseUrl}/Users/TokenWithCode`, { mobileNumber: model.login.userId, code: model.login.password.toString() });
-      if (response.data.isSuccess) {
-        let {Login} = this.state;
-        let id = response.data.data.personId;
-        if(typeof id !== 'number'){id = undefined}
-        Login.updateUserInfo('id',id);
-        Login.setToken(response.data.data.access_token)
-        Login.setMode('auth');
-      }
-      else { return response.data.message }
-    }
-    else if (mode === 'phoneNumber') {
-      let { userId, password } = model.login;
-      let response = await Axios.post(`${this.baseUrl}/Users/Token`, { Username: userId, Password: password, grant_type: "password" });
-      if (response.data.isSuccess) {
-        let {Login} = this.state;
-        let id = response.data.data.personId;
-        if(typeof id !== 'number'){id = undefined}
-        Login.updateUserInfo('id',id);
-        Login.updateUserInfo('isRegistered',id !== undefined);
-        Login.setToken(response.data.data.access_token)
-        Login.setMode('auth')
-      }
-      else { return response.data.message }
-    }
+    let Login:I_AIOLogin = new AIOLogin(AIOLoginProps)
+    let loginApis = new LoginApis({id:'ifgloginapis',baseUrl:this.baseUrl,getError:(response)=>{if (!response.data.isSuccess) { return response.data.message }}}) 
+    this.state = {Login,APIS,loginApis}
   }
   render() {
     let { Login } = this.state;
@@ -130,12 +113,12 @@ export default class App extends Component <I_App,I_App_state> {
 }
 type I_IranFoodGuide = {
   Login:I_AIOLogin,
-  apis:I_apis
+  APIS:I_APIClass
 }
 class IranFoodGuide extends Component <I_IranFoodGuide,I_state> {
   constructor(props) {
     super(props);
-    props.apis.setProperty('getState',()=>this.state)
+    props.APIS.setProperty('getAppState',()=>this.state);
     let rsaProps:I_rsa_props = {
       rtl:true,title: false,maxWidth:770,id:'iranfoodguideapp',
       nav:{
@@ -174,9 +157,9 @@ class IranFoodGuide extends Component <I_IranFoodGuide,I_state> {
       mock:{
         reserve:false
       },
-      takhfif_ha:[],
+      discounts:[],
       Login:props.Login,
-      apis:props.apis,
+      APIS:props.APIS,
       rsa: new RSA(rsaProps),
       mockStorage: AIOStorage('ifMock'),
       restoran_tags: [],
@@ -243,11 +226,8 @@ class IranFoodGuide extends Component <I_IranFoodGuide,I_state> {
     let url = window.location.href;
     let json = urlInstance.toJson(url);
     if (json.orderId) {
-      let { apis } = this.state;
-      apis.request({
-        api: 'peygiriye_sefaresh',
-        description: 'پیگیری سفارش',
-        parameter: json.orderId,
+      let { APIS } = this.state;
+      APIS.peygiriye_sefaresh(json.orderId,{
         onSuccess: (obj) => {
           let dic = {
             '1': "در انتظار پرداخت می باشد",
@@ -261,79 +241,39 @@ class IranFoodGuide extends Component <I_IranFoodGuide,I_state> {
       })
     }
   }
-  async getProfile() {
-    let { apis } = this.state;
-    let serverProfile:I_profile_server = await apis.request({
-      api: 'profile.getProfile',
-      description: 'دریافت اطلاعات پروفایل'
-    });
-    if(!serverProfile){this.setState({profile:false})}
-    else {
-      let {id,firstName,lastName,sheba,email} = serverProfile;
-      let profile:I_profile = {id,firstName,lastName,sheba,email};
-      this.setState({ profile })
-    }
-  }
   async componentDidMount() {
-    let { apis, Login, rsa } = this.state;
+    let { APIS, Login, rsa } = this.state;
     this.checkOrderId()
     let {isRegistered} = Login.getUserInfo();
     if (isRegistered) {
-      await this.getProfile()
-      apis.request({
-        api: 'profile.getWalletAmount',
-        onSuccess: (res:number) => this.setState({ wallet: res }),
-        description: 'دریافت موجودی کیف پول'
+      await APIS.profile_get(null,{
+        onSuccess:(profile:I_profile)=>this.setState({ profile })
       });
-      apis.request({
-        api: 'profile.takhfif_ha',
-        onSuccess: (res) => { this.setState({ takhfif_ha: res }) },
-        description: 'دریافت اطلاعات تخفیف ها'
-      });
-      apis.request({
-        api: 'profile.getAddresses',
-        onSuccess: (res) => this.setState({ addresses: res }),
-        description: 'دریافت آدرس ها'
-      });
+      APIS.getWalletAmount(null,{
+        onSuccess: (res:I_getWalletAmount_result) => this.setState({ wallet: res }),
+      })
+      APIS.profile_getDiscounts(undefined,{
+        onSuccess: (res:I_discount[]) => { this.setState({ discounts: res }) }
+      })
+      APIS.profile_getAddresses(undefined,{
+        onSuccess: (res:I_address[]) => this.setState({ addresses: res }),
+      })
     }
     else {
       rsa.addSnakebar({
-        type: 'warning',
-        text: 'شما ثبت نام نکرده اید',
+        type: 'warning',text: 'شما ثبت نام نکرده اید',
         subtext: 'برای استفاده از بخش های مختلف از منوی پروفایل ثبت نام کنید',
-        action: {
-          text: 'ثبت نام',
-          onClick: () => rsa.setNavId('profile')
-        }
+        action: {text: 'ثبت نام',onClick: () => rsa.setNavId('profile')}
       })
     }
-    this.get_restoran_tags();
-    this.get_food_tags();
-    this.getRestoranSortOptions()
-
-  }
-  get_restoran_tags(){
-    let {apis} = this.state;
-    let parameter:I_get_tags_p = { type: 'restoran' }
-    apis.request({
-      api: 'backOffice.get_tags',parameter,description: 'دریافت تگ های رستوران',
-      onSuccess: (restoran_tags:I_get_tags_r) => this.setState({ restoran_tags })
+    APIS.backOffice_getTags({ type: 'food' },{
+      onSuccess: (food_tags:I_tag[]) => this.setState({ food_tags })
     })
-  }
-  get_food_tags(){
-    let {apis} = this.state;
-    let parameter:I_get_tags_p = { type: 'food' }
-    apis.request({
-      api: 'backOffice.get_tags',parameter,description: 'دریافت تگ های رستوران',
-      onSuccess: (food_tags:I_get_tags_r) => this.setState({ food_tags })
+    APIS.backOffice_getTags({ type: 'restoran' },{
+      onSuccess: (restoran_tags:I_tag[]) => this.setState({ restoran_tags })
     })
-  }
-  getRestoranSortOptions(){
-    let {apis} = this.state;
-    apis.request({
-      api: 'backOffice.get_restoran_sort_options',
-      description: 'دریافت آپشن های مرتب سازی رستوران',
-      onSuccess: (restoran_sort_options:I_get_restoran_sort_options_r) => this.setState({ restoran_sort_options })
+    APIS.getRestoranSortOptions(undefined,{
+      onSuccess: (restoran_sort_options:I_restoran_sort_option[]) => this.setState({ restoran_sort_options })
     })
   }
   openModal(key:string, parameter?:any) {

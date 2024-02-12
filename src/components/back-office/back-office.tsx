@@ -4,8 +4,7 @@ import RVD from '../../npm/react-virtual-dom.js';
 import Restorans from "./restorans.tsx";
 import './back-office.css';
 import AppContext from "../../app-context.js";
-import { I_add_or_edit_tag_p, I_add_or_edit_tag_r, I_get_tags_p, I_get_tags_r, I_remove_tag_p } from "../../apis/back-office-apis.tsx";
-import { I_apis, I_restoran, I_state, I_tag, I_tag_type } from "../../typs.tsx";
+import { I_restoran, I_state, I_tag, I_tag_type } from "../../typs.tsx";
 
 type I_tab = 'restorans' | 'restoranTags' | 'foodTags' | 'order-page' | 'sliders'
 type I_tab_option = {text:string,value:I_tab}
@@ -32,26 +31,20 @@ export default function BackOffice() {
 }
 type I_Tags = {type:I_tag_type}
 function Tags(props:I_Tags){
-    let {apis}:I_state = useContext(AppContext);
+    let {apis,APIS}:I_state = useContext(AppContext);
     let {type} = props;
     let trans = {'restoran':'رستوران','food':'غذا'}
     let [tags,setTags] = useState<I_tag[]>();
     let [temp,setTemp] = useState<string>('')
     
     async function getTags(){
-        let parameter:I_get_tags_p = {type}
-        apis.request({
-            api:`backOffice.get_tags`,description:`دریافت لیست تگ های ${trans} ها`,parameter,
-            onSuccess:(tags:I_get_tags_r)=>setTags(tags)
-        })
+        APIS.backOffice_getTags({ type },{onSuccess:(tags:I_tag[])=>setTags(tags)})
     }
     useEffect(()=>{getTags()},[])
     function add(){
         if(tags.find((o:I_tag)=>o.name === temp)){alert('نام تگ تکراری است'); setTemp(''); return;}
-        let parameter:I_add_or_edit_tag_p = {type,tagName:temp};
-        apis.request({
-            api:`backOffice.add_or_edit_tag`,description:`ثبت تگ ${trans}`,parameter,
-            onSuccess:(p:I_add_or_edit_tag_r)=>{
+        APIS.backOffice_addOrEditTag({tagName:temp,type},{
+            onSuccess:(p:{id:any})=>{
                 let {id} = p,newTag:I_tag = {name:temp,id};
                 setTemp(''); setTags([...tags,newTag])
             }
@@ -59,9 +52,7 @@ function Tags(props:I_Tags){
     }
     function remove(p:{row:I_tag}){
         let tag = p.row;
-        let parameter:I_remove_tag_p = {type,tagId:tag.id}
-        apis.request({
-            api:`backOffice.remove_tag`,description:`حذف تگ ${trans}`,parameter,
+        APIS.backOffice_removeTag({tagId:tag.id,type},{
             onSuccess:()=>{setTemp(''); setTags(tags.filter((o:I_tag)=>o.id !== tag.id));}
         })
     }

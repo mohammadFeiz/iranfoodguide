@@ -1,3 +1,4 @@
+import { I_APIClass } from "./apis/APIClass"
 import { I_AIOLogin } from "./npm/aio-login"
 
 /////aio-service
@@ -107,7 +108,7 @@ export type I_state_key = 'restoran_tags'|'profile'|'addresses'|'backOffice'|''|
 export type I_state = {
     mock:{reserve:boolean},
     Login:I_AIOLogin,
-    apis:I_apis,
+    APIS:I_APIClass,
     rsa:I_rsa,
     mockStorage:any,
     restoran_tags:I_tag[],
@@ -120,7 +121,7 @@ export type I_state = {
     restoranToClient:(p:I_restoran_server)=>I_restoran
     foodToClient:(p:I_food_server)=>I_food[]
     foodToServer:(food:I_food,type:'add' | 'edit',restoranId:I_restoranId)=>I_foodToServer_r,
-    takhfif_ha:I_takhfif[]
+    discounts:I_discount[]
 }
 export type I_foodToServer_r = {
     id?: I_foodId,
@@ -163,14 +164,14 @@ export type I_address = {
     longitude:number
 }
 export type I_address_server = any
-export type I_takhfif = {
-    amounts:I_takhfif_amount[],
+export type I_discount = {
+    amounts:I_discount_amount[],
     code:string,
     endDate:string,
     order:number,
     description:string,
 }
-export type I_takhfif_amount = {percent?:number,amount?:number}
+export type I_discount_amount = {percent?:number,amount?:number}
 export type I_restoran_sort_option = {text:I_restoran_sort_text,value:I_restoran_sort_value}
 export type I_restoran_sort_text = 'رستوران اقتصادی'|'بالاترین امتیاز'|'نزدیک ترین'|'جدیدترین'|'گرانترین';
 export type I_restoran_sort_value = '0'|'1'|'2'|'3'|'4';
@@ -235,4 +236,5 @@ export type I_food_server = {
 export type I_imageId = any;
 export type I_restoranId = number;
 export type I_foodId = number;
-export type I_tagId = number
+export type I_tagId = number;
+export type I_coupon = {id:any,title:string,discountPercent?:number,discount?:number,maxDiscount?:number,minCartAmount?:number}

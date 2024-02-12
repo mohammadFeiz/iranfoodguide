@@ -2,28 +2,24 @@ import React, { useContext, useEffect, useState } from "react";
 import AIOInput from '../../npm/aio-input/aio-input';
 import RVD from '../../npm/react-virtual-dom';
 import { Icon } from "@mdi/react";
-import Search from '../../npm/aio-functions/search.tsx';
+import {Search} from 'aio-utils';
 import { mdiMagnify, mdiFormatListBulletedSquare, mdiMapMarkerAlert, mdiMapMarkerCheck, mdiClose, mdiPlusThick, mdiDotsHorizontal, mdiPencil, mdiDelete } from '@mdi/js';
 import AppContext from './../../app-context';
 import './back-office.css';
-import { I_add_or_edit_food_p, I_add_or_edit_food_r, I_add_or_edit_restoran_p, I_add_or_edit_restoran_r, I_get_restoran_foods_p, I_get_restoran_foods_r, I_get_restorans_p, I_get_restorans_r, I_get_tags_p, I_get_tags_r, I_remove_food_p, I_remove_food_r, I_remove_restoran_p } from "../../apis/back-office-apis";
+import { I_add_or_edit_food_p, I_add_or_edit_food_r, I_remove_food_p, I_remove_food_r} from "../../apis/back-office-apis";
 import { I_food, I_foodId, I_restoran, I_restoranId, I_state, I_tag } from "../../typs.tsx";
-import { I_add_or_edit_image_p, I_add_or_edit_image_r } from "../../apis/apis.tsx";
+import { I_addOrEditImage_param, I_addOrEditImage_result, I_backOffice_addOrEditRestoran_param, I_backOffice_addOrEditRestoran_result } from "../../apis/APIClass.tsx";
 export default function Restorans() {
-    let {apis,rsa}:I_state = useContext(AppContext)
+    let {APIS,rsa}:I_state = useContext(AppContext)
     let [restorans,setRestorans] = useState<I_restoran[]>([])
     async function getRestorans() {
-        let parameter:I_get_restorans_p = {}
-        apis.request({ 
-            api: 'backOffice.get_restorans', description: 'دریافت لیست رستوران ها', def: [] ,parameter,
-            onSuccess:(restorans:I_get_restorans_r)=>setRestorans(restorans)
+        APIS.backOffice_getRestorans({},{ 
+            onSuccess:(restorans:I_restoran[])=>setRestorans(restorans)
         }); 
     }
     let [searchValue,setSearchValue] = useState<string>('')
     async function remove_restoran(restoranId:I_restoranId) {
-        let parameter:I_remove_restoran_p = restoranId;
-        apis.request({
-            api: 'backOffice.remove_restoran', description: 'حذف رستوران', parameter,
+        APIS.backOffice_removeRestoran(restoranId,{
             onSuccess: () => {
                 let newRestorans:I_restoran[] = restorans.filter((o) => o.id !== restoranId)
                 setRestorans(newRestorans);
@@ -117,7 +113,7 @@ function RestoranCard(props:I_RestoranCard){
 }
 type I_RestoranForm = {restoran?:I_restoran,type:'add'|'edit',onSubmit:(newRestoran:I_restoran)=>void}
 function RestoranForm(props:I_RestoranForm) {
-    let {restoran_tags,rsa,apis}:I_state = useContext(AppContext)
+    let {restoran_tags,rsa,APIS}:I_state = useContext(AppContext)
     let {type,onSubmit} = props;
     let [model,setModel] = useState<I_restoran>({ ...props.restoran })
     let [timeOptions] = useState<{text:React.ReactNode,value:React.ReactNode}[]>(
@@ -178,10 +174,10 @@ function RestoranForm(props:I_RestoranForm) {
                         type:'image',width,height,placeholder:label,
                         onChange:(p:{file:any,url:string})=>{
                             let {file} = p;
-                            let parameter:I_add_or_edit_image_p = {imageFile:file,imageId:model.imageId}
-                            apis.request({
-                                api:'add_or_edit_image',parameter,description:`ثبت ${label}`,message:{success:true},
-                                onSuccess:(p:I_add_or_edit_image_r)=>{
+                            let parameter:I_addOrEditImage_param = {imageFile:file,imageId:model.imageId}
+                            APIS.addOrEditImage(parameter,{
+                                description:`ثبت ${label}`,message:{success:true},
+                                onSuccess:(p:I_addOrEditImage_result)=>{
                                     let {id,url} = p;
                                     setModel({...model,[idField]:id,[field]:url})
                                 }
@@ -193,11 +189,9 @@ function RestoranForm(props:I_RestoranForm) {
         }
     }
     function submit(){
-        let parameter:I_add_or_edit_restoran_p = {newRestoran:model,type};
-        apis.request({
-            api: 'backOffice.add_or_edit_restoran', parameter,
-            description: `${type === 'add'?'افزودن':'ویرایش'} رستوران`,
-            onSuccess: async (p:I_add_or_edit_restoran_r) => onSubmit({...model,id:p.id})
+        let parameter:I_backOffice_addOrEditRestoran_param = {newRestoran:model,type};
+        APIS.backOffice_addOrEditRestoran(parameter,{
+            onSuccess: async (p:I_backOffice_addOrEditRestoran_result) => onSubmit({...model,id:p.id})
         })
     }
     function form_layout() {
@@ -259,14 +253,12 @@ function RestoranForm(props:I_RestoranForm) {
 
 type I_Foods = {restoranId:I_restoranId,justLength?:boolean}
 function Foods(props:I_Foods) {
-    let {apis,rsa}:I_state = useContext(AppContext);
+    let {APIS,rsa}:I_state = useContext(AppContext);
     let {restoranId,justLength} = props;
     let [foods,setFoods] = useState<I_food[]>()
-    async function getFoods(){
-        let parameter:I_get_restoran_foods_p = restoranId
-        await apis.request({ 
-            api: 'backOffice.get_restoran_foods', description: 'دریافت اطلاعات منوی رستوران', parameter,def:[],
-            onSuccess: (foods:I_get_restoran_foods_r) => setFoods(foods) 
+    function getFoods(){
+        APIS.backOffice_getRestoranFoods(restoranId,{ 
+            onSuccess: (foods:I_food[]) => setFoods(foods) 
         })
     }
     useEffect(()=>{getFoods()},[])
@@ -333,20 +325,21 @@ function Foods(props:I_Foods) {
         }
     }
     if(justLength){return <div>{`${foods.length} مورد`}</div>}
+    if(!foods){return <button onClick={()=>getFoods()}>دریافت لیست غذا ها</button>}
     return (<RVD layout={{column:[header_layout(),body_layout()]}}/>)
 }
 type I_FoodForm = {restoranId:I_restoranId,type:'add' | 'edit',food?:I_food,onSubmit:(food:I_food)=>void,siblingFoods:I_food[]}
 function FoodForm(props:I_FoodForm){
-    let {apis,food_tags}:I_state = useContext(AppContext);
+    let {APIS,food_tags}:I_state = useContext(AppContext);
     let {restoranId,type,onSubmit,siblingFoods} = props;
     let [food,setFood] = useState<I_food>()
     function getFood(){if(type === 'add'){setFood({} as I_food)} else{setFood(props.food)}}
     useEffect(()=>{getFood()},[])
     function changeImage(file:any){
-        let parameter:I_add_or_edit_image_p = { imageId:food.imageId,imageFile:file }
-        apis.request({
-            api: 'add_or_edit_image',description: 'ثبت تصویر منوی رستوران',parameter,
-            onSuccess:(p:I_add_or_edit_image_r)=>{
+        let parameter:I_addOrEditImage_param = { imageId:food.imageId,imageFile:file }
+        APIS.addOrEditImage(parameter{
+            description: 'ثبت تصویر منوی رستوران',
+            onSuccess:(p:I_addOrEditImage_result)=>{
                 let {id,url} = p;
                 setFood({...food,imageId:id,image:url})
             }

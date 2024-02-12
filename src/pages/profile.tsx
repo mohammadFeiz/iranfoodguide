@@ -9,7 +9,7 @@ import AppContext from "../app-context";
 import Card from "../card/card";
 import PopupHeader from "../components/popup-header";
 import Wallet from "./../components/wallet/wallet.tsx";
-import { I_address, I_profile, I_state, I_takhfif } from "../typs";
+import { I_address, I_profile, I_state, I_discount } from "../typs";
 type I_Profile_item = { icon: React.ReactNode, text: string, id: string,show?:()=>boolean }
 
 export default function Profile() {
@@ -21,7 +21,7 @@ export default function Profile() {
             { icon: <Icon path={mdiAccount} size={1} />, text: isRegistered?'ویرایش اطلاعات کاربری':'ثبت نام در ایران فود', id: 'ettelaate_shakhsi' },
             { icon: <Icon path={mdiLock} size={1} />, text: 'تنظیم یا ویرایش رمز عبور', id: 'password',show:()=>isRegistered },
             { icon: <Icon path={mdiAccount} size={1} />, text: 'آدرس ها', id: 'address_ha' },
-            { icon: <Icon path={mdiAccount} size={1} />, text: 'تخفیف ها',id:'takhfif_ha' },
+            { icon: <Icon path={mdiAccount} size={1} />, text: 'تخفیف ها',id:'discounts' },
             { icon: <Icon path={mdiAccount} size={1} />, text: 'رستوران های محبوب',id:'restoran_haye_mahboob' },
             { icon: <Icon path={mdiAccount} size={1} />, text: 'لغو حساب کاربری',id:'removeAccount' },
             { icon: <Icon path={mdiAccount} size={1} />, text: 'خروج',id:'exit' }
@@ -82,8 +82,8 @@ export default function Profile() {
         else if (key === 'address_ha') {
             rsa.addModal({ position:'fullscreen',header: false, body: {render:() => <Address_ha /> }})
         }
-        else if (key === 'takhfif_ha') {
-            rsa.addModal({ position:'fullscreen',header: false, body: {render:() => <Takhfif_ha /> }})
+        else if (key === 'discounts') {
+            rsa.addModal({ position:'fullscreen',header: false, body: {render:() => <Discounts /> }})
         }
         else if (key === 'restoran_haye_mahboob') {
             rsa.addModal({ position:'fullscreen',header: false, body: {render:() => <Restoran_haye_mahboob /> }})
@@ -326,13 +326,13 @@ function AddressForm(props:I_AddressForm) {
     }
     return (<RVD layout={{className:'app-popup',column: [header_layout(),form_layout()]}}/>)
 }
-function Takhfif_ha(){
-    let {takhfif_ha}:I_state = useContext(AppContext);
+function Discounts(){
+    let {discounts}:I_state = useContext(AppContext);
     function header_layout(){return { html: <PopupHeader title='تخفیف ها' /> }}
     function cards_layout() {
         return {
             flex: 1, className: 'ofy-auto',
-            column: takhfif_ha.map((o:I_takhfif) => {
+            column: discounts.map((o:I_discount) => {
                 let { amounts,description,code,endDate,order } = o;
                 return {
                     className: 'm-12 m-t-0 br-12 p-h-12',style: { border: '1px solid #aaa' },

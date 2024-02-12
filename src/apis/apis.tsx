@@ -25,49 +25,15 @@ import { I_imageId, I_restoran, I_restoran_server } from "../typs.tsx";
 /**********************restoran_tags data model**************************************** */
 //name: '',id: ''
 /************************************************************** */
-export type I_add_or_edit_image_p = {imageFile:any,imageId?:I_imageId}
-export type I_add_or_edit_image_r = {id:I_imageId,url:string}
 export default function getApiFunctions(obj) {
     let { baseUrl, Axios,helper } = obj;
     return {
         backOffice: backOfficeApis(obj),
         profile: profileApis(obj),
         reserve: reserveApis(obj),
-        async add_or_edit_image(p:I_add_or_edit_image_p){
-            let {imageFile,imageId} = p;
-            let apiUrl = `${baseUrl}/Image/UploadImage`;
-            let formData = new FormData()
-            formData.append('imageFile', imageFile, imageFile.name)
-            formData.append('title', imageFile.name)
-            formData.append('imageId', imageId)
-            let body = formData;
-            let response = await Axios.post(apiUrl, body)
-            let {id,url} = response.data.data;
-            let result:I_add_or_edit_image_r = {id,url};
-            return {response,result}
-        },
         async remove_image(id,{mock}){
             if(mock.reserve){return MockApis.remove_image(id);}
             return {result:'remove_image not implemented'}
-        },
-        async peygiriye_sefaresh(orderId) {
-            return { result: { statusId: 1, totalPrice: 12344444, id: 88678 } }
-            let url = `${baseUrl}/Order/InquiryOrder`;
-            //create from searchObject
-            let body = {
-                "OrderId": orderId
-            }
-            let response = await Axios.post(url, body);
-            let result = response.data.data.items[0];
-            if (!result) { return }
-            debugger
-            //id:59,
-            //paymentId:0
-            //statusId:1,
-            //statusTitle:"در انتظار پرداخت"
-            //title:"شماره سفارش: "
-            //totalPrice:200022
-            return { response, result }
         },
         async pardakht_online({ deliveryType, foods, restoranId, amount, selectedCouponIds, addressId }) {
             //deliveryType => 'ارسال با پیک' | 'دریافت حضوری'

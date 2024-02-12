@@ -5,30 +5,26 @@ import GroupButton from "../components/group-button";
 import AIOInput from "../npm/aio-input/aio-input";
 import Card from "../card/card";
 import ListHeader from "../components/list-header";
-import calculateDistance from '../npm/aio-functions/calculate-distance';
 import AppContext from "../app-context";
 import {Icon} from '@mdi/react';
 import { mdiSort } from "@mdi/js";
-import RestoranPage from "../components/restoran-page";
+import RestoranPage from "../components/restoran-page.tsx";
 import { I_restoran, I_restoran_sort_value, I_state } from "../typs";
-import { I_get_restorans_p } from "../apis/back-office-apis";
 type I_searchType = '0' | '1';
 type I_filter = {searchType:I_searchType,selectedSort:false|I_restoran_sort_value,selectedTags:number[],pageSize:number,pageNumber:number,searchValue:string}
 export default function Search(){
-    let {apis,restoran_tags,restoran_sort_options,rsa}:I_state = useContext(AppContext);
+    let {APIS,restoran_tags,restoran_sort_options,rsa}:I_state = useContext(AppContext);
     let [filter,setFilter] = useState<I_filter>({selectedSort:false,pageSize:1000,pageNumber:1,searchValue:'',selectedTags:[],searchType:'0'})
     let [restorans,setRestorans] = useState<I_restoran[]>([])
     let timeout;
     async function fetchData(obj){
         let newFilter:I_filter = {...filter,...obj};
-        let parameter:I_get_restorans_p = newFilter;
         setFilter(newFilter);
         clearTimeout(timeout);
         timeout = setTimeout(()=>{
-            apis.request({
-                api:'backOffice.get_restorans',description:'جستجوی رستوران ها',parameter,
+            APIS.backOffice_getRestorans(newFilter,{ 
                 onSuccess:(restorans:I_restoran[])=>setRestorans(restorans)
-            })
+            });
         },1000)
         
     }

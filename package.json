@@ -5,9 +5,8 @@
   "dependencies": {
     "@mdi/js": "^7.1.96",
     "@mdi/react": "^1.6.1",
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "aio-date": "^4.0.0",
     "aio-input": "^7.0.0",
     "aio-login": "^4.0.0",
@@ -15,6 +14,7 @@
     "aio-service": "^6.1.1",
     "aio-storage": "^4.0.1",
     "aio-swip": "^2.0.0",
+    "aio-utils": "^2.1.0",
     "axios": "^1.2.3",
     "jquery": "^3.6.3",
     "mobx": "^6.10.2",
@@ -23,7 +23,7 @@
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
     "react-virtual-dom": "^4.0.1",
-    "typescript": "^5.3.3",
+    "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
     "workbox-background-sync": "^6.5.4",
     "workbox-broadcast-update": "^6.5.4",
@@ -41,13 +41,11 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "react-app"
     ]
   },
   "browserslist": {

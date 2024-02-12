@@ -23,9 +23,12 @@ export type I_DISCOUNT = { discountPercent?: number; maxDiscount?: number; title
 export type I_CARTITEM = { product: I_PRODUCT; variantId?: I_ID; count: number; }
 export type I_CART = I_CARTITEM[]
 export type I_FACTOR = { total: number,discount: number,discounts: I_DISCOUNT[],amount: number,extras: I_EXTRA[],factors: any[]}
-export type I_SO_option = { text: string, value: any };
+export type I_SO_option = { text: string, value: any,icon?:React.ReactNode };
 export type I_SO_html = (change: Function) => React.ReactNode | string;
-export type I_shippingOption = {title: string,subtitle?: string,field: string,value: any,options?: I_SO_option[],html?:I_SO_html}
+export type I_shippingOption = {
+    title: string,subtitle?: string,field: string,value: any,options?: I_SO_option[],html?:I_SO_html,multiple?:boolean,
+    show?:(p:any)=>boolean
+}
 export type I_EXTRA = { title: string, amount: number };
 export type I_MODAL_position = 'left' | 'top' | 'right' | 'bottom' | 'center' | 'fullscreen' | 'popover';
 export type I_MODAL_header = { attrs?: {}, title?: string, subtitle?: string, onClose?: false | (() => void), buttons?: [text: string, attrs?: {}][] };

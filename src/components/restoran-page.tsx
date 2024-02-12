@@ -1,67 +1,71 @@
-import React, { Component, useContext } from 'react';
-import RVD from './../npm/react-virtual-dom';
+import React, { Component, useContext, useState } from 'react';
+import RVD from '../npm/react-virtual-dom';
 import AIOInput from '../npm/aio-input/aio-input';
 import AIODate from '../npm/aio-date';
 import AIOStorage from 'aio-storage';
 import { Icon } from '@mdi/react';
-import { mdiArrowRight, mdiChevronDown, mdiChevronUp, mdiClock, mdiClose, mdiComment, mdiDelete, mdiTable, mdiWallet } from '@mdi/js';
-import { icons } from './../icons';
-import Rate from './../components/rate';
-import SVG_Cart from './../svgs/cart';
+import { mdiArrowRight, mdiChevronDown, mdiChevronUp, mdiClock, mdiClose, mdiComment, mdiDelete, mdiReload, mdiTable, mdiWallet } from '@mdi/js';
+import { icons } from '../icons';
+import Rate from './rate';
+import SVG_Cart from '../svgs/cart';
 import GroupButton from './group-button';
 import percent1 from '../svgs/percent1';
 import AppContext from '../app-context';
-import AIOShop from './../npm/aio-shop/aio-shop';
+import AIOShop from '../npm/aio-shop/aio-shop';
 import ersal_ba_peyk_svg from '../svgs/ersal-ba-peyk';
 import daryafte_hozoori_svg from '../svgs/daryafte-hozoori';
 import pardakhte_online_src from '../images/pardakhte-online.png';
 import pardakhte_kife_pool_src from '../images/pardakhte-kife-pool.png';
 import kart_be_kart_src from '../images/kart-be-kart.png';
 import pardakhte_hozoori_src from '../images/pardakhte-hozoori.png';
-import SplitNumber from './../npm/aio-functions/split-number';
+import SplitNumber from '../npm/aio-functions/split-number';
 import './restoran-page.css';
-
-export default class RestoranPage extends Component {
-  static contextType = AppContext;
+import { I_coupon, I_food, I_restoran, I_state } from '../typs';
+import { I_shippingOption } from '../npm/aio-shop/types';
+type I_menu = {[menuCategory:string]:I_food[]};
+type I_RestoranPage = {restoran:I_restoran}
+type I_tab = 'menu' | 'info' | 'cart' | 'reserve';
+export default function RestoranPage(props:I_RestoranPage) {
+  let {APIS,rsa,addresses}:I_state = useContext(AppContext);
+  let {restoran} = props
+  let [storage] = useState(AIOStorage('ifgcartcache' + restoran.id))
+  let [activeMenu,setActiveMenu] = useState<string | false>(false);
+  let [menuLength,setMenuLength] = useState<number>(0);
+  let [menu,setMenu] = useState<I_menu | false>(false);
+  let [activeTabId,setActiveTabId] = useState<I_tab>('menu');
+  let [coupons,setCoupons] = useState<I_coupon | false>(false)
   constructor(props) {
     super(props);
-    this.storage = AIOStorage('ifgcartcache' + props.restoran.id);
     this.state = {
-      activeMenu: false,
-      menuLength:0,
-      menu: [],
-      activeTabId:'menu',
-      coupons:[],
       cartTab:true,
       reserveItems:[]
     }
   }
-  getRestoranProp(prop){
+  function getRestoranProp(prop){
     let {restoran} = this.props;
     return restoran[prop]
   }
-  getIcon(option){
+  function getIcon(option){
     let icon = {
       'ارسال با پیک':()=>ersal_ba_peyk_svg(),
       'دریافت حضوری':()=>daryafte_hozoori_svg(),
-      'پرداخت آنلاین':()=><img src={pardakhte_online_src} />,
-      'پرداخت کیف پول':()=><img src={pardakhte_kife_pool_src} />,
-      'کارت به کارت':()=><img src={kart_be_kart_src} />,
-      'پرداخت حضوری':()=><img src={pardakhte_hozoori_src} />,
+      'پرداخت آنلاین':()=><img src={pardakhte_online_src as string} />,
+      'پرداخت کیف پول':()=><img src={pardakhte_kife_pool_src as string} />,
+      'کارت به کارت':()=><img src={kart_be_kart_src as string} />,
+      'پرداخت حضوری':()=><img src={pardakhte_hozoori_src as string} />,
     }[option];
     return (<div style={{width:60}} className='align-vh'>{icon()}</div>)
   }
-  getShippingOptions({factor,shipping}){
-    let { addresses } = this.context;
+  function getShippingOptions({factor,shipping}){
     let address = this.getRestoranProp('address');
-    let {coupons} = this.state;
-    return [
+    let checkOutOptions
+    let res:I_shippingOption[] = [
       {
-          title:'روش تحویل سفارش',field:'deliveryType',value:'ارسال با پیک',
-          options:[
-              { text: 'ارسال با پیک', value: 'ارسال با پیک', icon: this.getIcon('ارسال با پیک') },
-              { text: 'دریافت حضوری', value: 'دریافت حضوری', icon: this.getIcon('دریافت حضوری') },
-          ]
+        title:'روش تحویل سفارش',field:'deliveryType',value:'ارسال با پیک',
+        options:[
+            { text: 'ارسال با پیک', value: 'ارسال با پیک', icon: getIcon('ارسال با پیک') },
+            { text: 'دریافت حضوری', value: 'دریافت حضوری', icon: getIcon('دریافت حضوری') },
+        ]
       },
       {
           show:({deliveryType})=>deliveryType === 'ارسال با پیک',title:'آدرس تحویل سفارش',subtitle:'انتخاب از آدرس های من',field:'addressId',value:addresses[0].id,
@@ -71,69 +75,66 @@ export default class RestoranPage extends Component {
       {
           title:'روش پرداخت مبلغ سفارش',field:'paymentType',value:'پرداخت آنلاین',
           options:[
-              { text: 'پرداخت آنلاین', value: 'پرداخت آنلاین', icon: this.getIcon('پرداخت آنلاین'), subtext: 'پرداخت از طریق درگاه های پرداخت ' },
-              { text: 'پرداخت کیف پول(10% تخفیف)', value: 'پرداخت کیف پول', icon: this.getIcon('پرداخت کیف پول'), subtext: 'مانده اعتبار : 250،000 ریال' },
-              { text: 'پرداخت حضوری', value: 'پرداخت حضوری', icon: this.getIcon('پرداخت حضوری'), subtext: 'پرداخت از طریق دستگاه پوز پیک یا فروشگاه' },
-              { text: 'کارت به کارت', value: 'کارت به کارت', icon: this.getIcon('کارت به کارت'), subtext: 'واریز به کارت ایران فود' }
+              { text: 'پرداخت آنلاین', value: 'پرداخت آنلاین', icon: getIcon('پرداخت آنلاین'), subtext: 'پرداخت از طریق درگاه های پرداخت ' },
+              { text: 'پرداخت کیف پول(10% تخفیف)', value: 'پرداخت کیف پول', icon: getIcon('پرداخت کیف پول'), subtext: 'مانده اعتبار : 250،000 ریال' },
+              { text: 'پرداخت حضوری', value: 'پرداخت حضوری', icon: getIcon('پرداخت حضوری'), subtext: 'پرداخت از طریق دستگاه پوز پیک یا فروشگاه' },
+              { text: 'کارت به کارت', value: 'کارت به کارت', icon: getIcon('کارت به کارت'), subtext: 'واریز به کارت ایران فود' }
           ]
       },
       {
         show:({paymentType})=>paymentType === 'کارت به کارت',
         title:'اطلاعات حساب ایران فود',
         html:()=>'6219861033538751'
-      },
-      {
-        title:'کوپن های تخفیف',field:'selectedCouponIds',value:[],show:()=>!!coupons.length,multiple:true,
-        options:coupons.map(({id,title,discountPercent,discount,maxDiscount,minCartAmount = 0})=>{
-          let subtext = '';
-          if(discountPercent){
-            subtext += `${discountPercent} درصد تخفیف `
-          }
-          else if(discount){
-            subtext += `${SplitNumber(discount)} تومان تخفیف `
-          }
-          if(maxDiscount){ subtext += `تا سقف ${SplitNumber(maxDiscount)} تومان `}
-          if(minCartAmount){subtext += `برای سبد بالای ${SplitNumber(minCartAmount)} تومان `}
-          let disabled = minCartAmount > factor.total - factor.discount;
-          return {text:title,subtext,value:id,disabled}
-        })
       }
     ]
-  }
-  cartCache(type,cart){
-    if(type === 'get'){
-      return this.storage.load({name:'cart',def:[]})
+    if(Array.isArray(coupons) && coupons.length){
+      res.push({
+        title:'کوپن های تخفیف',field:'selectedCouponIds',value:[],show:()=>true,
+        multiple:true,
+        options:coupons.map((coupon:I_coupon)=>{
+          let subtext = '';
+          if(coupon.discountPercent){
+            subtext += `${coupon.discountPercent} درصد تخفیف `
+          }
+          else if(coupon.discount){
+            subtext += `${SplitNumber(coupon.discount)} تومان تخفیف `
+          }
+          if(coupon.maxDiscount){ subtext += `تا سقف ${SplitNumber(coupon.maxDiscount)} تومان `}
+          if(coupon.minCartAmount){subtext += `برای سبد بالای ${SplitNumber(coupon.minCartAmount)} تومان `}
+          let disabled = coupon.minCartAmount > factor.total - factor.discount;
+          return {text:coupon.title,subtext,value:coupon.id,disabled}
+        })
+      })
     }
-    else if(type === 'set'){
-      this.storage.save({name:'cart',value:cart})
-    }
+    return res
   }
-  getReserveCacheDictionary(){
-    let {restoran} = this.props;
-    return this.storage.load({name:'reservedata' + restoran.id,def:{}})
+  function cartCache(type,cart){
+    if(type === 'get'){return storage.load({name:'cart',def:[]})}
+    else if(type === 'set'){storage.save({name:'cart',value:cart})}
   }
-  setReserveCacheDictionary({product,count,model}){
-    let {restoran} = this.props;
+  function getReserveCacheDictionary(){
+    return storage.load({name:'reservedata' + restoran.id,def:{}})
+  }
+  function setReserveCacheDictionary({product,count,model}){
     let {Shop} = this.state;
     Shop.setCartCount({product,count});
     let reserveCacheDictionary = this.getReserveCacheDictionary()
     reserveCacheDictionary[product.id] = {...model}
     this.storage.save({name:'reservedata' + restoran.id,value:reserveCacheDictionary})
   }
-  async componentDidMount() {
-    let { apis } = this.context;
-    let id = this.getRestoranProp('id');
+  async function componentDidMount() {
+    let id = restoran.id;
     apis.request({
       api: 'backOffice.get_restoran_foods',
       description:'دریافت لیست غذا های رستوران',
       parameter: id,def:[],
-      onSuccess: (foods) => {
-        let menu = {}
+      onSuccess: (foods:I_food[]) => {
+        let menu:I_menu = {}
         let food_dic = {};
         let subFoods = {};
         let activeMenu;
         for(let i = 0; i < foods.length; i++){
-          let food = foods[i];
+          let food:I_food = foods[i];
           let {menuCategory,parentId,id} = food;
           food_dic[id] = food;
           if(!activeMenu){activeMenu = menuCategory;}
@@ -150,7 +151,10 @@ export default class RestoranPage extends Component {
           let key = keys[i];
           food_dic[key].items = subFoods[key];
         }
-        this.setState({ menu,activeMenu,menuLength:Object.keys(menu).length,subFoods })
+        setActiveMenu(activeMenu);
+        setMenuLength(Object.keys(menu).length);
+        setMenu(menu)
+        this.setState({ subFoods })
       }
     })
     apis.request({
@@ -188,7 +192,7 @@ export default class RestoranPage extends Component {
     let Shop = new AIOShop(shopObject)
     this.setState({Shop})
   }
-  header_layout(cartLength) {
+  function header_layout(cartLength) {
     let { onClose } = this.props;
     let rate = this.getRestoranProp('rate');
     let image = this.getRestoranProp('image');
@@ -208,8 +212,8 @@ export default class RestoranPage extends Component {
       }
     )
   }
-  tabs_layout(cartLength){
-    let {activeTabId,cartTab} = this.state;
+  function tabs_layout(cartLength){
+    let {cartTab} = this.state;
     return {
       className:'m-b-12',
       html:(
@@ -222,14 +226,13 @@ export default class RestoranPage extends Component {
             {text:'سبد خرید',value:'cart',after:<div className='br-12 p-3 h-12 align-vh' style={{background:'orange',color:'#fff'}}>{cartLength}</div>,show:!!cartTab},
           ]}
           value={activeTabId}
-          onChange={(activeTabId)=>this.setState({activeTabId})}
+          onChange={(activeTabId:I_tab)=>setActiveTabId(activeTabId)}
         />
       )
     }
   }
-  category_layout() {
-    let { activeMenu,menu,menuLength } = this.state;
-    if(!menuLength){return false}
+  function category_layout() {
+    if(!menuLength || menu === false){return false}
     return {
       className: 'p-h-12 m-b-12',
       html: (
@@ -237,15 +240,14 @@ export default class RestoranPage extends Component {
           type='menu'
           value={[activeMenu]} className='outline'
           options={Object.keys(menu).map((o) => { return { text: o, value: o } })}
-          onChange={(values, activeMenu) => this.setState({ activeMenu })}
+          onChange={(values, activeMenu) => setActiveMenu(activeMenu)}
         />
       )
     }
   }
-  foods_layout() {
-    let { menu,activeMenu,Shop } = this.state;
-    if(!Shop){return false}
-    if(!activeMenu){return false}
+  function foods_layout() {
+    let { Shop } = this.state;
+    if(!Shop || !activeMenu || menu === false){return false}
     let foods = menu[activeMenu];
     return {
       gap: 12, flex: 1, className: 'ofy-auto',
@@ -261,9 +263,8 @@ export default class RestoranPage extends Component {
       })
     }
   }
-  openModal(key,parameter){
+  function openModal(key,parameter){
     let {Shop,subFoods} = this.state;
-    let {rsa} = this.context;
     let {addModal} = rsa;
     if(key === 'subFoods'){
       addModal({
@@ -272,19 +273,11 @@ export default class RestoranPage extends Component {
       })
     }
   }
-  menu_layout(){
-    let {activeTabId} = this.state;
-    if(activeTabId !== 'menu'){return false}
-    return {
-      flex:1,
-      column:[
-        this.category_layout(),
-        this.foods_layout()
-      ]
-    }
+  function menu_layout(){
+    if(activeTabId !== 'menu' || menu === false){return false}
+    return {flex:1,column:[category_layout(),foods_layout()]}
   }
-  info_layout(){
-    let {activeTabId} = this.state;
+  function info_layout(){
     if(activeTabId !== 'info'){return false}
     let {restoran} = this.props;
     return {
@@ -292,16 +285,16 @@ export default class RestoranPage extends Component {
       html:<RestoranInfo {...restoran} header={false}/>
     }
   }
-  cart_layout(){
-    let {activeTabId,Shop} = this.state;
+  function cart_layout(){
+    let {Shop} = this.state;
     if(activeTabId !== 'cart'){return false}
     return {
       flex:1,
       html:Shop.renderCart()
     }
   }
-  reserve_layout(){
-    let {activeTabId,reserveItems,Shop} = this.state;
+  function reserve_layout(){
+    let {reserveItems,Shop} = this.state;
     if(!Shop || activeTabId !== 'reserve'){return false}
     let {restoran} = this.props;
     return {
@@ -314,29 +307,39 @@ export default class RestoranPage extends Component {
       )
     }
   }
-  render() {
-    let {activeTabId,Shop} = this.state;
-    let cartLength = Shop?Shop.getCartItems().length:0;
-    
-    return (
-      <>
-        <RVD
-          layout={{
-            className:'restoran-page',
-            column: [
-              this.header_layout(cartLength),
-              this.tabs_layout(cartLength),
-              this.menu_layout(),
-              this.info_layout(),
-              this.cart_layout(),
-              this.reserve_layout()
-            ]
-          }}
-        />
-        {Shop && Shop.renderPopups()}
-      </>
-    )
-  }
+  if(coupons === false || menu === false){return (
+    <RVD
+        layout={{
+          className:'restoran-page',align:'vh',
+          column: [
+            {html:'خطا در دریافت اطلاعات'},
+            {html:(
+              <button><Icon path={mdiReload} size={0.8}/>تلاش مجدد</button>
+            )}
+          ]
+        }}
+      />
+  )}
+  let cartLength = Shop?Shop.getCartItems().length:0;
+  
+  return (
+    <>
+      <RVD
+        layout={{
+          className:'restoran-page',
+          column: [
+            header_layout(cartLength),
+            tabs_layout(cartLength),
+            menu_layout(),
+            info_layout(),
+            cart_layout(),
+            reserve_layout()
+          ]
+        }}
+      />
+      {Shop && Shop.renderPopups()}
+    </>
+  )
 }
 class SubFoods extends Component{
   foods_layout(foods){
