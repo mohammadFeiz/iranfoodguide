@@ -131,7 +131,7 @@ class ShopClass implements I_ShopClass{
             'cart-button-body':'as-cart-button-body',//
             'cart-button-footer':'as-cart-button-footer',//
             'pc-discount-layout':'as-product-card-discount-layout',//
-            'pc-finalPrice_layout':'as-product-card-final-price_layout'.//
+            'pc-finalPrice_layout':'as-product-card-final-price_layout',//
         }
         this.getContext = ()=>{
             return {
