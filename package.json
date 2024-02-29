@@ -7,6 +7,7 @@
     "@mdi/react": "^1.6.1",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
+    "aio-content-slider": "^1.0.0",
     "aio-date": "^4.0.0",
     "aio-input": "^7.0.0",
     "aio-login": "^4.0.0",
