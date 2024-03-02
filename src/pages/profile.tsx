@@ -1,5 +1,5 @@
 import React, { Component, useContext, useEffect, useState } from "react";
-import RVD from '../npm/react-virtual-dom';
+import RVD from '../npm/react-virtual-dom/index.tsx';
 import SplitNumber from "../npm/aio-functions/split-number";
 import { Icon } from '@mdi/react';
 import { mdiAccount, mdiAccountCircleOutline, mdiChevronRight, mdiLock, mdiMapMarker, mdiPlusCircle, mdiPlusThick } from '@mdi/js';

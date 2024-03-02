@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import AIOInput from '../../npm/aio-input/aio-input.js';
-import RVD from '../../npm/react-virtual-dom.js';
+import RVD from '../../npm/react-virtual-dom/index.tsx';
 import Restorans from "./restorans.tsx";
 import './back-office.css';
 import AppContext from "../../app-context.js";
@@ -29,9 +29,9 @@ export default function BackOffice() {
     function body_layout() {return {flex: 1,html: getBody()}}
     return (<RVD layout={{gap:12,column: [tabs_layout(),body_layout()]}}/>)
 }
-type I_Tags = {type:I_tag_type}
+type I_Tags = {type:I_tag_type,key?:I_tag_type}
 function Tags(props:I_Tags){
-    let {apis,APIS}:I_state = useContext(AppContext);
+    let {APIS}:I_state = useContext(AppContext);
     let {type} = props;
     let trans = {'restoran':'رستوران','food':'غذا'}
     let [tags,setTags] = useState<I_tag[]>();

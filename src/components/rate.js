@@ -1,5 +1,5 @@
 import React,{Component} from "react";
-import RVD from './../npm/react-virtual-dom';
+import RVD from './../npm/react-virtual-dom/index.tsx';
 import {Icon} from '@mdi/react';
 import {mdiStar,mdiStarOutline,mdiStarHalfFull} from '@mdi/js';
 import './rate.css';

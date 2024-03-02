@@ -1,17 +1,21 @@
+import React from 'react';
 export type I_pr = {
-    hasVariant:boolean,
+    optionType:I_optionType,
     cartInfo?:I_cartInfo,
     images:string[],
     props?:any,
     id:any,
+    data?:any,
     name:string,
     details?:I_pr_detail[],
     description?:string,
     defaultVariantId?:any,
     rate?:number,
     rates?:I_pr_rate[],
-    variants?:I_v[]
+    variants?:I_v[],
+    quantityId?:string
 }
+export type I_optionType = 'product' | 'variant' | 'quantity';
 export type I_pr_optionType = {id:any,name:string,values:{name:string,id:any}[]}
 export type I_pr_rate = (string | number)[];
 export type I_pr_detail = string[];
@@ -19,15 +23,8 @@ export type I_v = {id:any,cartInfo:I_cartInfo,optionValues:I_v_ov[]}
 export type I_v_ov = {typeId:any,valueId:any,typeName:string,valueName:string}
 export type I_discountPercent = {value:number,text:string,attrs?:any}
 export type I_cartInfo = {inStock:number | boolean,min?:number,max?:number,step?:number,price:number,discountPercent?:I_discountPercent[]}
-
-
-
 export type I_ProductCard_type = 'h' | 'v' | 'hs'
 export type I_ProductCard_cartButton = boolean | 'readonly';
-
-
-
-
 export type I_action = {text:string,onClick:()=>void}
 export type I_discount = { discountPercent?: number; maxDiscount?: number; title: string; }
 export type I_extra = { title: string, amount: number }
@@ -40,15 +37,17 @@ export type I_checkout_content = (context:I_AIOShop_context)=>Promise<React.Reac
 export type I_getDiscounts = (p:{renderIn:'cart' | 'checkout',checkout:any,cart:I_cart})=>Promise<I_discount[]>
 export type I_getExtras = (p:{renderIn:'cart' | 'checkout',checkout:any,cart:I_cart})=>Promise<I_extra[]>
 export type I_getFinalPrice = (cartInfo:I_cartInfo)=>number;
-export type I_getCartInfo = (product:I_pr,variantId?:any) => I_cartInfo;
+export type I_getCartInfo = (product:I_pr,cartItem?:I_cart_item) => I_cartInfo;
+export type I_getFactor = (p?:{renderIn:'cart' | 'checkout',discountCodeResult?:I_discount | string})=>Promise<I_AIOShop_factor>
 export type I_trans = {addToCart:string,notExist:string};
 export type I_getOptionTypes = (variants:I_v[])=>I_pr_optionType[];
-export type I_onPayment = (p:{factor:I_Factor_details,checkout:I_checkout})=>Promise<boolean>
 export type I_AIOShop_context = {
     unit:string,cart:I_cart,
     getVariantIcon?:I_getVariantIcon,
     getCartInfo:I_getCartInfo,
+    getFactor:I_getFactor,
     changeCart:I_changeCart,
+    getCartItem:I_getCartItem,
     getCartCount:I_getCartCount,
     getCartVariants:I_getCartVariants,
     getVariantByOptionValues:I_getVariantByOptionValues,
@@ -69,17 +68,15 @@ export type I_AIOShop_context = {
     getOptionTypes:I_getOptionTypes,
     getFinalPrice:I_getFinalPrice,
     trans:I_trans,
-    onPayment:I_onPayment
+    onPayment:I_onPayment,
+    quantities:I_quantity[]
 }
 export type I_getVariantIcon = (p:[key:string,value:string])=>React.ReactNode;
-export type I_changeCart = (p:{product:I_pr,variantId?:any,count:number})=>void;
-export type I_addProductToCart = (p:{product:I_pr,variantId:any,count:number})=>I_cart;
-export type I_addVariantToCart = (p:{product:I_pr,variantId:any,count:number})=>I_cart;
-export type I_getNewCartVariant = (p:{product:I_pr,variantId:any,count:number})=>I_cart_variant;
-export type I_removeVariantFromCart = (p:{product:I_pr,variantId:any,count:number})=>I_cart;
-export type I_changeCartCount = (p:{cartProduct:I_cart_product,cartVariant?:I_cart_variant,count:number})=>I_cart;
-export type I_getCartCount = (product:I_pr,variantId?:any)=>number;
-export type I_getCartVariants = (productId:any)=>I_cart_variant[];
+export type I_changeCart = (p:{product:I_pr,variantId?:any,count:number,quantity?:any})=>void;
+export type I_editCartItem = (p:{product:I_pr,variantId?:any,count:number,quantity?:any})=>I_cart;
+export type I_addCartItem = (p:{product:I_pr,variantId?:number | string,count:number,quantity?:any})=>I_cart;
+export type I_removeCartItem = (p:{product:I_pr,variantId?:any})=>I_cart;
+export type I_getCartVariants = (productId:string | number)=>I_cart_item[];
 export type I_getVariantByOptionValues = (product:I_pr,optionValues:I_v_ov[])=>I_v;
 export type I_openModal = (p:{
     position?:'fullscreen' | 'center' | 'left' | 'right' | 'top' | 'bottom',
@@ -88,10 +85,10 @@ export type I_openModal = (p:{
     render:()=>React.ReactNode
 })=>void;
 export type I_closeModal = (id?:string)=>void;
-export type I_checkout_option = { text: string, value: any,icon?:React.ReactNode };
+export type I_checkout_option = { text: string, value: any,icon?:React.ReactNode,subtext?:string };
 export type I_checkout_item = I_checkout_radio | I_checkout_html;
 export type I_checkout_html = {
-    type:'html',title: string,subtitle?: string,field: string,value: any,html:(value:any,change:(newValue:any)=>void) => React.ReactNode,
+    type:'html',title: string,subtitle?: string,field: string,value: any,html:(value:string | number,change:(newValue:any)=>void) => React.ReactNode,
     show?:(context:I_AIOShop_context)=>boolean
 }
 export type I_checkout_radio = {
@@ -117,8 +114,16 @@ export type I_AIOShop_props = {
     checkDiscountCode?:I_checkDiscountCode,
     onPayment:I_onPayment,
     trans:I_trans,
-    cart?:'cache' | I_cart
+    cart?:'cache' | I_cart,
+    quantities?:I_quantity[]
 }
+export type I_quantity = {
+    id:any,form:(p:{product:I_pr,quantity:{[key:string]:any},change:(quantityValue:any)=>void})=>React.ReactNode,
+    getCartInfo:(product:I_pr,quantity:{[key:string]:any})=>I_cartInfo,
+}
+export type I_onPayment = (context:I_AIOShop_context)=>Promise<boolean>
+export type I_getCartItem = (p:{product:I_pr,variantId?:string | number})=>I_cart_item | false;
+export type I_getCartCount = (p:{product:I_pr,variantId?:number | string})=>number;
 export type I_AIOShop = {
     unit:string;
     cart:I_cart;
@@ -132,23 +137,20 @@ export type I_AIOShop = {
     renderCheckout:I_renderCheckout;
     renderCartButton:I_renderCartButton;
     renderPopup:I_renderPopup;
+    getCartItem:I_getCartItem;
     changeCart:I_changeCart;
     setCart:(newCart:I_cart)=>void;
     getDiscountPercent:(discountPercent:I_discountPercent[])=>number;
-    getCartCount:I_getCartCount;
     getCartVariants:I_getCartVariants;
     getCartLength:I_getCartLength;
     openModal:I_openModal;
     
 }
 export type I_getCartLength = ()=>number;
-export type I_cart_variant = {id:any,count:number};
-export type I_cart_product = I_cart_product_hasVariant | I_cart_product_hasNotVariant;
-export type I_cart_product_hasVariant = {product:I_pr,variants:I_cart_variant[]};
-export type I_cart_product_hasNotVariant = {product:I_pr,count:number};
-export type I_cart = I_cart_product[];
+export type I_cart_item = {product:I_pr,count:number,variantId?:any,quantity?:any,optionType:I_optionType};
+export type I_cart = I_cart_item[];
 //////rvd
-export type I_Factor_details = {
+export type I_AIOShop_factor = {
     totalDiscount:number,
     total:number,payment:number,productsDiscount:number,
     discounts:{discount:I_discount,amount:number}[],

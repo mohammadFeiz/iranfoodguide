@@ -1,3 +1,4 @@
+import React from 'react'
 import { I_APIClass } from "./apis/APIClass"
 import { I_AIOLogin } from "./npm/aio-login"
 
@@ -188,6 +189,7 @@ export type I_restoran = {
     logoId:I_imageId,
     address: string,
     deliveryTime: number,
+    rate?:number,
     ifRate:number,
     ifComment:string,
     tags: number[],
@@ -238,3 +240,18 @@ export type I_restoranId = number;
 export type I_foodId = number;
 export type I_tagId = number;
 export type I_coupon = {id:any,title:string,discountPercent?:number,discount?:number,maxDiscount?:number,minCartAmount?:number}
+export type I_reserveItem = {
+    id:any,
+    timeType:'hour'|'day',
+    countType:boolean,
+    minCount?:number, maxCount?:number, countUnit?:string,
+    discountPercent?:number,
+    images:any[],
+    name:string,
+    description:string,
+    price:number,
+    returnAmount:boolean,
+    preOrderTime:number
+}
+export type I_reserveQuantity = {count:number,hours:number[],date:string}
+export type I_deliveryType = 'ارسال با پیک' | 'دریافت حضوری'

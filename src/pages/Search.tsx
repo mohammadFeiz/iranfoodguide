@@ -1,5 +1,5 @@
 import React,{Component, useContext, useState} from "react";
-import RVD from '../npm/react-virtual-dom';
+import RVD from '../npm/react-virtual-dom/index.tsx';
 import SearchBox from "../npm/search-box/search-box";
 import GroupButton from "../components/group-button";
 import AIOInput from "../npm/aio-input/aio-input";

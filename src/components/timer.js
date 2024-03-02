@@ -1,5 +1,5 @@
 import React,{Component} from "react";
-import RVD from './../npm/react-virtual-dom';
+import RVD from './../npm/react-virtual-dom/index.tsx';
 import AIODate from './../npm/aio-date';
 import { icons } from "../icons";
 export default class Timer extends Component{

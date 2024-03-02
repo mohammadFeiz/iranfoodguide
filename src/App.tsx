@@ -3,7 +3,7 @@ import RSA from './npm/react-super-app/react-super-app';
 import BackOffice from './components/back-office/back-office.tsx';
 import AIOStorage from 'aio-storage';
 import AIOService from 'aio-service';
-import RVD from './npm/react-virtual-dom';
+import RVD from './npm/react-virtual-dom/index.tsx';
 import AIOLogin,{I_AIOLogin, I_AL_props} from './npm/aio-login/index.tsx';
 import APISClass, { I_APIClass, I_getWalletAmount_result } from './apis/APIClass.tsx';
 import AppContext from './app-context';

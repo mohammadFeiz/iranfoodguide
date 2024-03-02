@@ -1,5 +1,5 @@
 import React,{Component} from "react";
-import RVD from './../npm/react-virtual-dom';
+import RVD from './../npm/react-virtual-dom/index.tsx';
 
 export default class ListHeader extends Component{
     render(){

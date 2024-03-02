@@ -1,4 +1,3 @@
-import backOfficeApis from "./back-office-apis";
 import profileApis from "./profile-apis.tsx";
 import reserveApis from "./reserve-apis";
 import frame210 from '../images/Frame 210.png';
@@ -28,51 +27,11 @@ import { I_imageId, I_restoran, I_restoran_server } from "../typs.tsx";
 export default function getApiFunctions(obj) {
     let { baseUrl, Axios,helper } = obj;
     return {
-        backOffice: backOfficeApis(obj),
         profile: profileApis(obj),
         reserve: reserveApis(obj),
         async remove_image(id,{mock}){
             if(mock.reserve){return MockApis.remove_image(id);}
             return {result:'remove_image not implemented'}
-        },
-        async pardakht_online({ deliveryType, foods, restoranId, amount, selectedCouponIds, addressId }) {
-            //deliveryType => 'ارسال با پیک' | 'دریافت حضوری'
-            //لیست غذا ها که یک نمونه از اون در لیست زیر نمایش داده شده
-            //foods => [
-            //    {foodId:Any,count:Number},
-            //    ...
-            //]
-            //restoranId => آی دی رستوران
-            //amount => Number مبلغ قابل پرداخت
-            //selectedCouponIds => آرایه ای از آی دی کوپن های انتخاب شده
-            //addressId => آی دی آدرس انتخاب شده ی کاربر
-            let callbackurl = window.location.href; //یو آر ال فعلی اپ
-            let foodList = [];
-            for (let i = 0; i < foods.length; i++) {
-                let { count, foodId } = foods[i];
-                for (let j = 0; j < count; j++) {
-                    foodList.push({ restaurantId: restoranId, restaurantFoodId: foodId })
-                }
-            }
-            let url = `${baseUrl}/Order/OrderTotal`;
-            //create from searchObject
-            let body = {
-                "customerId": 1,
-                "isPreOrder": false,
-                'description': '',
-                "serviceTypeId": { 'ارسال با پیک': 1, 'دریافت حضوری': 2 }[deliveryType],//delivery 1//takeaway 2
-                "addressId": addressId,
-                "paymentTypeId": 1,//online
-                "callback": "http://localhost:3000",
-                "dinners": foodList
-            }
-            let response = await Axios.post(url, body);
-            //باز کردن صفحه درگاه
-            let paymentUrl = response.data.data;
-            window.open(paymentUrl)
-
-            let result;
-            return { response, result }
         },
         async search_restorans(parameter, { restoranToClient }) {
             let response;
@@ -122,16 +81,7 @@ export default function getApiFunctions(obj) {
 
             return { mock: true }
         },
-        async restoran_coupons(restaurantId) {
-
-            let url = `${baseUrl}/RestaurantDiscount/Search`;
-            let body = { "RestaurantId": restaurantId }
-            let response = await Axios.post(url, body);
-            let result = response.data.data.items;
-            return { response, result };
-
-            // return {mock:true}
-        }
+        
     }
 }
 
@@ -704,17 +654,6 @@ const MockApis = {
         ]
         return { result }
     },
-    restoran_coupons() {
-        let result = [
-            { id: '23423423', title: 'کوپن 1', discountPercent: 10, minCartAmount: 500000, maxDiscount: 100000 },
-            { id: '75684564', title: 'کوپن 2', discountPercent: 10, maxDiscount: 100000 },
-            { id: '4235345', title: 'کوپن 3', discountPercent: 10, minCartAmount: 500000 },
-            { id: '56345234', title: 'کوپن 4', discountPercent: 10 },
-
-            { id: '23426', title: 'کوپن 5', discount: 100000, minCartAmount: 500000 },
-            { id: '645634534', title: 'کوپن 6', discount: 100000 },
-        ]
-        return { result }
-    }
+    
 }
 

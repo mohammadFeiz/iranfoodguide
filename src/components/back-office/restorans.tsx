@@ -1,14 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import AIOInput from '../../npm/aio-input/aio-input';
-import RVD from '../../npm/react-virtual-dom';
+import RVD,{I_RVD_node} from '../../npm/react-virtual-dom/index.tsx';
 import { Icon } from "@mdi/react";
 import {Search} from 'aio-utils';
 import { mdiMagnify, mdiFormatListBulletedSquare, mdiMapMarkerAlert, mdiMapMarkerCheck, mdiClose, mdiPlusThick, mdiDotsHorizontal, mdiPencil, mdiDelete } from '@mdi/js';
 import AppContext from './../../app-context';
 import './back-office.css';
-import { I_add_or_edit_food_p, I_add_or_edit_food_r, I_remove_food_p, I_remove_food_r} from "../../apis/back-office-apis";
 import { I_food, I_foodId, I_restoran, I_restoranId, I_state, I_tag } from "../../typs.tsx";
-import { I_addOrEditImage_param, I_addOrEditImage_result, I_backOffice_addOrEditRestoran_param, I_backOffice_addOrEditRestoran_result } from "../../apis/APIClass.tsx";
+import { I_addOrEditImage_param, I_addOrEditImage_result, I_bo_addOrEditFood_param, I_bo_addOrEditFood_result, I_bo_addOrEditRestoran_param, I_bo_addOrEditRestoran_result } from "../../apis/APIClass.tsx";
 export default function Restorans() {
     let {APIS,rsa}:I_state = useContext(AppContext)
     let [restorans,setRestorans] = useState<I_restoran[]>([])
@@ -29,7 +28,7 @@ export default function Restorans() {
     }
     function onMount(){getRestorans();}
     useEffect(()=>{onMount()},[])
-    function header_layout() {
+    function header_layout():I_RVD_node {
         return {
             className: 'p-h-12',
             gap:12,
@@ -52,7 +51,7 @@ export default function Restorans() {
     function getRestoransBySearch() {
         return Search(restorans, searchValue, (o:I_restoran) => `${o.name} ${o.address} ${o.phone}`)
     }
-    function body_layout() {
+    function body_layout():I_RVD_node {
         let list = getRestoransBySearch();
         return {
             flex: 1, className: 'ofy-auto p-12', gap: 6,
@@ -85,20 +84,20 @@ export default function Restorans() {
     return (<RVD layout={{ column: [header_layout(), body_layout()] }} />)
     
 }
-type I_RestoranCard = {onClick:()=>void,restoran:I_restoran,onRemove:()=>void}
+type I_RestoranCard = {onClick:()=>void,restoran:I_restoran,onRemove:()=>void,key?:any}
 function RestoranCard(props:I_RestoranCard){
     let {restoran_tags}:I_state = useContext(AppContext);
     let {onClick,restoran,onRemove} = props;
     function image_layout(image){return {size:60,html:<img src={image} width='100%' alt=''/>}}
     
-    function body_layout(){
+    function body_layout():I_RVD_node{
         let row1 = {row: [name_layout(),remove_layout()]};
         let row2 = { row: [tags_layout(), code_layout()] };
         return {flex: 1,column: [row1,row2],className:'p-6'}
     }
-    function name_layout(){return { flex: 1, html: restoran.name }}
-    function remove_layout(){return {html:<Icon path={mdiClose} size={.9}/>,onClick:onRemove}}
-    function tags_layout(){return { flex: 1, html: getTagNames(restoran.tags), className: 'fs-10' }}
+    function name_layout():I_RVD_node{return { flex: 1, html: restoran.name }}
+    function remove_layout():I_RVD_node{return {html:<Icon path={mdiClose} size={.9}/>,onClick:onRemove}}
+    function tags_layout():I_RVD_node{return { flex: 1, html: getTagNames(restoran.tags), className: 'fs-10' }}
     function getTagNames(tags:number[]){
         let tagNames = tags.map((tagId)=>{
             let tag = restoran_tags.find((o:I_tag)=>o.id === tagId);
@@ -107,7 +106,7 @@ function RestoranCard(props:I_RestoranCard){
         return tagNames.join(',')
     }
     
-    function code_layout(){return { html: `کد : ${restoran.id}` }}
+    function code_layout():I_RVD_node{return { html: `کد : ${restoran.id}` }}
     return <RVD layout={{onClick, className: 'bo-restoran-card',row: [image_layout(restoran.image),body_layout()]}}/>;
     
 }
@@ -123,10 +122,9 @@ function RestoranForm(props:I_RestoranForm) {
             return { text: <div style={{ direction: 'ltr' }}>{`${hour}:00`}</div>, value: `${hour}:00` }
         })
     )
-    function foods_layout() {
-        if(type !== 'edit'){return false}
+    function foods_layout():I_RVD_node {
+        if(type !== 'edit'){return {}}
         return {
-            props:{gap:0},
             column: [
                 { html: 'منوی رستوران', className: 'fs-12' },
                 {
@@ -189,12 +187,12 @@ function RestoranForm(props:I_RestoranForm) {
         }
     }
     function submit(){
-        let parameter:I_backOffice_addOrEditRestoran_param = {newRestoran:model,type};
+        let parameter:I_bo_addOrEditRestoran_param = {newRestoran:model,type};
         APIS.backOffice_addOrEditRestoran(parameter,{
-            onSuccess: async (p:I_backOffice_addOrEditRestoran_result) => onSubmit({...model,id:p.id})
+            onSuccess: async (p:I_bo_addOrEditRestoran_result) => onSubmit({...model,id:p.id})
         })
     }
-    function form_layout() {
+    function form_layout():I_RVD_node {
         return {
             className: 'admin-panel-restoran-card p-12 ofy-auto',flex:1,
             html: (
@@ -257,15 +255,15 @@ function Foods(props:I_Foods) {
     let {restoranId,justLength} = props;
     let [foods,setFoods] = useState<I_food[]>()
     function getFoods(){
-        APIS.backOffice_getRestoranFoods(restoranId,{ 
+        APIS.backOffice_getRestoranFoods({restoranId},{ 
             onSuccess: (foods:I_food[]) => setFoods(foods) 
         })
     }
     useEffect(()=>{getFoods()},[])
     async function remove_food(id:I_foodId):Promise<boolean> {
-        let parameter:I_remove_food_p = { restoranId, foodId:id }
-        let res:I_remove_food_r = await apis.request({api: 'backOffice.remove_food',description: 'حذف غذا از منوی رستوران',parameter})
-        if (res === true) {setFoods(foods.filter((food:I_food) => food.id !== id));}
+        let res:boolean = await APIS.backOffice_removeFood({restoranId,foodId:id},{
+            onSuccess:()=>setFoods(foods.filter((food:I_food) => food.id !== id))
+        })
         return res
     }
     function openFoodForm(type:'add'|'edit',food?:I_food){
@@ -287,20 +285,20 @@ function Foods(props:I_Foods) {
             }
         })
     }
-    function header_layout(){
-        if(!foods){return false}
+    function header_layout():I_RVD_node{
+        if(!foods){return {}}
         return {
             row:[
                 {html:<button onClick={()=>openFoodForm('add')}><Icon path={mdiPlusThick} size={0.8}/>افزودن غذا</button>}
             ]
         }
     }
-    function body_layout(){
+    function body_layout():I_RVD_node{
         if(!foods){return {html:'در حال بارگزاری',align:'vh',size:300}}
         return {flex:1,className:'ofy-auto',column:foods.map((o:I_food)=>foodCard_layout(o))}
     }
-    function name_layout(food:I_food){return {flex:1,html:food.name,className:'fs-12 bold',align:'v'}}
-    function options_layout(food:I_food){
+    function name_layout(food:I_food):I_RVD_node{return {flex:1,html:food.name,className:'fs-12 bold',align:'v'}}
+    function options_layout(food:I_food):I_RVD_node{
         let confirmProps = {title:'حذف غذا',text:'آیا از حذف غذا اطمینان دارید؟',onSubmit:async ()=>await remove_food(food.id)}
         return {
             size:30,align:'vh',
@@ -315,7 +313,7 @@ function Foods(props:I_Foods) {
             )
         }
     }
-    function foodCard_layout(food:I_food){
+    function foodCard_layout(food:I_food):I_RVD_node{
         let {image} = food;
         return {
             row:[
@@ -337,7 +335,7 @@ function FoodForm(props:I_FoodForm){
     useEffect(()=>{getFood()},[])
     function changeImage(file:any){
         let parameter:I_addOrEditImage_param = { imageId:food.imageId,imageFile:file }
-        APIS.addOrEditImage(parameter{
+        APIS.addOrEditImage(parameter,{
             description: 'ثبت تصویر منوی رستوران',
             onSuccess:(p:I_addOrEditImage_result)=>{
                 let {id,url} = p;
@@ -347,10 +345,9 @@ function FoodForm(props:I_FoodForm){
     }
     function submit(){
         if(!food.imageId){alert('لطفا تصویر غذا را انتخاب کنید'); return}
-        let parameter:I_add_or_edit_food_p = { restoranId, newFood:food,type };
-        apis.request({
-            api: 'backOffice.add_or_edit_food',parameter,description: `${type === 'add'?'ثبت':'ویرایش'} غذا در منوی رستوران`,
-            onSuccess:(p:I_add_or_edit_food_r)=>onSubmit({...food,id:p.id})
+        let parameter:I_bo_addOrEditFood_param = { restoranId, newFood:food,type }
+        APIS.backOffice_addOrEditFood(parameter,{
+            onSuccess:(p:I_bo_addOrEditFood_result)=>onSubmit({...food,id:p.id})
         })
     }
     function getParentFoods(){

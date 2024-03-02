@@ -1,5 +1,5 @@
 import React, { Component, useState } from "react";
-import RVD from './../../npm/react-virtual-dom';
+import RVD from './../../npm/react-virtual-dom/index.tsx';
 import AIOInput from "../../npm/aio-input/aio-input";
 import AppContext from "../../app-context";
 import './reserve-panel.css';
