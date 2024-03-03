@@ -225,7 +225,7 @@ export type I_food = {
     },
     cartInfo:{
         price:number,
-        discountPercent:{}[],
+        discountPercent:{value:number,text:string}[],
         inStock:number
     }
 }
