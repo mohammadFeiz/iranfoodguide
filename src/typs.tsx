@@ -242,16 +242,17 @@ export type I_tagId = number;
 export type I_coupon = {id:any,title:string,discountPercent?:number,discount?:number,maxDiscount?:number,minCartAmount?:number}
 export type I_reserveItem = {
     id:any,
-    timeType:'hour'|'day',
-    countType:boolean,
-    minCount?:number, maxCount?:number, countUnit?:string,
-    discountPercent?:number,
     images:any[],
     name:string,
     description:string,
-    price:number,
-    returnAmount:boolean,
-    preOrderTime:number
+    data:{
+        returnAmount:boolean,
+        preOrderTime:number,
+        price:number,
+        minCount?:number, maxCount?:number, countUnit?:string,
+        timeType:'hour'|'day',
+        countType:boolean
+    }
 }
 export type I_reserveQuantity = {count:number,hours:number[],date:string}
 export type I_deliveryType = 'ارسال با پیک' | 'دریافت حضوری'

@@ -420,34 +420,20 @@ function Header(props: I_Header) {
 }
 type I_RestoranReserve = { Shop:I_AIOShop, reserveItems:I_reserveItem[], restoranId:any, reserveCacheDictionary, setReserveCacheDictionary }
 function RestoranReserve(props:I_RestoranReserve) {
-  let context:I_state = useContext(AppContext)
-  let { Shop, reserveItems, restoranId, reserveCacheDictionary, setReserveCacheDictionary } = props;
-  function getProduct({ price, discountPercent, name, id, countType, minCount, maxCount, returnAmount, countUnit, timeType, image1, image2, image3 }) {
-    let image = image1 || image2 || image3;
+  let { Shop, reserveItems} = props;
+  function getProduct(reserveItem:I_reserveItem) {
+    let { name, id, data, images } = reserveItem;
     let description = ''
-    let countText = countType ? `${minCount} تا ${maxCount} ${countUnit}` : '';
-    let returnText = returnAmount ? `بازگشت مبلغ روی فاکتور` : '';
+    let countText = data.countType ? `${data.minCount} تا ${data.maxCount} ${data.countUnit}` : '';
+    let returnText = data.returnAmount ? `بازگشت مبلغ روی فاکتور` : '';
     let timeText = '';
-    if (timeType === 'hour') { timeText = 'ساعتی' }
-    else if (timeType === 'day') { timeText = 'روزانه' }
+    if (data.timeType === 'hour') { timeText = 'ساعتی' }
+    else if (data.timeType === 'day') { timeText = 'روزانه' }
     if (countText) { description += countText + ' - ' }
     if (timeText) { description += timeText + ' - ' }
     if (returnText) { description += returnText }
-    return { id, description, name, price, discountPercent, countType: false, image, isReserve: true }
-  }
-  function openPage(reserveItem, product) {
-    let { rsa } = context;
-    let { addModal } = rsa;
-    addModal({
-      position: 'fullscreen', header: { title: reserveItem.name },
-      body: {
-        render: () => {
-          let reserveCache = reserveCacheDictionary[product.id];
-          let props = { item: reserveItem, product, Shop, restoranId, reserveCache, setReserveCacheDictionary }
-          return (<ReservePage {...props} />)
-        }
-      }
-    })
+    let product:I_pr =  { optionType:'quantity',id, description, name, images, data }
+    return product
   }
   return (
     <RVD
@@ -457,7 +443,7 @@ function RestoranReserve(props:I_RestoranReserve) {
         column: reserveItems.map((reserveItem) => {
           let product = getProduct(reserveItem);
           return {
-            className: 'of-visible', html: Shop.renderProductCard({ product, onClick: () => openPage(reserveItem, product), type: 'horizontal' })
+            className: 'of-visible', html: Shop.renderProductCard({ product, type: 'h' })
           }
         })
       }}
@@ -738,9 +724,10 @@ class Address extends Component {
     )
   }
 }
-class IranFoodComment extends Component {
-  state = { showMode: false }
-  header_layout(ifRate) {
+type I_IranFoodComment = {}
+function IranFoodComment(props:I_IranFoodComment) {
+  let [showMore,setShowMore] = useState<boolean>(false)
+  function header_layout(ifRate):I_RVD_node {
     return {
       className: 'm-b-12 fs-14 bold',
       row: [
@@ -752,97 +739,46 @@ class IranFoodComment extends Component {
       ]
     }
   }
-  body_layout(ifComment) {
-    let { showMore } = this.state;
-    return {
-      size: showMore ? undefined : 96,
-      className: 'fs-12 m-b-12', html: ifComment
-    }
+  function body_layout(ifComment) {
+    return {size: showMore ? undefined : 96,className: 'fs-12 m-b-12', html: ifComment}
   }
-  footer_layout() {
-    let { showMore } = this.state;
+  function footer_layout():I_RVD_node {
     return {
       className: 'colorGreen bold fs-14',
       row: [
         { flex: 1 },
-        { html: !showMore ? 'بیشتر' : 'کمتر', onClick: () => this.setState({ showMore: !showMore }) },
+        { html: !showMore ? 'بیشتر' : 'کمتر', onClick: () => setShowMore(!showMore) },
         { html: <Icon path={!showMore ? mdiChevronDown : mdiChevronUp} size={.8} />, align: 'vh' }
       ]
     }
   }
-  render() {
-    let { ifRate, ifComment } = this.props;
-    return (
-      <RVD
-        layout={{
-          column: [
-            this.header_layout(ifRate),
-            this.body_layout(ifComment),
-            this.footer_layout()
-          ]
-        }}
-
-      />
-    )
-  }
+  let { ifRate, ifComment } = this.props;
+  return (<RVD layout={{column: [header_layout(ifRate),body_layout(ifComment),footer_layout()]}}/>)
 }
 type I_ReserveForm = {item:I_reserveItem,restoranId:any,Shop:I_AIOShop,product:I_pr,quantity:I_reserveQuantity,changeQuantity:(newQuantity:I_reserveQuantity)=>void}
-type I_ReserveForm_countDetails = { validations:any[], label:string, minCount:number, maxCount:number, countUnit:string }
 function ReserveForm(props:I_ReserveForm) {
   let {APIS}:I_state = useContext(AppContext);
   let {item,product,restoranId,Shop,quantity} = props;
-  let { name, images, timeType, description, countUnit } = item;
-  let [countDetails,setCountDetails] = useState<I_ReserveForm_countDetails>()
+  let { name, images, timeType,countType, description, countUnit } = item;
   let [errors,setErrors] = useState<string[]>([])
   let [capacityOfHours,setCapacityOfHours] = useState<number[]>(new Array(24).fill(0).map(() => 0))
-  function changeQuantity(){
-
+  function changeQuantity(newQuantity:I_reserveQuantity){
+    if (item.timeType === 'hour') {
+      newQuantity.hours = newQuantity.hours.filter((o) => {
+        return hasCapacityInhours([o, o + 1])
+      });
+    }
+    props.changeQuantity(newQuantity)
   }
   async function init(){
-    let countDetails;
-    if (item.countType) { countDetails = getCountDetails(); }
-    let shopCartItem:any = Shop.getCartItem(product.id);
-    if (shopCartItem) { cartItem = shopCartItem }
-    else {
-      if (item.countType) { cartItem.count = countDetails.minCount; }
-      else { cartItem.count = 1 }
-      if (item.timeType === 'hour') { cartItem.hours = [] }
-    }
     await APIS.getReserveCapacity({ restoranId, reserveItemId: item.id },{
       onSuccess: (capacityOfHours) => setCapacityOfHours(capacityOfHours)
     })
-    setCartItem(cartItem);
-    setCountDetails(countDetails);
   }
   useEffect(()=>{init()},[])
-  function getCountDetails() {
-    let { minCount, maxCount, countUnit } = item;
-    let validations = [['required', '', { title: 'تعداد' }], ['>=', minCount, { title: 'تعداد' }], ['<=', maxCount, { title: 'تعداد' }]]
-    let label = `تعداد را مشخص کنید (از ${minCount} ${countUnit} تا ${maxCount} ${countUnit})`
-    return { validations, label, minCount, maxCount, countUnit }
-  }
-  
-  function changeCartItem(newCartItem:I_ReservePage_cartItem) {
-    let cartCount = newCartItem.count;
-    if (item.timeType === 'hour') {
-      newCartItem.hours = newCartItem.hours.filter((o) => {
-        return hasCapacityInhours([o, o + 1])
-      });
-      cartCount *= newCartItem.hours.length;
-    }
-    Shop.setCartItem(product.id,{ product, count: cartCount ? 1 : 0, cartData: newCartItem })
-    setCartData(newCartItem)
-  }
-  function getAfter(text) {
-    return <div className='reserve-panel-input-after'>{text}</div>
-  }
+  function getAfter(text) {return <div className='reserve-panel-input-after'>{text}</div>}
   function row_layout(key, value):I_RVD_node {
-    return {
-      row: [
-        { html: `${key} : `, className: 'fs-12 bold' },
-        { html: value, className: 'fs-12', flex: 1 }
-      ]
-    }
+    return {row: [{ html: `${key} : `, className: 'fs-12 bold' },{ html: value, className: 'fs-12', flex: 1 }]}
   }
   function getImage(url) {
     return { html: <AIOInput type='image' value={url} preview={true} width={100} height={100} attrs={{ style: { width: 100, height: 100 } }} />, size: 100 }
@@ -868,9 +804,10 @@ function ReserveForm(props:I_ReserveForm) {
       validations: [['required']]
     }
   }
-  function count_layout():I_RVD_node {
-    if (!item.countType) { return {} }
-    let { countUnit, label, minCount, maxCount } = countDetails;
+  function count_layout() {
+    if (!countType) { return {} }
+    let {minCount, maxCount,countUnit} = item;
+    let label = `تعداد را مشخص کنید (از ${minCount} ${countUnit} تا ${maxCount} ${countUnit})`
     return {
       input: {
         type: 'slider', start: 0, min: minCount, end: maxCount, after: getAfter(countUnit), showValue: 'inline', direction: 'left',
@@ -879,14 +816,17 @@ function ReserveForm(props:I_ReserveForm) {
     }
   }
   function getDateText() {
-    if (model.hours) {
+    if (timeType === 'hour') {
       //return `1400 از ساعت ${model.hours[0]} تا ساعت ${model.hours[1]}`
-      return `برای ساعات ${model.hours.join(' ')}`
+      return `برای ساعات ${quantity.hours.join(' ')}`
     }
-    return AIODate().getDateByPattern({ date: model.date, pattern: '{year}/{month}/{day}' })
+    else{
+
+    }
+    return AIODate().getDateByPattern({ date: quantity.date, pattern: '{year}/{month}/{day}' })
   }
-  function result_layout(name, countUnit, timeType):I_RVD_node {
-    if (timeType === 'hour' && (!model.hours || !model.hours.length)) {
+  function result_layout():I_RVD_node {
+    if (timeType === 'hour' && (!quantity.hours || !quantity.hours.length)) {
       errors = errors.concat('ساعات رزرو را انتخاب کنید')
     }
     if (errors.length) {
@@ -902,16 +842,15 @@ function ReserveForm(props:I_ReserveForm) {
       style: { color: 'green', padding: 12, borderRadius: 12, background: '#00800020' },
       column: [
         { html: `رزرو ${name}` },
-        { show: !!model.count, html: `به تعداد ${model.count} ${countUnit}` },
-        { show: !!model.date, html: `برای تاریخ ${model.date}` },
-        { show: !!model.hours && !!model.hours.length, html: `برای ساعات ${model.hours.join(' ')}` }
+        { show: !!quantity.count, html: `به تعداد ${quantity.count} ${countUnit}` },
+        { show: !!quantity.date, html: `برای تاریخ ${quantity.date}` },
+        { show: !!quantity.hours && !!quantity.hours.length, html: `برای ساعات ${quantity.hours.join(' ')}` }
 
       ]
     }
   }
   function getHoursCapacity() {
-    let { model, capacityOfHours } = this.state;
-    let { count, date } = model;
+    let { count, date } = quantity;
     if (!date) { return [] }
     let res = [];
     for (let i = 0; i < capacityOfHours.length; i++) {
@@ -932,7 +871,7 @@ function ReserveForm(props:I_ReserveForm) {
     if (timeType !== 'hour') { return {} }
     let hoursCapacity = getHoursCapacity();
     if (!hoursCapacity.length) { return {} }
-    let { hours } = model;
+    let { hours } = quantity;
     return {
       column: [
         { html: `ساعات قابل رزرو ${countType ? 'برای تعداد انتخاب شده ' : ''}در روز انتخاب شده`, className: 'aio-input-form-label' },
@@ -946,9 +885,9 @@ function ReserveForm(props:I_ReserveForm) {
                   <div
                     onClick={() => {
                       if (disabled) { return }
-                      let { hours } = model;
+                      let { hours } = quantity;
                       let newHours = active ? hours.filter((h) => h !== i) : hours.concat(i)
-                      changeModel({ ...model, hours: newHours })
+                      changeQuantity({ ...quantity, hours: newHours })
                     }}
                     className={'reserve-page-hour-item' + (active ? ' active' : '') + (disabled ? ' disabled' : '')}
                   >{`${i} : 00`}</div>
@@ -967,12 +906,12 @@ function ReserveForm(props:I_ReserveForm) {
     let cartCount = Shop.getCartCount(item.id);
     let price = item.price * cartCount
     if (item.countType) {
-      if (!model.count) { disabled = true }
-      price *= model.count;
+      if (!quantity.count) { disabled = true }
+      price *= quantity.count;
     }
     if (item.timeType === 'hour') {
-      if (model.hours.length === 0) { disabled = true }
-      price *= model.hours.length;
+      if (quantity.hours.length === 0) { disabled = true }
+      price *= quantity.hours.length;
     }
     return {
       className: 'reserve-page-footer',
@@ -1027,7 +966,7 @@ function ReserveForm(props:I_ReserveForm) {
                 <AIOInput
                   type='form' lang='fa' attrs={{ className: 'reserve-page-form' }}
                   inputClassName='reserve-page-input'
-                  value={model}
+                  value={quantity}
                   inputs={{
                     props: { gap: 12 },
                     column: [
@@ -1039,11 +978,11 @@ function ReserveForm(props:I_ReserveForm) {
                       day_layout(timeType),
                       hours_layout(),
                       //this.hours_layout(timeType),
-                      result_layout(name, countUnit, timeType)
+                      result_layout()
                     ]
                   }}
                   onChange={(model, errors) => {
-                    changeModel({ ...model })
+                    changeQuantity({ ...model })
                     setErrors(errors)
                   }}
                   getErrors={(errors:string[]) => setErrors(errors)}
