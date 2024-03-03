@@ -1,5 +1,5 @@
 import AIOApis, { AIOApis_config } from '../npm/aio-apis/index.tsx';
-import { I_profile, I_discount, I_address, I_address_server, I_tag_type, I_tag, I_restoran_sort_option, I_restoran, I_restoran_server, I_food, I_coupon, I_reserveItem, I_deliveryType } from '../typs.tsx';
+import { I_profile, I_discount, I_address, I_address_server, I_tag_type, I_tag, I_restoran_sort_option, I_restoran, I_restoran_server, I_food, I_coupon, I_reserveItem, I_deliveryType, I_comment } from '../typs.tsx';
 type I_profile_set = (profile:I_profile,config:AIOApis_config)=>Promise<boolean>
 type I_profile_get = (parameter,config:AIOApis_config)=>Promise<I_profile>
 
@@ -48,6 +48,9 @@ type I_pardakhteOnline = (p:I_pardakhteOnline_param,config?:AIOApis_config)=>Pro
 type I_getReserveCapacity_param = { restoranId:any, reserveItemId:any }
 type I_getReserveCapacity_result = number[];
 type I_getReserveCapacity = (p:I_getReserveCapacity_param,config?:AIOApis_config)=>Promise<I_getReserveCapacity_result>
+export type I_getRestoranComments_param = { restoranId:number | string, pageSize:number, pageNumber:number }
+type I_getRestoranComments_result = I_comment[]
+type I_getRestoranComments = (p:I_getRestoranComments_param,config?:AIOApis_config)=>Promise<I_getRestoranComments_result>
 export type I_APIClass = {
     profile_set:I_profile_set,
     profile_get:I_profile_get,
@@ -69,10 +72,48 @@ export type I_APIClass = {
     getRestoranCoupons:I_getRestoranCoupons,
     getRestoranReserveItems:I_getRestoranReserveItems,
     pardakhteOnline:I_pardakhteOnline,
-    getReserveCapacity:I_getReserveCapacity
+    getReserveCapacity:I_getReserveCapacity,
+    getRestoranComments:I_getRestoranComments,
 }
 export default class APISClass extends AIOApis{
     mock:boolean = false;
+    getRestoranComments:I_getRestoranComments = async (p,config) => {
+        if(this.mock){
+            let result:I_getRestoranComments_result = this.getRestoranComments_mock(p);
+            if(config.onSuccess){config.onSuccess(result)}
+            return result
+        }
+        let { restoranId, pageSize, pageNumber } = p;
+        return this.getResult({
+            config:{
+                description:'دریافت نظرات ثبت شده در مورد رستوران',errorResult:[],
+                ...config
+            },
+            id:'getRestoranComments',method:'post',
+            url:`${this.baseUrl}/FeedBack/GetRestaurantComments`,
+            body:{
+                "RestaurantId": restoranId,
+                "PageNumber": pageSize,
+                "RecordsPerPage": pageNumber
+            },
+            getResult:(response)=>{
+                let result = response.data.data.items;
+                return result
+            }
+        })
+    }
+    getRestoranComments_mock = (p) => {
+        let result:I_comment[] = [
+            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
+        ]
+        return result
+    }
     getReserveCapacity = (p,config) => {
         if(this.mock || true){
             let result:I_getReserveCapacity_result = this.getReserveCapacity_mock(p)
@@ -172,13 +213,15 @@ export default class APISClass extends AIOApis{
                         images:[],
                         name: o.name || '', // نام آیتم
                         description: o.description || '', // توضیحات آیتم
-                        countType: o.countType || false, //سفارس بر اساس تعداد می باشد یا خیر
-                        minCount: isNaN(o.minLimitCount)?0:o.minLimitCount, //حداقل تعداد قابل سفارش
-                        maxCount: isNaN(o.maxLimitCount)?0:o.maxLimitCount, //حداکثر تعداد قابل سفارش
-                        timeType: o.isDaily === 1 ? "day" : "hour", // واحد زمانی آیتم روز یا ساعت
-                        price: isNaN(o.price)?0:o.price, // قیمت واحد
-                        returnAmount: o.isReturnAmount || false, //آیا رقم روی فاکتور بر می گردد؟
-                        preOrderTime: isNaN(o.preOrderTime)?0:o.preOrderTime//مدت زمانی که طول میکشه سفارش آماده بشه
+                        data:{
+                            countType: o.countType || false, //سفارس بر اساس تعداد می باشد یا خیر
+                            minCount: isNaN(o.minLimitCount)?0:o.minLimitCount, //حداقل تعداد قابل سفارش
+                            maxCount: isNaN(o.maxLimitCount)?0:o.maxLimitCount, //حداکثر تعداد قابل سفارش
+                            timeType: o.isDaily === 1 ? "day" : "hour", // واحد زمانی آیتم روز یا ساعت
+                            price: isNaN(o.price)?0:o.price, // قیمت واحد
+                            returnAmount: o.isReturnAmount || false, //آیا رقم روی فاکتور بر می گردد؟
+                            preOrderTime: isNaN(o.preOrderTime)?0:o.preOrderTime//مدت زمانی که طول میکشه سفارش آماده بشه
+                        }
                     }
                     return res
                 })

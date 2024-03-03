@@ -192,6 +192,7 @@ export type I_restoran = {
     rate?:number,
     ifRate:number,
     ifComment:string,
+    distance?:number,
     tags: number[],
     startTime: number, //Number bewtween (1 and 24)
     endTime: number, //Number bewtween (1 and 24) 
@@ -210,19 +211,23 @@ export type I_restoran_server = {
     tax:number
 }
 export type I_food = {
+    optionType:'product',
     id:I_foodId,
     name:string,
-    parentId:I_foodId,
-    menuCategory:string,
-    image:string,
-    imageId:I_imageId,
-    price:number,
-    discountPercent:number,
+    images:string[],
     description:string,
-    review:string,
-    tags:I_tagId[],
-    dailyInStock:number,
-    inStock:number
+    data:{
+        imageId:I_imageId,
+        tags:I_tagId[],
+        dailyInStock:number,
+        parentId:I_foodId,
+        menuCategory:string,
+    },
+    cartInfo:{
+        price:number,
+        discountPercent:{}[],
+        inStock:number
+    }
 }
 export type I_food_server = {
     id:I_foodId,
@@ -244,7 +249,7 @@ export type I_reserveItem = {
     id:any,
     images:any[],
     name:string,
-    description:string,
+    description?:string,
     data:{
         returnAmount:boolean,
         preOrderTime:number,
@@ -255,4 +260,5 @@ export type I_reserveItem = {
     }
 }
 export type I_reserveQuantity = {count:number,hours:number[],date:string}
-export type I_deliveryType = 'ارسال با پیک' | 'دریافت حضوری'
+export type I_deliveryType = 'ارسال با پیک' | 'دریافت حضوری';
+export type I_comment = { name:string, date:string, comment:string }

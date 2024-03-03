@@ -18,9 +18,9 @@ import kart_be_kart_src from '../images/kart-be-kart.png';
 import pardakhte_hozoori_src from '../images/pardakhte-hozoori.png';
 import SplitNumber from '../npm/aio-functions/split-number';
 import './restoran-page.css';
-import { I_coupon, I_food, I_reserveItem, I_reserveQuantity, I_restoran, I_state } from '../typs';
-import { I_AIOShop, I_AIOShop_props, I_AIOShop_factor, I_checkout_item, I_pr, I_cart_product_hasNotVariant } from '../npm/aio-shop/types';
-import { I_pardakhteOnline_param } from '../apis/APIClass.tsx';
+import { I_address, I_comment, I_coupon, I_food, I_reserveItem, I_reserveQuantity, I_restoran, I_state } from '../typs';
+import { I_AIOShop, I_AIOShop_props, I_AIOShop_factor, I_checkout_item, I_pr } from '../npm/aio-shop/types';
+import { I_getRestoranComments_param, I_pardakhteOnline_param } from '../apis/APIClass.tsx';
 type I_menu = { [menuCategory: string]: I_food[] };
 type I_RestoranPage = { restoran: I_restoran }
 type I_tab = 'menu' | 'info' | 'cart' | 'reserve';
@@ -29,8 +29,9 @@ export default function RestoranPage(props: I_RestoranPage) {
   let { restoran } = props
   let [activeMenu, setActiveMenu] = useState<string | false>(false);
   let [menu, setMenu] = useState<I_menu | false>(false);
+  let [subFoods,setSubFoods] = useState<{[key:string]:I_food[]}>({})
   let [activeTabId, setActiveTabId] = useState<I_tab>('menu');
-  let [coupons, setCoupons] = useState<I_coupon | false>(false)
+  let [coupons, setCoupons] = useState<I_coupon[] | false>(false)
   let [reserveItems, setReserveItems] = useState<I_reserveItem[]>();
   let [Shop, setShop] = useState<I_AIOShop>()
   function getMenu() {
@@ -42,7 +43,8 @@ export default function RestoranPage(props: I_RestoranPage) {
         let activeMenu;
         for (let i = 0; i < foods.length; i++) {
           let food: I_food = foods[i];
-          let { menuCategory, parentId, id } = food;
+          let { data, id } = food;
+          let {menuCategory, parentId} = data;
           food_dic[id] = food;
           if (!activeMenu) { activeMenu = menuCategory; }
           if (parentId) {
@@ -60,7 +62,7 @@ export default function RestoranPage(props: I_RestoranPage) {
         }
         setActiveMenu(activeMenu);
         setMenu(menu)
-        this.setState({ subFoods })
+        setSubFoods(subFoods)
       }
     })
   }
@@ -86,12 +88,22 @@ export default function RestoranPage(props: I_RestoranPage) {
           id:'reserve',
           getInitialValue:(product)=>{
             let reserveItem:I_reserveItem = product.data;
-            let { minCount } = reserveItem;
+            let { minCount } = reserveItem.data;
             return {count:minCount,hours:[],date:''}
           },
-          form:()=><ReserveForm/>,
-          getCartInfo:()=>{
-
+          form:({product,quantity,change})=>{ 
+            let props:I_ReserveForm = {restoranId:restoran.id,item:product as I_reserveItem,Shop}
+            return <ReserveForm {...props}/>
+          },
+          getCartInfo:(product,quantity)=>{
+            let {data} = product;
+            let {price:itemPrice,timeType,countType} = data;
+            let price = itemPrice
+            if (countType) {price *= quantity.count;}
+            if (timeType === 'hour') {
+              price *= quantity.hours.length;
+            }
+            return {inStock:Infinity,price}
           }
         }
       ],
@@ -228,20 +240,12 @@ export default function RestoranPage(props: I_RestoranPage) {
     }
   }
   function foods_layout(): I_RVD_node {
-    let { Shop } = this.state;
     if (!Shop || !activeMenu || menu === false) { return {} }
     let foods = menu[activeMenu];
     return {
       gap: 12, flex: 1, className: 'ofy-auto',
-      column: foods.map((o) => {
-        let { items = [] } = o;
-        let html;
-        if (items.length) {
-          html = (
-            <button className='joziate-ghaza button-2' onClick={() => this.openModal('subFoods', o)}>جزییات</button>
-          )
-        }
-        return { className: 'p-h-12 of-visible', html: Shop.renderProductCard({ product: o, addToCart: true, floatHtml: html, type: 'horizontal' }) }
+      column: foods.map((o:I_food) => {
+        return { className: 'p-h-12 of-visible', html: Shop.renderProductCard({ product: o, addToCart: true, type: 'h' }) }
       })
     }
   }
@@ -279,14 +283,8 @@ export default function RestoranPage(props: I_RestoranPage) {
     let { Shop } = this.state;
     if (!Shop || activeTabId !== 'reserve') { return {} }
     let { restoran } = this.props;
-    return {
-      flex: 1, className: 'restoran-reserve-container h-100',
-      html: (
-        <RestoranReserve
-          reserveItems={reserveItems} restoranId={restoran.id} Shop={Shop}
-        />
-      )
-    }
+    let props:I_RestoranReserve = {reserveItems,restoranId:restoran.id,Shop}
+    return {flex: 1, className: 'restoran-reserve-container h-100',html: (<RestoranReserve {...props}/>)}
   }
   if (coupons === false || menu === false) {
     return (
@@ -321,7 +319,7 @@ export default function RestoranPage(props: I_RestoranPage) {
           ]
         }}
       />
-      {Shop && Shop.renderPopups()}
+      {Shop && Shop.renderPopup()}
     </>
   )
 }
@@ -414,11 +412,9 @@ function Header(props: I_Header) {
         )
       }}
     />
-
   )
-
 }
-type I_RestoranReserve = { Shop:I_AIOShop, reserveItems:I_reserveItem[], restoranId:any, reserveCacheDictionary, setReserveCacheDictionary }
+type I_RestoranReserve = { Shop:I_AIOShop, reserveItems:I_reserveItem[], restoranId:any }
 function RestoranReserve(props:I_RestoranReserve) {
   let { Shop, reserveItems} = props;
   function getProduct(reserveItem:I_reserveItem) {
@@ -443,62 +439,53 @@ function RestoranReserve(props:I_RestoranReserve) {
         column: reserveItems.map((reserveItem) => {
           let product = getProduct(reserveItem);
           return {
-            className: 'of-visible', html: Shop.renderProductCard({ product, type: 'h' })
+            className: 'of-visible', html: Shop.renderProductCard({ product, type: 'h',cartButton:true })
           }
         })
       }}
     />
   )
 }
-class RestoranInfo extends Component {
-  static contextType = AppContext;
-  constructor(props) {
-    super(props);
-    this.state = {
-      comments: [],
-      commentsPageSize: 12,
-      commentsPageNumber: 1
-    }
-  }
-  componentDidMount() {
-    let { apis } = this.context;
-    let { id } = this.props;
-    let { commentsPageNumber, commentsPageSize } = this.state;
-    apis.request({
-      api: 'restoran_comments',
-      parameter: { id, pageSize: commentsPageSize, pageNumber: commentsPageNumber },
-      description: 'دریافت نظرات ثبت شده در مورد رستوران',
-      onSuccess: (comments) => this.setState({ comments })
+type I_RestoranInfo = {restoran:I_restoran}
+function RestoranInfo(props:I_RestoranInfo) {
+  let {APIS}:I_state = useContext(AppContext);
+  let {restoran} = props;
+  let { latitude, longitude, address, deliveryTime, logo, name, rate, ifRate, ifComment } = restoran;
+  let [comments,setComments] = useState<I_comment[]>([])
+  let [commentsPageSize,setCommentPageSize] = useState<number>(12);
+  let [commentsPageNumber,setCommentPageNumber] = useState<number>(1);
+  function getComments(){
+    let parameter:I_getRestoranComments_param = { restoranId:restoran.id, pageSize: commentsPageSize, pageNumber: commentsPageNumber }
+    APIS.getRestoranComments(parameter,{
+      onSuccess: (comments:I_comment[]) => setComments(comments)
     })
   }
-  title_layout(logo, name, rate) {
+  useEffect(()=>{
+    getComments()
+  },[])
+  function title_layout(logo, name, rate) {
     let { onClose, header } = this.props;
     if (header === false) { return false }
+    let titleProps:I_RestoranTitle = {restoran}
     return {
       className: 'm-b-12 p-12 orange-bg colorFFF',
       row: [
         { size: 36, html: <Icon path={mdiArrowRight} size={1} />, align: 'vh', onClick: () => onClose() },
-        { flex: 1, html: <RestoranTitle {...{ logo, name, rate }} /> }
+        { flex: 1, html: <RestoranTitle {...titleProps} /> }
       ]
     }
   }
-  parts_layout(deliveryTime) {
-    let { comments } = this.state;
+  function parts_layout() {
     let parts = [
       { text: `${deliveryTime} دقیقه`, subtext: 'زمان ارسال', icon: mdiClock },
       //{text:`${shippingPrice} ریال`,subtext:'هزینه ارسال',icon:mdiWallet},
       { text: `${comments.length} نظر`, subtext: 'نظرات کاربران', icon: mdiComment },
       { text: `رزرو میز`, subtext: 'مشاهده میزها', icon: mdiTable, color: '#92C020' },
     ]
-    return {
-      gap: 1,
-      className: 'restoran-page-parts',
-      row: parts.map((o) => {
-        return this.part_layout(o)
-      })
-    }
+    return {gap: 1,className: 'restoran-page-parts',row: parts.map((o) => part_layout(o))}
   }
-  part_layout({ text, subtext, icon, color }) {
+  function part_layout(p:{ text:string, subtext?:string, icon:any, color?:string }) {
+    let { text, subtext, icon, color } = p;
     return {
       flex: 1, style: { color }, className: 'restoran-page-part',
       column: [
@@ -509,50 +496,45 @@ class RestoranInfo extends Component {
       ]
     }
   }
-  address_layout(latitude, longitude, address) {
+  function address_layout() {
+    let props:I_Address = { latitude, longitude, address };
     return {
-      className: 'm-b-12 p-h-12', html: <Address {...{ latitude, longitude, address }} />
+      className: 'm-b-12 p-h-12', html: <Address {...props} />
     }
   }
-  downloadMenu_layout() {
-    return {
-      className: 'm-b-12 p-h-12', html: <button className='button-3 w-100 br-6 h-36'>دانلود منو رستوران</button>
-    }
+  function downloadMenu_layout() {
+    return {className: 'm-b-12 p-h-12', html: <button className='button-3 w-100 br-6 h-36'>دانلود منو رستوران</button>}
   }
-  IranFoodComment_layout(ifRate, ifComment) {
-    return {
-      className: 'p-h-12', html: <IranFoodComment {...{ ifRate, ifComment }} />
-    }
+  function IranFoodComment_layout() {
+    let props:I_IranFoodComment = {ifRate, ifComment}
+    return {className: 'p-h-12', html: <IranFoodComment {...props} />}
   }
-  comments_layout(comments) {
-    return { html: <RestoranComments comments={comments} /> }
+  function comments_layout() {
+    let props:I_RestoranComments = {comments}
+    return { html: <RestoranComments {...props} /> }
   }
-  render() {
-    let { latitude, longitude, address, deliveryTime, logo, name, rate, ifRate, ifComment } = this.props;
-    let { comments } = this.state;
-    return (
-      <RVD
-        layout={{
-          className: 'h-100',
-          column: [
-            this.title_layout(logo, name, rate),
-            {
-              flex: 1, className: 'ofy-auto',
-              column: [
-                this.parts_layout(deliveryTime, comments),
-                this.address_layout(latitude, longitude, address),
-                this.downloadMenu_layout(),
-                { size: 12 },
-                this.IranFoodComment_layout(ifRate, ifComment),
-                { size: 12 },
-                this.comments_layout(comments)
-              ]
-            }
-          ]
-        }}
-      />
-    )
-  }
+  return (
+    <RVD
+      layout={{
+        className: 'h-100',
+        column: [
+          this.title_layout(logo, name, rate),
+          {
+            flex: 1, className: 'ofy-auto',
+            column: [
+              parts_layout(),
+              address_layout(),
+              downloadMenu_layout(),
+              { size: 12 },
+              IranFoodComment_layout(),
+              { size: 12 },
+              comments_layout()
+            ]
+          }
+        ]
+      }}
+    />
+  )
 }
 class RestoranCoupons extends Component {
   coupons_layout(coupons) {
@@ -593,16 +575,19 @@ class RestoranCoupons extends Component {
     )
   }
 }
-class RestoranTitle extends Component {
-  logo_layout(logo) {
-    if (!logo) { return false }
-    return { html: <img src={logo} width='100%' style={{ width: 42, height: 42, border: '1px solid #eee', borderRadius: '100%', background: '#fff' }} /> }
+type I_RestoranTitle = {restoran:I_restoran}
+function RestoranTitle(props:I_RestoranTitle) {
+  let {restoran} = props;
+  let { logo, name, distance, rate } = restoran;
+  function logo_layout(logo):I_RVD_node {
+    if (!logo) { return {} }
+    return { html: <img alt='' src={logo} width='100%' style={{ width: 42, height: 42, border: '1px solid #eee', borderRadius: '100%', background: '#fff' }} /> }
   }
-  name_layout(name) {
+  function name_layout(name):I_RVD_node {
     return { html: name, className: 'fs-16 bold' }
   }
-  distance_layout(distance) {
-    if (!distance) { return false }
+  function distance_layout(distance):I_RVD_node {
+    if (!distance) { return {} }
     return {
       row: [
         { html: icons('location', { color: '#292D32', width: 10, height: 12 }), align: 'vh' },
@@ -611,65 +596,57 @@ class RestoranTitle extends Component {
       ]
     }
   }
-  rate_layout(rate) {
-    if (rate === undefined) { return false }
+  function rate_layout(rate):I_RVD_node {
+    if (rate === undefined) { return {} }
     return { html: <Rate rate={rate} /> }
   }
-  render() {
-    let { logo, name, distance, rate } = this.props;
-    return (
-      <RVD
-        layout={{
-          row: [
-            this.logo_layout(logo),
-            { size: 6 },
-            {
-              flex: 1,
-              column: [
-                this.name_layout(name),
-                {
-                  row: [
-                    this.distance_layout(distance),
-                    this.rate_layout(rate)
-                  ]
-                }
-              ]
-            }
-          ]
-        }}
-      />
-    )
-  }
+  return (
+    <RVD
+      layout={{
+        row: [
+          logo_layout(logo),
+          { size: 6 },
+          {
+            flex: 1,
+            column: [
+              name_layout(name),
+              {
+                row: [
+                  distance_layout(distance),
+                  rate_layout(rate)
+                ]
+              }
+            ]
+          }
+        ]
+      }}
+    />
+  )
 }
-class RestoranComments extends Component {
-  header_layout() {
+type I_RestoranComments = {comments:I_comment[]}
+function RestoranComments(props:I_RestoranComments) {
+  let { comments } = props;
+  function header_layout() {
     return { html: 'نظرات کاربران', className: 'fs-14 bold m-b-6' }
   }
-  comments_layout(comments) {
-    return { column: comments.map((o, i) => this.comment_layout(o, i === 0, i === comments.length - 1)) }
+  function comments_layout(comments) {
+    return { column: comments.map((o, i) => comment_layout(o, i === 0, i === comments.length - 1)) }
   }
-  comment_layout({ name, date, comment }, isFirst, isLast) {
+  function comment_layout({ name, date, comment }, isFirst, isLast) {
     return {
       style: { borderBottom: '1px solid #eee', background: '#fff' },
       className: 'p-6 br-6' + (isFirst ? '' : ' br-t-0') + (isLast ? '' : ' br-b-0'),
       column: [
-        {
-          size: 36,
-          row: [
-            this.name_layout(name),
-            { flex: 1 },
-            this.date_layout(date)
-          ]
-        },
+        {size: 36,row: [name_layout(name),{ flex: 1 },date_layout(date)]},
         { html: comment, className: 'fs-12' },
         { size: 12 }
       ]
     }
   }
-  name_layout(name) {
+  function name_layout(name:string) {
     return { html: name, className: 'fs-12 bold', align: 'v' }
   }
-  date_layout(date) {
+  function date_layout(date) {
     let { day, hour, minute } = AIODate().getDelta({ date });
     let html;
     if (day) { html = `${day} روز پیش` }
@@ -678,24 +655,19 @@ class RestoranComments extends Component {
     else { html = 'چند لحظه پیش' }
     return { html, className: 'fs-10 bold', align: 'v' }
   }
-  render() {
-    let { comments } = this.props;
-    return (
-      <RVD
-        layout={{
-          style: { background: '#eee' },
-          className: 'p-12 br-12',
-          column: [
-            this.header_layout(),
-            this.comments_layout(comments)
-          ]
-        }}
-      />
-    )
-  }
+  return (
+    <RVD
+      layout={{
+        style: { background: '#eee' },className: 'p-12 br-12',
+        column: [header_layout(),comments_layout(comments)]
+      }}
+    />
+  )
 }
-class Address extends Component {
-  map_layout(latitude, longitude) {
+type I_Address = {address:string,latitude:number,longitude:number}
+function Address(props:I_Address) {
+  let { address, latitude, longitude } = props;
+  function map_layout(latitude, longitude) {
     return {
       html: (
         <AIOInput
@@ -706,28 +678,16 @@ class Address extends Component {
       )
     }
   }
-  address_layout(address) {
+  function address_layout(address) {
     return { flex: 1, html: address, className: 'fs-14' }
   }
-  render() {
-    let { address, latitude, longitude } = this.props;
-    return (
-      <RVD
-        layout={{
-          row: [
-            this.map_layout(latitude, longitude),
-            { size: 12 },
-            this.address_layout(address)
-          ]
-        }}
-      />
-    )
-  }
+  return (<RVD layout={{className:'gap-12',row: [map_layout(latitude, longitude),address_layout(address)]}}/>)
 }
-type I_IranFoodComment = {}
+type I_IranFoodComment = {ifRate:number,ifComment:string}
 function IranFoodComment(props:I_IranFoodComment) {
   let [showMore,setShowMore] = useState<boolean>(false)
-  function header_layout(ifRate):I_RVD_node {
+  let {ifRate,ifComment} = props;
+  function header_layout():I_RVD_node {
     return {
       className: 'm-b-12 fs-14 bold',
       row: [
@@ -739,7 +699,7 @@ function IranFoodComment(props:I_IranFoodComment) {
       ]
     }
   }
-  function body_layout(ifComment) {
+  function body_layout() {
     return {size: showMore ? undefined : 96,className: 'fs-12 m-b-12', html: ifComment}
   }
   function footer_layout():I_RVD_node {
@@ -752,18 +712,18 @@ function IranFoodComment(props:I_IranFoodComment) {
       ]
     }
   }
-  let { ifRate, ifComment } = this.props;
-  return (<RVD layout={{column: [header_layout(ifRate),body_layout(ifComment),footer_layout()]}}/>)
+  return (<RVD layout={{column: [header_layout(),body_layout(),footer_layout()]}}/>)
 }
-type I_ReserveForm = {item:I_reserveItem,restoranId:any,Shop:I_AIOShop,product:I_pr,quantity:I_reserveQuantity,changeQuantity:(newQuantity:I_reserveQuantity)=>void}
+type I_ReserveForm = {item:I_reserveItem,restoranId:any,Shop:I_AIOShop,quantity:I_reserveQuantity,changeQuantity:(newQuantity:I_reserveQuantity)=>void}
 function ReserveForm(props:I_ReserveForm) {
   let {APIS}:I_state = useContext(AppContext);
-  let {item,product,restoranId,Shop,quantity} = props;
-  let { name, images, timeType,countType, description, countUnit } = item;
+  let {item,restoranId,Shop,quantity} = props;
+  let { name, images, description, data } = item;
+  let {countUnit, timeType,countType,minCount, maxCount,price} = data;
   let [errors,setErrors] = useState<string[]>([])
   let [capacityOfHours,setCapacityOfHours] = useState<number[]>(new Array(24).fill(0).map(() => 0))
   function changeQuantity(newQuantity:I_reserveQuantity){
-    if (item.timeType === 'hour') {
+    if (timeType === 'hour') {
       newQuantity.hours = newQuantity.hours.filter((o) => {
         return hasCapacityInhours([o, o + 1])
       });
@@ -806,7 +766,6 @@ function ReserveForm(props:I_ReserveForm) {
   }
   function count_layout() {
     if (!countType) { return {} }
-    let {minCount, maxCount,countUnit} = item;
     let label = `تعداد را مشخص کنید (از ${minCount} ${countUnit} تا ${maxCount} ${countUnit})`
     return {
       input: {
@@ -867,7 +826,6 @@ function ReserveForm(props:I_ReserveForm) {
     return true
   }
   function hours_layout():I_RVD_node {
-    let { countType, timeType } = item;
     if (timeType !== 'hour') { return {} }
     let hoursCapacity = getHoursCapacity();
     if (!hoursCapacity.length) { return {} }
@@ -900,57 +858,12 @@ function ReserveForm(props:I_ReserveForm) {
     }
 
   }
-  function footer_layout():I_RVD_node {
-    let { discountPercent = 0 } = item;
-    let disabled = false;
-    let cartCount = Shop.getCartCount(item.id);
-    let price = item.price * cartCount
-    if (item.countType) {
-      if (!quantity.count) { disabled = true }
-      price *= quantity.count;
-    }
-    if (item.timeType === 'hour') {
-      if (quantity.hours.length === 0) { disabled = true }
-      price *= quantity.hours.length;
-    }
-    return {
-      className: 'reserve-page-footer',
-      row: [
-        {
-          show: !!price, align: 'v',
-          column: [
-            {
-              show: !!discountPercent,
-              gap: 12, align: 'v',
-              row: [
-                { html: <del>{`${SplitNumber(price)}`}</del>, className: 'fs-14', style: { opacity: 0.7 } },
-                { html: <div className='br-6 p-h-3 fs-14' style={{ color: '#fff', background: 'orange' }}>{`${discountPercent}%`}</div> }
-              ]
-            },
-            { html: `${SplitNumber(Math.floor(price - (price * discountPercent / 100)))} تومان`, className: 'fs-14 bold' },
-          ]
-        },
-        { flex: 1 },
-        {
-          align: 'v', show: !disabled,
-          html: (
-            <AIOInput
-              type='button' center={true} attrs={{ className: 'reserve-page-cart-button' }}
-              text='موجود در سبد خرید'
-              before={<Icon path={mdiDelete} size={1} />}
-            />
-          )
-        }
-      ]
-    }
-  }
   function getPriceLabel() {
-    let { countUnit } = item;
     let timeLabel = '';
-    if (item.timeType === 'hour') { timeLabel = ' هر ساعت' }
-    else if (item.timeType === 'day') { timeLabel = ' هر روز' }
+    if (timeType === 'hour') { timeLabel = ' هر ساعت' }
+    else if (timeType === 'day') { timeLabel = ' هر روز' }
     let countLabel = ''
-    if (item.countType) { countLabel = ` هر ${countUnit}` }
+    if (countType) { countLabel = ` هر ${countUnit}` }
     return timeLabel || countLabel ? `قیمت بر اساس${timeLabel}${countLabel}` : 'قیمت';
   }
 
@@ -973,7 +886,7 @@ function ReserveForm(props:I_ReserveForm) {
                       images_layout(),
                       row_layout('عنوان', name),
                       row_layout('توضیحات', description),
-                      row_layout(getPriceLabel(), `${SplitNumber(item.price)} تومان`),
+                      row_layout(getPriceLabel(), `${SplitNumber(price)} تومان`),
                       count_layout(),
                       day_layout(timeType),
                       hours_layout(),
@@ -989,7 +902,6 @@ function ReserveForm(props:I_ReserveForm) {
                 />
               )
             },
-            footer_layout()
           ]
         }}
       />

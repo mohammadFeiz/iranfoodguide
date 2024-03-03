@@ -64,23 +64,7 @@ export default function getApiFunctions(obj) {
         async hazfe_tarikhche_ye_jostojoo() {
             return MockApis.hazfe_tarikhche_ye_jostojoo()
         },
-        async restoran_comments({ id, pageSize, pageNumber }) {
-            //id => آی دی رستوران
-            //pageSize => تعداد کامنت صفحه
-            //pageNumber => شماره صفحه کامنت
-
-            let url = `${baseUrl}/FeedBack/GetRestaurantComments`;
-            let body = {
-                "RestaurantId": id,
-                "PageNumber": pageSize,
-                "RecordsPerPage": pageNumber
-            }
-            let response = await Axios.post(url, body);
-            let result = response.data.data.items;
-            return { response, result };
-
-            return { mock: true }
-        },
+        
         
     }
 }
@@ -642,18 +626,7 @@ const MockApis = {
     //     ]
     //     return {result}
     // },
-    restoran_comments({ id, pageSize, pageNumber }) {
-        let result = [
-            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
-            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
-            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
-            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
-            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
-            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
-            { date: '1402/1/1/3/34', name: 'رضا عباسی', comment: 'کیفیت غذای رستوران خیلی خوب بود ، من خیلی خوشم آمد بهتر بود کمی گرم تر به دستم میرسی' },
-        ]
-        return { result }
-    },
+    
     
 }
 
