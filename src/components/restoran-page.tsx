@@ -245,7 +245,7 @@ export default function RestoranPage(props: I_RestoranPage) {
     return {
       gap: 12, flex: 1, className: 'ofy-auto',
       column: foods.map((o:I_food) => {
-        return { className: 'p-h-12 of-visible', html: Shop.renderProductCard({ product: o, addToCart: true, type: 'h' }) }
+        return { className: 'p-h-12 of-visible', html: Shop.renderProductCard({ product: o, cartButton: true, type: 'h' }) }
       })
     }
   }
