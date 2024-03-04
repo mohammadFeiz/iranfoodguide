@@ -217,6 +217,8 @@ export type I_food = {
     images:string[],
     description:string,
     data:{
+        type:'food',
+        items?:I_food[]
         imageId:I_imageId,
         tags:I_tagId[],
         dailyInStock:number,
@@ -225,7 +227,7 @@ export type I_food = {
     },
     cartInfo:{
         price:number,
-        discountPercent:{value:number,text:string}[],
+        discountPercent?:number,
         inStock:number
     }
 }
@@ -239,6 +241,9 @@ export type I_food_server = {
     discountPercent:number,
     description:string,
     types:{typeId:number}[],
+    imageId:any,
+    dailyInStock?:number,
+    inStock:number
 }
 export type I_imageId = any;
 export type I_restoranId = number;
@@ -251,6 +256,7 @@ export type I_reserveItem = {
     name:string,
     description?:string,
     data:{
+        type:'reserve',
         returnAmount:boolean,
         preOrderTime:number,
         price:number,

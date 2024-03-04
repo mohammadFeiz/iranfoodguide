@@ -7,7 +7,7 @@ import { mdiMagnify, mdiFormatListBulletedSquare, mdiMapMarkerAlert, mdiMapMarke
 import AppContext from './../../app-context';
 import './back-office.css';
 import { I_food, I_foodId, I_restoran, I_restoranId, I_state, I_tag } from "../../typs.tsx";
-import { I_addOrEditImage_param, I_addOrEditImage_result, I_bo_addOrEditFood_param, I_bo_addOrEditFood_result, I_bo_addOrEditRestoran_param, I_bo_addOrEditRestoran_result } from "../../apis/APIClass.tsx";
+import { I_bo_addOrEditFood_param, I_bo_addOrEditFood_result, I_bo_addOrEditRestoran_param, I_bo_addOrEditRestoran_result } from "../../apis/APIClass.tsx";
 export default function Restorans() {
     let {APIS,rsa}:I_state = useContext(AppContext)
     let [restorans,setRestorans] = useState<I_restoran[]>([])
@@ -172,10 +172,9 @@ function RestoranForm(props:I_RestoranForm) {
                         type:'image',width,height,placeholder:label,
                         onChange:(p:{file:any,url:string})=>{
                             let {file} = p;
-                            let parameter:I_addOrEditImage_param = {imageFile:file,imageId:model.imageId}
-                            APIS.addOrEditImage(parameter,{
+                            APIS.addOrEditImage({imageFile:file,imageId:model.imageId},{
                                 description:`ثبت ${label}`,message:{success:true},
-                                onSuccess:(p:I_addOrEditImage_result)=>{
+                                onSuccess:(p)=>{
                                     let {id,url} = p;
                                     setModel({...model,[idField]:id,[field]:url})
                                 }
@@ -271,7 +270,7 @@ function Foods(props:I_Foods) {
             header:{title:`${type === 'add'?'افزودن':'ویرایش'} غذا`},
             body:{
                 render:()=>{
-                    let siblingFoods = foods.filter((o:I_food)=>o.id !== food.id && o.parentId === null && o.menuCategory === food.menuCategory)
+                    let siblingFoods = foods.filter((o:I_food)=>o.id !== food.id && o.data.parentId === null && o.data.menuCategory === food.data.menuCategory)
                     let props:I_FoodForm = {
                         food,type,restoranId,siblingFoods,
                         onSubmit:(newFood:I_food)=>{
@@ -314,10 +313,10 @@ function Foods(props:I_Foods) {
         }
     }
     function foodCard_layout(food:I_food):I_RVD_node{
-        let {image} = food;
+        let {images} = food;
         return {
             row:[
-                {size:60,html:<img src={image} alt='' width='100%'/>,align:'vh'},
+                {size:60,html:<img src={images[0]} alt='' width='100%'/>,align:'vh'},
                 {flex:1,column:[{row:[name_layout(food),options_layout(food)]}]}
             ]
         }
@@ -334,10 +333,9 @@ function FoodForm(props:I_FoodForm){
     function getFood(){if(type === 'add'){setFood({} as I_food)} else{setFood(props.food)}}
     useEffect(()=>{getFood()},[])
     function changeImage(file:any){
-        let parameter:I_addOrEditImage_param = { imageId:food.imageId,imageFile:file }
-        APIS.addOrEditImage(parameter,{
+        APIS.addOrEditImage({ imageId:food.imageId,imageFile:file },{
             description: 'ثبت تصویر منوی رستوران',
-            onSuccess:(p:I_addOrEditImage_result)=>{
+            onSuccess:(p)=>{
                 let {id,url} = p;
                 setFood({...food,imageId:id,image:url})
             }

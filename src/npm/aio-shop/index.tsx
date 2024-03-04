@@ -54,7 +54,7 @@ export default class AIOShop implements I_AIOShop {
     changeCart: I_changeCart;
     setCart: (newCart: I_cart) => void;
     getFinalPrice: I_getFinalPrice;
-    getDiscountPercent: (discountPercent: I_discountPercent[]) => number;
+    getDiscountPercent: (discountPercent: I_discountPercent[] | number) => number;
     getCartVariants: I_getCartVariants;
     getCartLength: I_getCartLength;
     getOptionTypes: I_getOptionTypes;
@@ -175,7 +175,8 @@ export default class AIOShop implements I_AIOShop {
             let variant: I_v = product.variants.find((o: I_v) => o.id === variantId);
             return variant.cartInfo
         }
-        this.getDiscountPercent = (discountPercent: I_discountPercent[]) => {
+        this.getDiscountPercent = (discountPercent) => {
+            if(typeof discountPercent === 'number'){discountPercent = [{text:'',value:discountPercent}]}
             let dp = 0;
             for (let i = 0; i < discountPercent.length; i++) { dp += discountPercent[i].value; }
             return dp;
@@ -1014,6 +1015,7 @@ function DiscountPercent(props: I_DiscountPercent) {
     }
     function price_layout(price: number): I_RVD_node { return showPrice === false ? {} : { className: 'aio-shop-price', html: SplitNumber(price) } }
     let { discountPercent = [], price } = getCartInfo(product, props.variantId);
+    if(typeof discountPercent === 'number'){discountPercent = [{text:'',value:discountPercent}]}
     let items = discountPercent.filter((o: I_discountPercent) => !!o.value);
     return !items.length ? null : <RVD layout={{ align: 'v', className: 'aio-shop-discount-row', row: [{ flex: 1 }, price_layout(price), percents_layout()] }} />
 }
@@ -1038,6 +1040,7 @@ function FinalPrice(props: I_FinalPrice) {
     function price_layout(): I_RVD_node {
         let cartInfo: I_cartInfo = getCartInfo(product, props.variantId);
         let { price, discountPercent: dps = [] } = cartInfo;
+        if(typeof dps === 'number'){dps = [{text:'',value:dps}]}
         let dp = 0;
         for (let i = 0; i < dps.length; i++) { dp += dps[i].value }
         let finalPrice = Math.round(price - (price * dp / 100))

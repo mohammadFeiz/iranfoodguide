@@ -1,3 +1,4 @@
+import React from 'react';
 import Axios from 'axios';
 import AIOStorage from 'aio-storage';
 import AIOPopup from 'aio-popup';
@@ -13,7 +14,7 @@ type AIOApis_onCatch = (err: any, config: AIOApis_config) => string;
 type AIOApis_getError = (response: any, confing: AIOApis_config) => string | false;
 export type AIOApis_props = {
     id: string, getAppState?: () => any, baseUrl?: string, token?: string, loader?: () => React.ReactNode,
-    onCatch?: AIOApis_onCatch, getError?: AIOApis_getError,
+    onCatch?: AIOApis_onCatch, getError?: AIOApis_getError
 }
 export type AIOApis_config = {
     loading?: boolean, loadingParent?: string,token?:string,
@@ -33,8 +34,8 @@ type AIOApis_setProperty = (property: string, value: any) => void;
 type AIOApis_setToken = (token?: string) => void;
 type AIOApis_handleLoading = (state: boolean, apiName: string, config:AIOApis_config) => void;
 type AIOApis_messageParameter = {result:any,message:AIOApis_message,description:string}
-type AIOApis_params = {id:string,body?:any,method:AIOApis_method,url:string,config?:AIOApis_config,getResult:(response:any)=>any};
-type AIOApis_getResult = (p:AIOApis_params)=>Promise<any>
+type AIOApis_params = {id:string,body?:any,method:AIOApis_method,url:string,config?:AIOApis_config,getResult:(response:any)=>any,mock?:boolean,mockFunction?:Function,parameter?:any};
+type AIOApis_request = (p:AIOApis_params)=>Promise<any>
 export default class AIOApis {
     token: string;
     baseUrl:string;
@@ -52,7 +53,7 @@ export default class AIOApis {
     loader: () => React.ReactNode;
     handleLoading: AIOApis_handleLoading;
     responseToResult: (p:AIOApis_params) => Promise<any>;
-    getResult:AIOApis_getResult;
+    request:AIOApis_request;
     showAlert:(type:'success' | 'error',text:string,subtext?:string,time?:number)=>void;
     handleCacheVersions:(cacheVersions:{[key:string]:number})=>{[key:string]:boolean};
     setMockApi:(apiName:string)=>void;
@@ -154,8 +155,13 @@ export default class AIOApis {
                 return catchResult
             }
         }
-        let fn:AIOApis_getResult = async (p:AIOApis_params)=>{
-            let {id,config = {}} = p;
+        let fn:AIOApis_request = async (p:AIOApis_params)=>{
+            let {id,config = {},mock,mockFunction} = p;
+            if(mock && mockFunction){
+                let res = mockFunction(p);
+                if(config.onSuccess){config.onSuccess(res)}
+                return res;
+            }
             let {onError,onSuccess,errorResult,cache,message = {},description = id,token} = config;
             if (cache) { let res = this.storage.load({name:cache.name,time:cache.time}); if (res !== undefined) { return res } }
             this.setToken(token);
@@ -176,7 +182,7 @@ export default class AIOApis {
             this.handleLoading(false, id, config);
             return result;
         }
-        this.getResult = fn;
+        this.request = fn;
     }
     constructor(p: AIOApis_props) {this.init(p)}
 }

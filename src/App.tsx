@@ -3,7 +3,7 @@ import RSA from './npm/react-super-app/react-super-app';
 import BackOffice from './components/back-office/back-office.tsx';
 import AIOStorage from 'aio-storage';
 import AIOService from 'aio-service';
-import RVD from './npm/react-virtual-dom/index.tsx';
+import RVD, { I_RVD_node } from './npm/react-virtual-dom/index.tsx';
 import AIOLogin,{I_AIOLogin, I_AL_props} from './npm/aio-login/index.tsx';
 import APISClass, { I_APIClass, I_getWalletAmount_result } from './apis/APIClass.tsx';
 import AppContext from './app-context';
@@ -27,6 +27,7 @@ type I_App_state = {
 }
 export default class App extends Component <I_App,I_App_state> {
   baseUrl:string;
+  state:I_App_state;
   constructor(props) {
     super(props);
    // this.baseUrl = 'https://localhost:7203'
@@ -116,6 +117,8 @@ type I_IranFoodGuide = {
   APIS:I_APIClass
 }
 class IranFoodGuide extends Component <I_IranFoodGuide,I_state> {
+  state:I_state;
+  setState:(obj:any)=>void
   constructor(props) {
     super(props);
     props.APIS.setProperty('getAppState',()=>this.state);
@@ -187,29 +190,35 @@ class IranFoodGuide extends Component <I_IranFoodGuide,I_state> {
       }
   }
   foodToClient(serverData:I_food_server){
-    let {id,name,parentFoodId,menuCategoryTitle,image,price,discountPercent,description,types} = serverData;
+    let {id,name,parentFoodId,menuCategoryTitle,image,price,discountPercent,description,types,imageId,dailyInStock,inStock = Infinity} = serverData;
     parentFoodId = parentFoodId === null?undefined:parentFoodId
-    return {
-      id,name,parentId: parentFoodId,menuCategory: menuCategoryTitle,image,price,
-      discountPercent,description,review: description,tags: types.map((o)=>o.typeId),
+    let food:I_food = {
+      optionType:'product',
+      id,name,images:[image],
+      cartInfo:{price,inStock,discountPercent},
+      description,
+      data:{parentId: parentFoodId,menuCategory: menuCategoryTitle,type:'food',imageId,tags: types.map((o)=>o.typeId),dailyInStock}
     }
+    return food
   }
   foodToServer(food:I_food,type:'add' | 'edit',restoranId:I_restoranId){
-    let {id,name,description,parentId,menuCategory,discountPercent} = food;
+    let {id,name,description,data,cartInfo} = food;
+    let {parentId,menuCategory} = data;
+    let {discountPercent,price} = cartInfo;
     let res:I_foodToServer_r = {
       "id": type === 'edit' ? id : undefined,
       "title": name,
       "food": {
           //"types": food.tags.map((o) => { return { typeId: o } }),
           "types": [],
-          "title": food.name,
-          "latinTitle": food.name,
+          "title": name,
+          "latinTitle": name,
           "description": description
       },
       "restaurantId": restoranId,
       "parentFoodId": parentId,
       "menuCategoryTitle": menuCategory,
-      "price": food.price,
+      "price": price,
       "description": description,
       //"inventoryCount": 0,
       "isFavorite": true,
@@ -309,17 +318,17 @@ function AppHeader() {
       </>
     )
   }
-  function side_layout() {return {className: 'of-visible', align: 'vh',onClick: () => rsa.openSide(),html: icons('side')}}
-  function profile_layout() {
+  function side_layout():I_RVD_node {return {className: 'of-visible', align: 'vh',onClick: () => rsa.openSide(),html: icons('side')}}
+  function profile_layout():I_RVD_node {
     return { className: 'of-visible', align: 'v', html: renderIcon('account'), onClick: () => changeStore('backOffice',true,'<AppHeader/> profile_layout') }
   }
-  function logo_layout() {
+  function logo_layout():I_RVD_node {
     return {className: 'of-visible', align: 'v',html: icons('logo', { fill: '#fff', style: { transform: 'translateY(-4px)' } })}
   }
-  function notif_layout() {
+  function notif_layout():I_RVD_node {
     return { className: 'of-visible', align: 'v', html: renderIcon('bell', 3) }
   }
-  function message_layout() {
+  function message_layout():I_RVD_node {
     return { className: 'of-visible', align: 'v', html: renderIcon('message', 3) }
   }
   return (

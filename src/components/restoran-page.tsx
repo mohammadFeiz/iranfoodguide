@@ -58,7 +58,8 @@ export default function RestoranPage(props: I_RestoranPage) {
         let keys = Object.keys(subFoods);
         for (let i = 0; i < keys.length; i++) {
           let key = keys[i];
-          food_dic[key].items = subFoods[key];
+          let food:I_food = food_dic[key];
+          food.data.items = subFoods[key];
         }
         setActiveMenu(activeMenu);
         setMenu(menu)
@@ -83,6 +84,33 @@ export default function RestoranPage(props: I_RestoranPage) {
       trans: { addToCart: 'سفارش', notExist: 'نا موجود' },
       cart: 'cache',
       getCheckoutItems,
+      productCardContent:async (product)=>{
+        let {data} = product;
+        if(data && data.type === 'reserve'){
+          let description = ''
+          let countText = data.countType ? `${data.minCount} تا ${data.maxCount} ${data.countUnit}` : '';
+          let returnText = data.returnAmount ? `بازگشت مبلغ روی فاکتور` : '';
+          let timeText = '';
+          if (data.timeType === 'hour') { timeText = 'ساعتی' }
+          else if (data.timeType === 'day') { timeText = 'روزانه' }
+          if (countText) { description += countText + ' - ' }
+          if (timeText) { description += timeText + ' - ' }
+          if (returnText) { description += returnText }
+          return description
+        }
+      },
+      productCardImageContent:async (product:I_food)=>{
+        if(product.data.items){
+          return (
+            <button onClick={()=>{
+              rsa.addModal({
+                position: 'fullscreen', header: { title: `انواع ${product.name}` },
+                body: { render: () => <SubFoods food={product} subFoods={subFoods} Shop={Shop} /> }
+              })
+            }}>جزییات</button>
+          )
+        }
+      },
       quantities:[
         {
           id:'reserve',
@@ -92,7 +120,10 @@ export default function RestoranPage(props: I_RestoranPage) {
             return {count:minCount,hours:[],date:''}
           },
           form:({product,quantity,change})=>{ 
-            let props:I_ReserveForm = {restoranId:restoran.id,item:product as I_reserveItem,Shop}
+            let props:I_ReserveForm = {
+              restoranId:restoran.id,item:product as I_reserveItem,quantity:quantity as I_reserveQuantity,
+              changeQuantity:(newQuantity)=>change(newQuantity)
+            }
             return <ReserveForm {...props}/>
           },
           getCartInfo:(product,quantity)=>{
@@ -249,16 +280,6 @@ export default function RestoranPage(props: I_RestoranPage) {
       })
     }
   }
-  function openModal(key, parameter) {
-    let { Shop, subFoods } = this.state;
-    let { addModal } = rsa;
-    if (key === 'subFoods') {
-      addModal({
-        position: 'fullscreen', header: { title: `انواع ${parameter.name}` },
-        body: { render: () => <SubFoods food={parameter} subFoods={subFoods} Shop={Shop} /> }
-      })
-    }
-  }
   function menu_layout(): I_RVD_node {
     if (activeTabId !== 'menu' || menu === false) { return {} }
     return { flex: 1, column: [category_layout(), foods_layout()] }
@@ -282,9 +303,13 @@ export default function RestoranPage(props: I_RestoranPage) {
   function reserve_layout(): I_RVD_node {
     let { Shop } = this.state;
     if (!Shop || activeTabId !== 'reserve') { return {} }
-    let { restoran } = this.props;
-    let props:I_RestoranReserve = {reserveItems,restoranId:restoran.id,Shop}
-    return {flex: 1, className: 'restoran-reserve-container h-100',html: (<RestoranReserve {...props}/>)}
+    return {
+      className: 'restoran-reserve h-100 ofy-auto p-12',
+      flex: 1, gap: 12,
+      column: reserveItems.map((reserveItem:I_reserveItem) => {
+        return {className: 'of-visible', html: Shop.renderProductCard({ product:reserveItem, type: 'h',cartButton:true })}
+      })
+    }
   }
   if (coupons === false || menu === false) {
     return (
@@ -303,7 +328,6 @@ export default function RestoranPage(props: I_RestoranPage) {
       />
     )
   }
-
   return (
     <>
       <RVD
@@ -410,38 +434,6 @@ function Header(props: I_Header) {
             {renderTitle(title)}
           </div>
         )
-      }}
-    />
-  )
-}
-type I_RestoranReserve = { Shop:I_AIOShop, reserveItems:I_reserveItem[], restoranId:any }
-function RestoranReserve(props:I_RestoranReserve) {
-  let { Shop, reserveItems} = props;
-  function getProduct(reserveItem:I_reserveItem) {
-    let { name, id, data, images } = reserveItem;
-    let description = ''
-    let countText = data.countType ? `${data.minCount} تا ${data.maxCount} ${data.countUnit}` : '';
-    let returnText = data.returnAmount ? `بازگشت مبلغ روی فاکتور` : '';
-    let timeText = '';
-    if (data.timeType === 'hour') { timeText = 'ساعتی' }
-    else if (data.timeType === 'day') { timeText = 'روزانه' }
-    if (countText) { description += countText + ' - ' }
-    if (timeText) { description += timeText + ' - ' }
-    if (returnText) { description += returnText }
-    let product:I_pr =  { optionType:'quantity',id, description, name, images, data }
-    return product
-  }
-  return (
-    <RVD
-      layout={{
-        className: 'restoran-reserve h-100 ofy-auto p-12',
-        flex: 1, gap: 12,
-        column: reserveItems.map((reserveItem) => {
-          let product = getProduct(reserveItem);
-          return {
-            className: 'of-visible', html: Shop.renderProductCard({ product, type: 'h',cartButton:true })
-          }
-        })
       }}
     />
   )
@@ -714,10 +706,10 @@ function IranFoodComment(props:I_IranFoodComment) {
   }
   return (<RVD layout={{column: [header_layout(),body_layout(),footer_layout()]}}/>)
 }
-type I_ReserveForm = {item:I_reserveItem,restoranId:any,Shop:I_AIOShop,quantity:I_reserveQuantity,changeQuantity:(newQuantity:I_reserveQuantity)=>void}
+type I_ReserveForm = {item:I_reserveItem,restoranId:any,quantity:I_reserveQuantity,changeQuantity:(newQuantity:I_reserveQuantity)=>void}
 function ReserveForm(props:I_ReserveForm) {
   let {APIS}:I_state = useContext(AppContext);
-  let {item,restoranId,Shop,quantity} = props;
+  let {item,restoranId,quantity} = props;
   let { name, images, description, data } = item;
   let {countUnit, timeType,countType,minCount, maxCount,price} = data;
   let [errors,setErrors] = useState<string[]>([])
@@ -773,16 +765,6 @@ function ReserveForm(props:I_ReserveForm) {
       },
       field: 'value.count', label
     }
-  }
-  function getDateText() {
-    if (timeType === 'hour') {
-      //return `1400 از ساعت ${model.hours[0]} تا ساعت ${model.hours[1]}`
-      return `برای ساعات ${quantity.hours.join(' ')}`
-    }
-    else{
-
-    }
-    return AIODate().getDateByPattern({ date: quantity.date, pattern: '{year}/{month}/{day}' })
   }
   function result_layout():I_RVD_node {
     if (timeType === 'hour' && (!quantity.hours || !quantity.hours.length)) {
@@ -866,44 +848,43 @@ function ReserveForm(props:I_ReserveForm) {
     if (countType) { countLabel = ` هر ${countUnit}` }
     return timeLabel || countLabel ? `قیمت بر اساس${timeLabel}${countLabel}` : 'قیمت';
   }
-
-    return (
-      <RVD
-        layout={{
-          style: { height: '100%' },
-          className: 'reserve-page',
-          column: [
-            {
-              flex: 1, className: 'ofy-auto',
-              html: (
-                <AIOInput
-                  type='form' lang='fa' attrs={{ className: 'reserve-page-form' }}
-                  inputClassName='reserve-page-input'
-                  value={quantity}
-                  inputs={{
-                    props: { gap: 12 },
-                    column: [
-                      images_layout(),
-                      row_layout('عنوان', name),
-                      row_layout('توضیحات', description),
-                      row_layout(getPriceLabel(), `${SplitNumber(price)} تومان`),
-                      count_layout(),
-                      day_layout(timeType),
-                      hours_layout(),
-                      //this.hours_layout(timeType),
-                      result_layout()
-                    ]
-                  }}
-                  onChange={(model, errors) => {
-                    changeQuantity({ ...model })
-                    setErrors(errors)
-                  }}
-                  getErrors={(errors:string[]) => setErrors(errors)}
-                />
-              )
-            },
-          ]
-        }}
-      />
-    )
+  return (
+    <RVD
+      layout={{
+        style: { height: '100%' },
+        className: 'reserve-page',
+        column: [
+          {
+            flex: 1, className: 'ofy-auto',
+            html: (
+              <AIOInput
+                type='form' lang='fa' attrs={{ className: 'reserve-page-form' }}
+                inputClassName='reserve-page-input'
+                value={quantity}
+                inputs={{
+                  props: { gap: 12 },
+                  column: [
+                    images_layout(),
+                    row_layout('عنوان', name),
+                    row_layout('توضیحات', description),
+                    row_layout(getPriceLabel(), `${SplitNumber(price)} تومان`),
+                    count_layout(),
+                    day_layout(timeType),
+                    hours_layout(),
+                    //this.hours_layout(timeType),
+                    result_layout()
+                  ]
+                }}
+                onChange={(model, errors) => {
+                  changeQuantity({ ...model })
+                  setErrors(errors)
+                }}
+                getErrors={(errors:string[]) => setErrors(errors)}
+              />
+            )
+          },
+        ]
+      }}
+    />
+  )
 }

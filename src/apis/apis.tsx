@@ -1,4 +1,3 @@
-import profileApis from "./profile-apis.tsx";
 import reserveApis from "./reserve-apis";
 import frame210 from '../images/Frame 210.png';
 import cat_irani_src from '../images/cat-irani.png';
@@ -27,7 +26,6 @@ import { I_imageId, I_restoran, I_restoran_server } from "../typs.tsx";
 export default function getApiFunctions(obj) {
     let { baseUrl, Axios,helper } = obj;
     return {
-        profile: profileApis(obj),
         reserve: reserveApis(obj),
         async remove_image(id,{mock}){
             if(mock.reserve){return MockApis.remove_image(id);}
@@ -46,14 +44,6 @@ export default function getApiFunctions(obj) {
             let response = await Axios.post(url, body);
             let result = response.data.data;
             return { response, result };
-        },
-        async restoran_haye_mahboob(parameter, { Login }) {
-            let {id} = Login.getUserInfo();
-            let url = `${baseUrl}/RestaurantFavoruite/search`
-            let body = { "PersonId": id }
-            let response = await Axios.post(url, body);
-            let result = response.data.data.items;
-            return { response, result }
         },
         async getWalletHistory() {
             return MockApis.getWalletHistory(helper)
@@ -203,20 +193,6 @@ const MockApis = {
                         tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
                     }
                 ]
-            }
-        ]
-        return { result }
-    },
-    restoran_haye_mahboob() {
-        let result = [
-            {
-                name: 'رستوران شاندیز گالریا',
-                image: shandiz_image,
-                logo: shandiz_logo,
-                rate: 3.4,
-                distance: 3,
-                time: 35,
-                tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
             }
         ]
         return { result }

@@ -12,3 +12,4 @@ ifRate va ifComment dar server bayad implement shavad
 aya dar remove_food restoranId niaz nist vaghean?!!!
 
 food.image food.imageId restoran.image restoran.imageId restoran.logo restoran.logoId inha bayad dar api haye add_or_edit_restoran va add_or_edit_food lahaz shavannumberd
+food.dailyInStock number bayad dar api ha lahaza gardad

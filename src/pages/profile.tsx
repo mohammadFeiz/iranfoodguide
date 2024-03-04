@@ -1,5 +1,5 @@
 import React, { Component, useContext, useEffect, useState } from "react";
-import RVD from '../npm/react-virtual-dom/index.tsx';
+import RVD, { I_RVD_node } from '../npm/react-virtual-dom/index.tsx';
 import SplitNumber from "../npm/aio-functions/split-number";
 import { Icon } from '@mdi/react';
 import { mdiAccount, mdiAccountCircleOutline, mdiChevronRight, mdiLock, mdiMapMarker, mdiPlusCircle, mdiPlusThick } from '@mdi/js';
@@ -9,11 +9,11 @@ import AppContext from "../app-context";
 import Card from "../card/card";
 import PopupHeader from "../components/popup-header";
 import Wallet from "./../components/wallet/wallet.tsx";
-import { I_address, I_profile, I_state, I_discount } from "../typs";
+import { I_address, I_profile, I_state, I_discount, I_restoran } from "../typs";
 type I_Profile_item = { icon: React.ReactNode, text: string, id: string,show?:()=>boolean }
 
 export default function Profile() {
-    let {rsa,apis,Login,wallet,profile}:I_state = useContext(AppContext);
+    let {rsa,APIS,Login,wallet,profile}:I_state = useContext(AppContext);
     let [items,setItems] = useState<I_Profile_item[]>([])
     function getItems(){
         let {isRegistered} = Login.getUserInfo();
@@ -29,7 +29,7 @@ export default function Profile() {
         setItems(items)
     }
     useEffect(()=>{getItems()},[])
-    function wallet_layout(){
+    function wallet_layout():I_RVD_node{
         return {
             onClick:()=>{
                 rsa.addModal({ header: false, body: {render:() => <Wallet />} })
@@ -61,7 +61,7 @@ export default function Profile() {
                     buttons:[
                         ['بله',{
                             onClick:()=>{
-                                apis.request({api:'profile.removeAccount',onSuccess:()=>{Login.removeToken(); window.location.reload();}})
+                                APIS.profile_removeAccount(undefined,{onSuccess:()=>{Login.removeToken(); window.location.reload();}})
                             },
                             className:'secondary-button'
                         }],
@@ -89,8 +89,8 @@ export default function Profile() {
             rsa.addModal({ position:'fullscreen',header: false, body: {render:() => <Restoran_haye_mahboob /> }})
         }
     }
-    function header_layout() {
-        if(!profile){return false}
+    function header_layout():I_RVD_node {
+        if(!profile){return {}}
         let mobile = Login.getUserId();
         return {
             className: 'p-6',
@@ -112,7 +112,7 @@ export default function Profile() {
             ]
         }
     }
-    function body_layout() {
+    function body_layout():I_RVD_node {
         return {
             flex: 1, className: 'ofy-auto',
             column: items.filter(({show = ()=>true})=>show()).map((item:I_Profile_item) => {
@@ -132,14 +132,14 @@ export default function Profile() {
 }
 
 function Ettelaate_shakhsi() {
-    let { Login,apis,changeStore,rsa,profile }:I_state = useContext(AppContext);
-    function form_layout() {
+    let { Login,APIS,changeStore,rsa,profile }:I_state = useContext(AppContext);
+    function form_layout():I_RVD_node {
         let mobile = Login.getUserId();
         let {isRegistered} = Login.getUserInfo();
         return {
             flex: 1, className: 'ofy-auto',
             column: [
-                !profile?false:{
+                !profile?{}:{
                     column: [
                         { html: <Icon path={mdiAccountCircleOutline} size={2.8} />, style: { color: '#888' }, align: 'vh' },
                         { html: `${profile.firstName} ${profile.lastName}`, align: 'vh', className: 'fs-14 bold' },
@@ -157,11 +157,8 @@ function Ettelaate_shakhsi() {
                             model:profile,
                             submitText:isRegistered?'ویرایش اطلاعات کاربری':'ثبت نام در ایران فود',
                             onSubmit:({profile})=>{
-                                apis.request({
-                                    api:'profile.setProfile',parameter:profile,
-                                    onSuccess:()=>{changeStore('profile',profile,'<Ettelaate_shakhsi/> => footer_layout'); rsa.removeModal()},
-                                    description:'ثبت اطلاعات پروفایل',
-                                    message:{success:true}
+                                APIS.profile_setProfile(profile,{
+                                    onSuccess:()=>{changeStore('profile',profile,'<Ettelaate_shakhsi/> => footer_layout'); rsa.removeModal()}
                                 })
                             }
                         }
@@ -183,10 +180,10 @@ function Ettelaate_shakhsi() {
     )
 }
 function Passwrod() {
-    let {Login,apis,rsa}:I_state = useContext(AppContext);
+    let {Login,APIS,rsa}:I_state = useContext(AppContext);
     let [model,setModel] = useState<{password:string}>({password:''})
-    function header_layout(){return { html: <PopupHeader title='تغییر رمز عبور' /> }}
-    function form_layout() {
+    function header_layout():I_RVD_node{return { html: <PopupHeader title='تغییر رمز عبور' /> }}
+    function form_layout():I_RVD_node {
         let mobile = Login.getUserId();
         let inputs = [
             { input:{type:'text',disabled:true}, label:'شماره همراه', field: mobile },
@@ -207,17 +204,14 @@ function Passwrod() {
             ]
         }
     }
-    function footer_layout() {
+    function footer_layout():I_RVD_node {
         return {
             align: 'vh',
             className: 'p-24',
             html: (
                 <button className= 'button-1 w-100 h-36' onClick={()=>{
-                    apis.request({
-                        api:'profile.setPassword',
-                        parameter:model.password,
+                    APIS.profile_setPassword(model.password,{
                         onSuccess:()=>rsa.removeModal(),
-                        description:'ثبت رمز عبور',
                         message:{success:true}
                     })
                 }}>ثبت تغییرات</button>
@@ -227,23 +221,20 @@ function Passwrod() {
     return (<RVD layout={{className: 'app-popup',column: [header_layout(),form_layout(),footer_layout()]}}/>)
 }
 function Address_ha() {
-    let {changeStore,rsa,apis,addresses}:I_state = useContext(AppContext);
+    let {changeStore,rsa,APIS,addresses}:I_state = useContext(AppContext);
     async function onSubmit(address:I_address,type:'add'|'edit'){
-        await apis.request({
-            api:'profile.addressForm',
-            parameter:{address,type},
+        await APIS.profile_addressForm({address,type},{
             onSuccess:()=>{
                 if(type === 'add'){addresses.push(address);}
                 else{addresses = addresses.map((o)=>address.id === o.id?address:o)}
                 changeStore('addresses',addresses,`<Address_ha/> => onSubmit`);
                 rsa.removeModal()
             },
-            description:`${type === 'add'?'افزودن':'ویرایش'} آدرس `,
             message:{success:true}
         })
     }
-    function header_layout(){return { html: <PopupHeader title='آدرس ها' /> }}
-    function add_layout() {
+    function header_layout():I_RVD_node{return { html: <PopupHeader title='آدرس ها' /> }}
+    function add_layout():I_RVD_node {
         return {
             size: 48, className: 'p-h-12',
             onClick:()=>{
@@ -255,7 +246,7 @@ function Address_ha() {
             ]
         }
     }
-    function cards_layout() {
+    function cards_layout():I_RVD_node {
         return {
             flex: 1, className: 'ofy-auto',
             column: addresses.map((o) => {
@@ -288,7 +279,7 @@ function AddressForm(props:I_AddressForm) {
     function header_layout(){
         return { html: <PopupHeader title={type === 'add' ? 'افزودن آدرس جدید' : 'ویرایش آدرس'} /> }
     }
-    function form_layout() {
+    function form_layout():I_RVD_node {
         return {
             flex: 1,
             html: (
@@ -328,8 +319,8 @@ function AddressForm(props:I_AddressForm) {
 }
 function Discounts(){
     let {discounts}:I_state = useContext(AppContext);
-    function header_layout(){return { html: <PopupHeader title='تخفیف ها' /> }}
-    function cards_layout() {
+    function header_layout():I_RVD_node{return { html: <PopupHeader title='تخفیف ها' /> }}
+    function cards_layout():I_RVD_node {
         return {
             flex: 1, className: 'ofy-auto',
             column: discounts.map((o:I_discount) => {
@@ -370,14 +361,14 @@ function Discounts(){
     return (<RVD layout={{className: 'app-popup fs-12',column: [header_layout(),cards_layout()]}}/>)
 }
 function Restoran_haye_mahboob(){
-    let {apis}:I_state = useContext(AppContext);
-    let [items,setItems] = useState([])
-    function getItems(){
-        apis.request({
-            api:'restoran_haye_mahboob',description:'دریافت لیست رستوران های محبوب',
-            onSuccess:(items)=>setItems(items)
+    let {APIS}:I_state = useContext(AppContext);
+    let [restorans,setRestorans] = useState([])
+    function getRestorans(){
+        APIS.restoranHayeMahboob(undefined,{
+            onSuccess:(restorans:I_restoran[])=>setRestorans(restorans)
         })
     }
+    useEffect(()=>getRestorans(),[])
     return (
         <RVD
             layout={{
@@ -386,7 +377,7 @@ function Restoran_haye_mahboob(){
                     {html:<PopupHeader title='رستوران های محبوب'/>},
                     {
                         flex:1,gap:24,className:'ofy-auto',
-                        column:items.map((o)=>{
+                        column:restorans.map((o)=>{
                             return {className:'p-h-24',html:<Card type='restoran_card' {...o}/>}
                         })
                     }
