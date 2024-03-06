@@ -1,3 +1,4 @@
+addOrEditImage agar imageId nafrestadam bayad add kone
 dar api address ha taine taklife number unit floor
 taine type addrese daryafti az server
 api mojoodi kife pool bayad tavasote bak tosee dade shavad

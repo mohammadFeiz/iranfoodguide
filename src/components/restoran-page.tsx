@@ -5,7 +5,6 @@ import AIODate from '../npm/aio-date';
 import { Icon } from '@mdi/react';
 import { mdiArrowRight, mdiChevronDown, mdiChevronUp, mdiClock, mdiClose, mdiComment, mdiDelete, mdiReload, mdiTable } from '@mdi/js';
 import { icons } from '../icons';
-import Rate from './rate';
 import GroupButton from './group-button';
 import percent1 from '../svgs/percent1';
 import AppContext from '../app-context';
@@ -22,11 +21,11 @@ import { I_address, I_comment, I_coupon, I_food, I_reserveItem, I_reserveQuantit
 import { I_AIOShop, I_AIOShop_props, I_AIOShop_factor, I_checkout_item, I_pr } from '../npm/aio-shop/types';
 import { I_getRestoranComments_param, I_pardakhteOnline_param } from '../apis/APIClass.tsx';
 type I_menu = { [menuCategory: string]: I_food[] };
-type I_RestoranPage = { restoran: I_restoran }
+type I_RestoranPage = { restoran: I_restoran,onClose:()=>void }
 type I_tab = 'menu' | 'info' | 'cart' | 'reserve';
 export default function RestoranPage(props: I_RestoranPage) {
   let { APIS, rsa, addresses }: I_state = useContext(AppContext);
-  let { restoran } = props
+  let { restoran,onClose } = props
   let [activeMenu, setActiveMenu] = useState<string | false>(false);
   let [menu, setMenu] = useState<I_menu | false>(false);
   let [subFoods,setSubFoods] = useState<{[key:string]:I_food[]}>({})
@@ -139,7 +138,6 @@ export default function RestoranPage(props: I_RestoranPage) {
         }
       ],
       onPayment: async ({ checkout, cart, getFactor }) => {
-        let { restoran } = this.props;
         let { deliveryType, addressId, selectedCouponIds } = checkout;
         let factor: I_AIOShop_factor = await getFactor({ renderIn: 'checkout' })
         let foods = Object.keys(cart).map((o) => { return { foodId: o, count: cart[o].count } })
@@ -218,22 +216,10 @@ export default function RestoranPage(props: I_RestoranPage) {
     return res
   }
   function header_layout(): I_RVD_node {
-    let { onClose } = this.props;
     let rate = restoran.rate;
     let image = restoran.image;
-    return (
-      {
-        html: (
-          <Header
-            rate={rate}
-            image={image}
-            icons={[
-              { icon: <Icon path={mdiClose} size={1} />, onClick: () => onClose() },
-            ]}
-          />
-        )
-      }
-    )
+    let props:I_Header = {rate,image,icons:[{ icon: <Icon path={mdiClose} size={1} />, onClick: () => onClose() }],Shop}
+    return {html: <Header {...props}/>}
   }
   function tabs_layout(): I_RVD_node {
     let cartLength = 0;
@@ -286,14 +272,10 @@ export default function RestoranPage(props: I_RestoranPage) {
   }
   function info_layout(): I_RVD_node {
     if (activeTabId !== 'info') { return {} }
-    let { restoran } = this.props;
-    return {
-      flex: 1,
-      html: <RestoranInfo {...restoran} header={false} />
-    }
+    let props:I_RestoranInfo = {restoran,onClose,header:false,Shop}
+    return {flex: 1,html: <RestoranInfo {...props} header={false} />}
   }
   function cart_layout(): I_RVD_node {
-    let { Shop } = this.state;
     if (activeTabId !== 'cart') { return {} }
     return {
       flex: 1,
@@ -301,7 +283,6 @@ export default function RestoranPage(props: I_RestoranPage) {
     }
   }
   function reserve_layout(): I_RVD_node {
-    let { Shop } = this.state;
     if (!Shop || activeTabId !== 'reserve') { return {} }
     return {
       className: 'restoran-reserve h-100 ofy-auto p-12',
@@ -372,9 +353,9 @@ function SubFoods(props:I_SubFoods) {
     )
 }
 type I_Header_icon = { icon: React.ReactNode,show?:boolean | (()=>boolean),onClick:()=>void };
-type I_Header = { icons: I_Header_icon[], rate?: number, image: any, title?: string }
+type I_Header = { icons: I_Header_icon[], rate?: number, image: any, title?: string,Shop:I_AIOShop }
 function Header(props: I_Header) {
-  let { icons = [], rate, image, title } = props;
+  let { icons = [], rate, image, title,Shop } = props;
   function renderIcons(icons) {
     let gap = 8,size = 36;
     icons = icons.filter((icon:I_Header_icon) => {
@@ -426,7 +407,7 @@ function Header(props: I_Header) {
                   }}
                   className='align-vh'
                 >
-                  <Rate rate={rate} />
+                  {Shop.renderRate({rate})}
                 </div>
               )
             }
@@ -438,10 +419,10 @@ function Header(props: I_Header) {
     />
   )
 }
-type I_RestoranInfo = {restoran:I_restoran}
+type I_RestoranInfo = {restoran:I_restoran,Shop:I_AIOShop,header?:boolean,onClose:()=>void}
 function RestoranInfo(props:I_RestoranInfo) {
   let {APIS}:I_state = useContext(AppContext);
-  let {restoran} = props;
+  let {restoran,Shop,onClose, header} = props;
   let { latitude, longitude, address, deliveryTime, logo, name, rate, ifRate, ifComment } = restoran;
   let [comments,setComments] = useState<I_comment[]>([])
   let [commentsPageSize,setCommentPageSize] = useState<number>(12);
@@ -455,10 +436,9 @@ function RestoranInfo(props:I_RestoranInfo) {
   useEffect(()=>{
     getComments()
   },[])
-  function title_layout(logo, name, rate) {
-    let { onClose, header } = this.props;
-    if (header === false) { return false }
-    let titleProps:I_RestoranTitle = {restoran}
+  function title_layout():I_RVD_node {
+    if (header === false) { return {} }
+    let titleProps:I_RestoranTitle = {restoran,Shop}
     return {
       className: 'm-b-12 p-12 orange-bg colorFFF',
       row: [
@@ -476,7 +456,7 @@ function RestoranInfo(props:I_RestoranInfo) {
     ]
     return {gap: 1,className: 'restoran-page-parts',row: parts.map((o) => part_layout(o))}
   }
-  function part_layout(p:{ text:string, subtext?:string, icon:any, color?:string }) {
+  function part_layout(p:{ text:string, subtext?:string, icon:any, color?:string }):I_RVD_node {
     let { text, subtext, icon, color } = p;
     return {
       flex: 1, style: { color }, className: 'restoran-page-part',
@@ -498,7 +478,7 @@ function RestoranInfo(props:I_RestoranInfo) {
     return {className: 'm-b-12 p-h-12', html: <button className='button-3 w-100 br-6 h-36'>دانلود منو رستوران</button>}
   }
   function IranFoodComment_layout() {
-    let props:I_IranFoodComment = {ifRate, ifComment}
+    let props:I_IranFoodComment = {ifRate, ifComment,Shop}
     return {className: 'p-h-12', html: <IranFoodComment {...props} />}
   }
   function comments_layout() {
@@ -510,7 +490,7 @@ function RestoranInfo(props:I_RestoranInfo) {
       layout={{
         className: 'h-100',
         column: [
-          this.title_layout(logo, name, rate),
+          title_layout(),
           {
             flex: 1, className: 'ofy-auto',
             column: [
@@ -528,8 +508,8 @@ function RestoranInfo(props:I_RestoranInfo) {
     />
   )
 }
-class RestoranCoupons extends Component {
-  coupons_layout(coupons) {
+function RestoranCoupons() {
+  function coupons_layout(coupons) {
     if (!coupons.length) { return false }
     return {
       className: 'm-b-12',
@@ -539,12 +519,12 @@ class RestoranCoupons extends Component {
         {
           className: 'p-6 ofx-auto',
           style: { background: '#FFC19C' },
-          gap: 12, row: coupons.map((o) => this.coupon_layout(o))
+          gap: 12, row: coupons.map((o) => coupon_layout(o))
         }
       ]
     }
   }
-  coupon_layout({ percent, amount }) {
+  function coupon_layout({ percent, amount }) {
     return {
       style: { background: '#fff' },
       className: 'br-8 p-6',
@@ -561,15 +541,13 @@ class RestoranCoupons extends Component {
       ]
     }
   }
-  render() {
-    return (
-      ''
-    )
-  }
+  return (
+    ''
+  )
 }
-type I_RestoranTitle = {restoran:I_restoran}
+type I_RestoranTitle = {restoran:I_restoran,Shop:I_AIOShop}
 function RestoranTitle(props:I_RestoranTitle) {
-  let {restoran} = props;
+  let {restoran,Shop} = props;
   let { logo, name, distance, rate } = restoran;
   function logo_layout(logo):I_RVD_node {
     if (!logo) { return {} }
@@ -590,7 +568,7 @@ function RestoranTitle(props:I_RestoranTitle) {
   }
   function rate_layout(rate):I_RVD_node {
     if (rate === undefined) { return {} }
-    return { html: <Rate rate={rate} /> }
+    return { html: Shop.renderRate({rate}) }
   }
   return (
     <RVD
@@ -675,10 +653,10 @@ function Address(props:I_Address) {
   }
   return (<RVD layout={{className:'gap-12',row: [map_layout(latitude, longitude),address_layout(address)]}}/>)
 }
-type I_IranFoodComment = {ifRate:number,ifComment:string}
+type I_IranFoodComment = {ifRate:number,ifComment:string,Shop:I_AIOShop}
 function IranFoodComment(props:I_IranFoodComment) {
   let [showMore,setShowMore] = useState<boolean>(false)
-  let {ifRate,ifComment} = props;
+  let {ifRate,ifComment,Shop} = props;
   function header_layout():I_RVD_node {
     return {
       className: 'm-b-12 fs-14 bold',
@@ -687,7 +665,7 @@ function IranFoodComment(props:I_IranFoodComment) {
         { flex: 1 },
         { html: 'امتیاز ایران فود', className: 'fs-12', align: 'v' },
         { size: 3 },
-        { html: <Rate rate={ifRate} />, align: 'v', style: { color: 'orange' } }
+        { html: Shop.renderRate({rate:ifRate}), align: 'v', style: { color: 'orange' } }
       ]
     }
   }
@@ -738,7 +716,7 @@ function ReserveForm(props:I_ReserveForm) {
   function images_layout():I_RVD_node {
     let Images = [];
     for(let i = 0; i < 3; i++){Images.push(getImage(images[i]))}
-    return { size: 100, row: [{ flex: 1 }, { row: images }, { flex: 1 }] }
+    return { size: 100, row: [{ flex: 1 }, { row: Images }, { flex: 1 }] }
   }
   function day_layout(timeType) {
     if (!timeType) { return {} }
@@ -871,7 +849,6 @@ function ReserveForm(props:I_ReserveForm) {
                     count_layout(),
                     day_layout(timeType),
                     hours_layout(),
-                    //this.hours_layout(timeType),
                     result_layout()
                   ]
                 }}

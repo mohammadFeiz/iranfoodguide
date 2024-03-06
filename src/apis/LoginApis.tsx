@@ -19,7 +19,7 @@ type I_PhoneNumber = (p:I_PhoneNumber_param)=>Promise<I_PhoneNumber_result>
 export type I_loginApis = {checkToken:I_checkToken,OTPNumber:I_OTPNumber,OTPCode:I_OTPCode,PhoneNumber:I_PhoneNumber}
 export default class LoginApis extends AIOApis{
     checkToken:I_checkToken = async (token:I_checkToken_param)=>{
-        return await this.getResult({
+        return await this.request({
             config:{message:{error:false},token,errorResult:false},
             id:'checkToken',method:'get',
             url:`${this.baseUrl}/Users/WhoAmI`,
@@ -33,7 +33,7 @@ export default class LoginApis extends AIOApis{
         })
     }
     OTPNumber:I_OTPNumber = async (mobileNumber:I_OTPNumber_param)=>{
-        return await this.getResult({
+        return await this.request({
             config:{description:'ارسال شماره همراه',errorResult:false},
             id:'OTPNumber',method:'post',
             url:`${this.baseUrl}/Users/GenerateUserCode`,
@@ -46,7 +46,7 @@ export default class LoginApis extends AIOApis{
     }
     OTPCode:I_OTPCode = async (p:I_OTPCode_param)=>{
         let {mobileNumber,code} = p;
-        return await this.getResult({
+        return await this.request({
             config:{description:'ارسال کد یکبار مصرف',errorResult:false},
             id:'OTPCode',method:'post',
             url:`${this.baseUrl}/Users/TokenWithCode`,
@@ -59,7 +59,7 @@ export default class LoginApis extends AIOApis{
     }
     PhoneNumber:I_PhoneNumber = async (p:I_PhoneNumber_param)=>{
         let {userId,password} = p;
-        return await this.getResult({
+        return await this.request({
             config:{description:'ارسال شماره همراه و رمز عبور',errorResult:false},
             id:'PhoneNumber',method:'post',
             url:`${this.baseUrl}/Users/Token`,

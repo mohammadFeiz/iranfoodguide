@@ -8,7 +8,7 @@ import { SplitNumber } from 'aio-utils';
 import { makeAutoObservable, toJS } from "mobx"
 import { observer } from "mobx-react-lite"
 import { Icon } from '@mdi/react';
-import { mdiArrowDown, mdiArrowUp, mdiCart, mdiCash, mdiCheckBold, mdiChevronDown, mdiChevronUp, mdiClose, mdiDelete, mdiInformation, mdiMinus, mdiPlus, mdiPlusMinus } from '@mdi/js';
+import { mdiArrowDown, mdiArrowUp, mdiCart, mdiCash, mdiCheckBold, mdiChevronDown, mdiChevronUp, mdiClose, mdiDelete, mdiInformation, mdiMinus, mdiPlus, mdiPlusMinus, mdiStar, mdiStarHalfFull, mdiStarOutline } from '@mdi/js';
 import './index.css';
 import {
     I_Cart, I_CartButton, I_Checkout, I_DiscountPercent, I_AIOShop_factor, I_Factor, I_FinalPrice, I_ProductCard, I_pr_detail, I_pr_optionType,
@@ -19,7 +19,7 @@ import {
     I_openModal, I_pr, I_productCardImageContent, I_productPageImageContent, I_renderCart, I_renderCartButton, I_renderCheckout,
     I_renderProductCard, I_renderProductPage, I_renderProductSlider, I_setCheckout, I_trans, I_v, I_v_ov, I_v_label, I_pr_rate,
     I_Rates, I_renderRates,
-    I_onPayment, I_closeModal, I_getFinalPrice, I_cartInfo, I_getCartInfo, I_getFactor, I_getCartItem,I_getCartCount, I_removeCartItem, I_addCartItem, I_editCartItem, I_quantity
+    I_onPayment, I_closeModal, I_getFinalPrice, I_cartInfo, I_getCartInfo, I_getFactor, I_getCartItem,I_getCartCount, I_removeCartItem, I_addCartItem, I_editCartItem, I_quantity, I_image, I_Rate, I_renderRate
 } from './types';
 //////rvd
 export default class AIOShop implements I_AIOShop {
@@ -41,6 +41,7 @@ export default class AIOShop implements I_AIOShop {
     renderCart: I_renderCart;
     renderCheckout: I_renderCheckout;
     renderRates: I_renderRates;
+    renderRate: I_renderRate;
     renderCartButton: I_renderCartButton;
     renderPopup: () => React.ReactNode;
     getVariantIcon: I_getVariantIcon;
@@ -289,6 +290,7 @@ export default class AIOShop implements I_AIOShop {
         this.renderProductSlider = (p: I_ProductSlider) => <ProductSlider {...p} getContext={this.getContext} />;
         this.renderCart = () => <Cart getContext={this.getContext} />;
         this.renderRates = (p: I_Rates) => <Rates {...p} getContext={this.getContext} />;
+        this.renderRate = (p:I_Rate) => <Rate {...p}/>
         this.renderCheckout = () => <Checkout getContext={this.getContext} />;
         this.openModal = (p) => {
             let { title, render, position, backdrop, id } = p;
@@ -700,8 +702,9 @@ const ProductPage = observer((props: I_ProductPage) => {
         return (
             <ACS
                 autoSlide={false}
-                items={images.map((image: string) => {
-                    return <img src={image} alt='' height='240px' />
+                items={images.map((image:I_image) => {
+                    let {url} = image
+                    return <img src={url} alt='' height='240px' />
                 })}
             />
         )
@@ -896,6 +899,7 @@ const ProductCard = observer((props: I_ProductCard) => {
     }
     useEffect(() => { getImageContent(); getContent(); }, [])
     let image = images[0];
+    let {url} = image;
     let className = `aio-shop-product-card aio-shop-product-card-${type}`;
     function image_layout(): I_RVD_node {
         let size = { v: 84, h: 72, hs: 48 }[type];
@@ -904,7 +908,7 @@ const ProductCard = observer((props: I_ProductCard) => {
         return {
             size, align: 'vh', className: 'aio-shop-product-card-image',
             html: (<>
-                <img src={image} alt='' {...{ [sizeKey]: '100%' }} />
+                <img src={url} alt='' {...{ [sizeKey]: '100%' }} />
                 {imageContent === false ? null : <div className='aio-shop-product-card-image-content'>{imageContent}</div>}
             </>)
         }
@@ -1095,4 +1099,20 @@ function VariantLabels(props: I_VariantLabels) {
         }
     }
     return (<RVD layout={type === 'h' ? h_layout() : v_layout()} />)
+}
+function Rate(props:I_Rate){
+    let {size = 0.8,color = 'orange',gap = 3,rate,single} = props;
+    function getPath(index){
+        let full = Math.floor(rate),half = !!(rate - full);
+        if(index < full){return mdiStar}
+        if(index === full && half){return mdiStarHalfFull}
+        return mdiStarOutline 
+    }
+    function icon_layout(path:any):I_RVD_node{return {style:{color},className:'aio-shop-rate-icon',html: <Icon path={path} size={size} />}}
+    function icons_layout():I_RVD_node{
+        if(single){return {align:'v',html: Array(5).fill(0).map((o, i) => icon_layout(mdiStar))}}
+        return {align:'v',gap,row: Array(5).fill(0).map((o, i) => icon_layout(getPath(i)))}
+    }
+    function text_layout(){return {html:rate,className:'aio-shop-rate-text'}}
+    return (<RVD layout={{align: 'v', style: { direction: 'ltr' },className:'aio-shop-rate',row:[text_layout(),icons_layout()]}}/>)
 }

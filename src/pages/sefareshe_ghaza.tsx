@@ -1,29 +1,26 @@
-import React, { Component } from "react";
-import RVD from './../npm/react-virtual-dom/index.tsx';
-import ACS from './../npm/aio-content-slider/aio-content-slider';
-import Card from './../card/card';
-import Timer from "../components/timer";
-import Search from './../pages/Search';
-import AppContext from "../app-context";
-import SearchBox from "./../npm/search-box/search-box";
-export default class Sefareshe_ghaza extends Component {
-    static contextType = AppContext;
-    state = { 
-        data: data(),
-        addresses:[],
-        content:[]
-    }
-    
-    async componentDidMount(){
-        let { apis } = this.context;
-        let content = await apis.request({
-            api:'safheye_sefaresh',
-            description:'دریافت اطلاعات صفحه سفارش غذا',
-            def:[]
+import React, { Component,useState,useContext,useEffect } from "react";
+import RVD, { I_RVD_node } from '../npm/react-virtual-dom/index.tsx';
+import ACS from '../npm/aio-content-slider/aio-content-slider.js';
+import Card from '../card/card.js';
+import Timer from "../components/timer.js";
+import Search from './Search.tsx';
+import AppContext from "../app-context.js";
+import SearchBox from "../npm/search-box/search-box.js";
+import { I_state } from "../typs.tsx";
+export default function Sefareshe_ghaza() {
+    let {APIS,rsa}:I_state = useContext(AppContext);
+    let [data,setData] = useState(mockData())
+    let [addresses,setAddresses] = useState([])
+    let [content,setContent] = useState([])
+    function getData(){
+        APIS.safheye_sefaresh(undefined,{
+            onSuccess:(content)=>setContent(content)
         })
-        this.setState({content})
     }
-    billboard_layout(items) {
+    useEffect(()=>{
+        getData()
+    },[])
+    function billboard_layout(items):I_RVD_node {
         return (
             <ACS
                 items={items.map(({src},i) => {
@@ -34,7 +31,7 @@ export default class Sefareshe_ghaza extends Component {
             />
         )
     }
-    categories_layout(items) {
+    function categories_layout(items):I_RVD_node {
         return (
             <div style={{ display: 'grid',gridGap:6,padding:'0 12px', gridTemplateColumns: 'auto auto auto auto' }}>
                 {
@@ -45,7 +42,17 @@ export default class Sefareshe_ghaza extends Component {
             </div>
         )
     }
-    slider_layout(o){
+    function titr_layout(text:string,onShowMore:Function):I_RVD_node{
+        return {
+            size:48,
+            row:[
+                {align:'v',html:text,className:'fs-16 bold'},
+                {flex:1},
+                {html:'نمایش بیشتر',className:'fs-14 bold orange-color',align:'v',onClick:()=>onShowMore()}
+            ]
+        }
+    }
+    function slider_layout(o){
         let {cardSize = {},header} = o;
         return (
             <RVD
@@ -53,7 +60,7 @@ export default class Sefareshe_ghaza extends Component {
                     className:'p-h-12 w-100',
                     column:[
                         {size:12},
-                        TITR({text:o.name,onShowMore:()=>{}}),
+                        titr_layout(o.name,()=>{}),
                         {
                             gap:12,className:'ofx-auto',
                             row:[
@@ -79,71 +86,45 @@ export default class Sefareshe_ghaza extends Component {
             />
         )
     }
-    search_layout(){
-        let {rsa} = this.context;
+    function search_layout():I_RVD_node{
         return {
             className:'p-12',html:<SearchBox onClick={()=>rsa.addModal({position:'fullscreen',header:{title:'جستجو'},body:{render:()=><Search/>}})}/>
         }
     }
-    content_layout(){
-        let {content} = this.state;
+    function content_layout():I_RVD_node{
         return {
             flex:1,className:'ofy-auto',
             column:content.map((o)=>{
                 if(o.type === 'Slider'){
-                    return {html:this.slider_layout(o)}
+                    return {html:slider_layout(o)}
                 }
                 if(o.type === 'Billboard'){
-                    return {html:this.billboard_layout(o.items)}
+                    return {html:billboard_layout(o.items)}
                 }
                 if(o.type === 'Categories'){
-                    return {align:'vh',html:this.categories_layout(o.items)}
+                    return {align:'vh',html:categories_layout(o.items)}
                 }
             })
         }
     }
-    render() {
-        return (
-            <RVD
-                layout={{
-                    style:{background:'#fff'},
-                    column: [
-                        this.search_layout(),
-                        this.content_layout(),
-                    ]
-                }}
-            />
-        )
-    }
+    return (<RVD layout={{style:{background:'#fff'},column: [search_layout(),content_layout()]}}/>)
 }
-
-class MaxDiscount extends Component{
-    render(){
-        let {maxDiscount} = this.props;
-        return (
-            <RVD
-                layout={{
-                    style:{color:'#fff'},
-                    column:[
-                        {html:`تا ${maxDiscount} درصد`,className:'bold',align:'h'},
-                        {html:'تخفیف',className:'bold',align:'h'}
-                    ]
-                }}
-            />
-        )
-    }
+type I_MaxDiscount = {maxDiscount:number}
+function MaxDiscount(props:I_MaxDiscount){
+    let {maxDiscount} = props;
+    return (
+        <RVD
+            layout={{
+                style:{color:'#fff'},
+                column:[
+                    {html:`تا ${maxDiscount} درصد`,className:'bold',align:'h'},
+                    {html:'تخفیف',className:'bold',align:'h'}
+                ]
+            }}
+        />
+    )
 }
-function TITR({text,onShowMore}){
-    return {
-        size:48,
-        row:[
-            {align:'v',html:text,className:'fs-16 bold',align:'v'},
-            {flex:1},
-            {html:'نمایش بیشتر',className:'fs-14 bold orange-color',align:'v',onClick:()=>onShowMore()}
-        ]
-    }
-}
-function data() {
+function mockData() {
     return {
         addresses: () => {
             return [

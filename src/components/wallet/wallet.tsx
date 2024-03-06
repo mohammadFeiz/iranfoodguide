@@ -5,24 +5,21 @@ import PopupHeader from '../popup-header';
 import AppContext from "../../app-context";
 import {Icon} from '@mdi/react';
 import { mdiArrowDown,mdiArrowUp } from "@mdi/js";
-import { I_state } from "../../typs";
-type I_walletHistoryItem = {
-    type:'in'|'out',date:string,time:string,amount:number
-}
+import { I_state, I_walletHistoryItem } from "../../typs";
+
 export default function Wallet(){
-    let {apis,wallet}:I_state = useContext(AppContext);
+    let {APIS,wallet}:I_state = useContext(AppContext);
     let [walletHistoryItems,setWalletHistoryItems] = useState<I_walletHistoryItem[]>([])
     function getHistory(){
-        apis.request({
-            api:'getWalletHistory',
+        APIS.getWalletHistory(undefined,{
             onSuccess:(walletHistoryItems:I_walletHistoryItem[])=>setWalletHistoryItems(walletHistoryItems)
         })
     }
     useEffect(()=>{getHistory()})
     return (
         <RVD
-            style={{background:'#fff',height:'100%'}}
             layout={{
+                style:{background:'#fff',height:'100%'},
                 column:[
                     {html:<PopupHeader title='کیف پول'/>},
                     {html:<MojoodiCard value={wallet}/>},

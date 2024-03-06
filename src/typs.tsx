@@ -184,9 +184,9 @@ export type I_restoran = {
     longitude: number,
     phone: string,
     image: string,
-    imageId:I_imageId,
+    imageId:string | number,
     logo: string,
-    logoId:I_imageId,
+    logoId:string | number,
     address: string,
     deliveryTime: number,
     rate?:number,
@@ -203,7 +203,7 @@ export type I_restoran_server = {
     title:string,
     address:{phoneNumber:string,latitude:number,longitude:number,address:string},
     image:string,
-    imageId:I_imageId,
+    imageId:string | number,
     logo:string,
     deliveryTime:number,
     types:{typeId:number}[],
@@ -214,12 +214,11 @@ export type I_food = {
     optionType:'product',
     id:I_foodId,
     name:string,
-    images:string[],
+    images:I_image[],
     description:string,
     data:{
         type:'food',
         items?:I_food[]
-        imageId:I_imageId,
         tags:I_tagId[],
         dailyInStock:number,
         parentId:I_foodId,
@@ -245,17 +244,18 @@ export type I_food_server = {
     dailyInStock?:number,
     inStock:number
 }
-export type I_imageId = any;
+export type I_image = {url:string,id:string | number}
 export type I_restoranId = number;
 export type I_foodId = number;
 export type I_tagId = number;
 export type I_coupon = {id:any,title:string,discountPercent?:number,discount?:number,maxDiscount?:number,minCartAmount?:number}
 export type I_reserveItem = {
     id:any,
-    images:any[],
+    images:I_image[],
     name:string,
     description?:string,
     data:{
+        added?:boolean,hasError?:boolean,isSubmited?:boolean,
         type:'reserve',
         returnAmount:boolean,
         preOrderTime:number,
@@ -268,3 +268,6 @@ export type I_reserveItem = {
 export type I_reserveQuantity = {count:number,hours:number[],date:string}
 export type I_deliveryType = 'ارسال با پیک' | 'دریافت حضوری';
 export type I_comment = { name:string, date:string, comment:string }
+export type I_walletHistoryItem = {
+    type:'in'|'out',date:string,time:string,amount:number
+}

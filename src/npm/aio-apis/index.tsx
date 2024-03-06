@@ -1,6 +1,7 @@
 import React from 'react';
 import Axios from 'axios';
 import AIOStorage from 'aio-storage';
+import AIODate from 'aio-date';
 import AIOPopup from 'aio-popup';
 import $ from 'jquery';
 import './index.css';
@@ -54,12 +55,15 @@ export default class AIOApis {
     handleLoading: AIOApis_handleLoading;
     responseToResult: (p:AIOApis_params) => Promise<any>;
     request:AIOApis_request;
-    showAlert:(type:'success' | 'error',text:string,subtext?:string,time?:number)=>void;
+    addAlert:(type:'success' | 'error',text:string,subtext?:string,time?:number)=>void;
     handleCacheVersions:(cacheVersions:{[key:string]:number})=>{[key:string]:boolean};
     setMockApi:(apiName:string)=>void;
     setApi:(apiName:string)=>void;
     showErrorMessage:(messageParameter:AIOApis_messageParameter)=>void;
     showSuccessMessage:(messageParameter:AIOApis_messageParameter)=>void;
+    dateToString:(date:any,pattern?:string)=>string;
+    dateToNumber:(date:any)=>number;
+    dateToArray:(date:any,jalali?:boolean)=>number[];
     init = (p: AIOApis_props)=>{
         let { id, getAppState = () => { }, baseUrl, token, loader, onCatch, getError } = p
         this.baseUrl = baseUrl;
@@ -75,8 +79,17 @@ export default class AIOApis {
         this.setStorage = (name: string, value: any) => storage.save({ name, value })
         this.getStorage = (name, def) => storage.load({ name, def });
         this.setToken = (token?: string) => { let res = token || this.token; if (res) { this.token = res; Axios.defaults.headers.common['Authorization'] = `Bearer ${res}`; } }
-        this.showAlert = (type:'success' | 'error' | 'warning' | 'info',text:string,subtext?:string,time?:number)=>{
+        this.addAlert = (type:'success' | 'error' | 'warning' | 'info',text:string,subtext?:string,time?:number)=>{
             new AIOPopup().addAlert({type,text,subtext,time})
+        }
+        this.dateToString = (date,pattern = '{year}/{month}/{day}')=>{
+            return AIODate().getDateByPattern({date,pattern})
+        }
+        this.dateToNumber = (date)=>{
+            return AIODate().getTime({date})
+        }
+        this.dateToArray = (date,jalali)=>{
+            return AIODate().convertToArray({date,jalali})
         }
         this.getLoading = (id) => {
             console.log(`aio-service show loading by ${id}`)
@@ -126,14 +139,14 @@ export default class AIOApis {
             let text:string;
             if(typeof message.error === 'string'){text = message.error}
             else {text = `${description} با خطا روبرو شد`}
-            this.showAlert('error',text,result,message.time );
+            this.addAlert('error',text,result,message.time );
         }
         this.showSuccessMessage = (messageParameter:AIOApis_messageParameter)=>{
             let {result,message,description} = messageParameter;
             if (!message.success) {return}
             let subtext = typeof message.success === 'function' ? message.success(result) : message.success;
             if (subtext === true) { subtext = '' }
-            this.showAlert('success',`${description} با موفقیت انجام شد`, subtext as string,message.time);
+            this.addAlert('success',`${description} با موفقیت انجام شد`, subtext as string,message.time);
         }
         this.responseToResult = async (p) => {
             let {url,method,body,getResult,config = {}} = p;

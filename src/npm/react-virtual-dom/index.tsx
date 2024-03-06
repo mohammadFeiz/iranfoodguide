@@ -7,14 +7,19 @@ let RVDCLS = {
 }
 export type I_RVD_node = {
     align?: 'v' | 'h' | 'vh' | 'hv',
+    dragId?:string,
+    egg?:{callback:()=>void,count:number}
     gap?: number | {size:number,content?:React.ReactNode,attrs?:any} | ((node:I_RVD_node,parent:I_RVD_node,index:number)=>{size:number,content?:React.ReactNode,attrs?:any}),
     data?:any,
+    longTouch?:()=>void,
     size?: number,
     flex?: number,
-    html?: React.ReactNode | (() => React.ReactNode),
-    row?: I_RVD_node[] | (()=>I_RVD_node[]),
-    column?: I_RVD_node[] | (()=>I_RVD_node[]),
-    grid?: I_RVD_node[],
+    html?: React.ReactNode | ((obj:any) => React.ReactNode),
+    row?: I_RVD_node[] | ((obj:any)=>I_RVD_node[]),
+    column?: I_RVD_node[] | ((obj:any)=>I_RVD_node[]),
+    grid?: I_RVD_node[] | ((obj:any)=>I_RVD_node[]),
+    gridCols?:number,
+    gridRow?:I_RVD_node[] | ((obj:any)=>I_RVD_node[]),
     layout?: string,
     attrs?: any,
     className?: string,
@@ -73,7 +78,7 @@ export default function ReactVirtualDom(props: I_RVD_props) {
         if (hideClassName) { res += ' ' + hideClassName }
         return res;
     }
-    function getChilds(node) {
+    function getChilds(node:I_RVD_node) {
         let childs = [];
         if (node.row) { childs = typeof node.row === 'function' ? node.row({state,setState}) : node.row; }
         else if (node.column) { childs = typeof node.column === 'function' ? node.column({state,setState}) : node.column }
@@ -90,16 +95,16 @@ export default function ReactVirtualDom(props: I_RVD_props) {
         }
         return childs;
     }
-    function getStyle(node, parent, attrs) {
-        let { size, flex } = node, { row, column, grid } = parent;
+    function getStyle(node:I_RVD_node, parent:I_RVD_node, attrs?:any) {
+        let { size, flex } = node;
         let style = { ...(node.style || attrs.style || {}) };
         if (size !== undefined) {
-            if (row) { style.width = size; flex = undefined }
-            else if (column || grid) { style.height = size; flex = undefined }
+            if (parent && parent.row) { style.width = size; flex = undefined }
+            else if (parent && (parent.column || parent.grid)) { style.height = size; flex = undefined }
         }
         return { flex, ...style }
     }
-    function getDragAttrs(node) {
+    function getDragAttrs(node:I_RVD_node) {
         let { dragId } = node;
         if (dragId === undefined) { return {} }
         let res: any = {};
@@ -120,13 +125,13 @@ export default function ReactVirtualDom(props: I_RVD_props) {
         }
         return res;
     }
-    function getOnClick(node) {
+    function getOnClick(node:I_RVD_node) {
         if (node.loading) { return }
         let { onClick, egg, attrs = {} } = node;
         if (egg) { return (() => eggHandler(egg)) }
         return onClick || attrs.onClick;
     }
-    function getLongTouchAttrs(node, dataId) {
+    function getLongTouchAttrs(node:I_RVD_node, dataId) {
         let { longTouch } = node;
         if (typeof longTouch !== 'function') { return {} }
         let res = {};
@@ -152,7 +157,7 @@ export default function ReactVirtualDom(props: I_RVD_props) {
         eventHandler('mouseup', longTouchMouseUp, 'unbind');
         clearInterval(temp[temp.lt + 'interval']);
     }
-    function getAttrs(node, parent,isRoot) {
+    function getAttrs(node:I_RVD_node, parent:I_RVD_node,isRoot:boolean) {
         let attrs = node.attrs ? { ...node.attrs } : {};
         let dataId = 'a' + Math.random()
         attrs['data-id'] = dataId;
@@ -163,7 +168,7 @@ export default function ReactVirtualDom(props: I_RVD_props) {
         attrs = { ...attrs, ...getLongTouchAttrs(node, dataId) };
         return attrs
     }
-    function getHtml(node, parent) {
+    function getHtml(node:I_RVD_node, parent:I_RVD_node) {
         let { html = '', loading } = node;
         html = typeof html === 'function' ? html({state,setState}) : html;
         if (typeof html === 'string' && layouts[html]) { html = layouts[html](node, parent) }

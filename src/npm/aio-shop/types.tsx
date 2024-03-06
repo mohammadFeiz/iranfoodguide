@@ -1,8 +1,9 @@
 import React from 'react';
+export type I_image = {url:string,id:number | string};
 export type I_pr = {
     optionType:I_optionType,
     cartInfo?:I_cartInfo,
-    images:string[],
+    images:I_image[],
     props?:any,
     id:any,
     data?:any,
@@ -138,6 +139,8 @@ export type I_AIOShop = {
     renderCheckout:I_renderCheckout;
     renderCartButton:I_renderCartButton;
     renderPopup:I_renderPopup;
+    renderRates:I_renderRates;
+    renderRate:I_renderRate;
     getCartItem:I_getCartItem;
     changeCart:I_changeCart;
     setCart:(newCart:I_cart)=>void;
@@ -168,6 +171,7 @@ export type I_renderCart = (P?:I_Cart)=>React.ReactNode;
 export type I_renderCheckout = ()=>React.ReactNode;
 export type I_renderCartButton = (p:I_CartButton)=>React.ReactNode;
 export type I_renderRates = (P:I_Rates)=>React.ReactNode;
+export type I_renderRate = (p:I_Rate)=>React.ReactNode;
 export type I_renderPopup = ()=>React.ReactNode;
 /////////////////////////render function /////////////////////
 /////////////////////////components///////////////////////////
@@ -202,4 +206,5 @@ export type I_DiscountPercent = {product:I_pr,variantId?:any,getContext?:()=>I_A
 export type I_FinalPrice = {product:I_pr,variantId?:any,getContext?:()=>I_AIOShop_context}
 export type I_VariantLabels = {product:I_pr,variantId,getContext?:()=>I_AIOShop_context,type:'h' | 'v'}
 export type I_Rates = {getContext?:()=>I_AIOShop_context,rates:I_pr_rate[]}
+export type I_Rate = {size?:number,color?:string,gap?:number,rate:number,single?:boolean}
 ///////////////////////components/////////////////////////////

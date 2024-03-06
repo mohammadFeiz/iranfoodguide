@@ -1,7 +1,20 @@
 import AIOApis, { AIOApis_config } from '../npm/aio-apis/index.tsx';
-import { I_profile, I_discount, I_address, I_address_server, I_tag_type, I_tag, I_restoran_sort_option, I_restoran, I_restoran_server, I_food, I_coupon, I_reserveItem, I_deliveryType, I_comment } from '../typs.tsx';
+import { I_profile, I_discount, I_address, I_address_server, I_tag_type, I_tag, I_restoran_sort_option, I_restoran, I_restoran_server, I_food, I_coupon, I_reserveItem, I_deliveryType, I_comment, I_image, I_walletHistoryItem } from '../typs.tsx';
 import shandiz_logo from '../images/shandiz_logo.png';
 import shandiz_image from '../images/shandiz_image.png';
+import frame210 from '../images/Frame 210.png';
+import cat_irani_src from '../images/cat-irani.png';
+import cat_sobhane_src from '../images/cat-sobhane.png';
+import cat_ajil_src from '../images/cat-ajil.png';
+import cat_abmive_src from '../images/cat-abmive.png';
+import cat_saladbar_src from '../images/cat-saladbar.png';
+import cat_fastfood_src from '../images/cat-fastfood.png';
+import cat_kafe_src from '../images/cat-kafe.png';
+import cat_shirini_src from '../images/cat-shirini.png';
+import pasta_alferedo from '../images/pasta_alferedo.png';
+import ghaem_image from '../images/ghaem_image.png';
+import ghaem_logo from '../images/ghaem_logo.png';
+
 type I_profile_set = (profile:I_profile,config:AIOApis_config)=>Promise<boolean>
 type I_profile_get = (parameter,config:AIOApis_config)=>Promise<I_profile>
 
@@ -21,6 +34,7 @@ type I_bo_removeTag = (p:{type:'restoran' | 'food',tagId:any},config:AIOApis_con
 type I_bo_getRestorans = (p:{ pageSize?:number, pageNumber?:number, selectedTags?:number[], searchValue?:string,selectedSort?:false|string },config:AIOApis_config)=>Promise<I_restoran[]>
 type I_bo_removeRestoran = (restoranId:any,config:AIOApis_config)=>Promise<boolean>
 type I_addOrEditImage = (p:{imageFile:any,imageId:any},config:AIOApis_config)=>Promise<{id:any,url:string}>
+type I_removeImage = (p:{imageId:any},config:AIOApis_config)=>Promise<boolean>
 export type I_bo_addOrEditRestoran_param = {type:'add' | 'edit',newRestoran:I_restoran}
 export type I_bo_addOrEditRestoran_result = {id:any};
 type I_bo_addOrEditRestoran = (p:I_bo_addOrEditRestoran_param,config:AIOApis_config)=>Promise<I_bo_addOrEditRestoran_result | false>
@@ -36,9 +50,9 @@ type I_bo_addOrEditFood = (p:I_bo_addOrEditFood_param,config?:AIOApis_config)=>P
 type I_getRestoranCoupons_param = {restoranId:any};
 type I_getRestoranCoupons_result = I_coupon[];
 type I_getRestoranCoupons = (p:I_getRestoranCoupons_param,config?:AIOApis_config)=>Promise<I_getRestoranCoupons_result>
-type I_getRestoranReserveItems_param = {restoranId:any};
-type I_getRestoranReserveItems_result = I_reserveItem[];
-type I_getRestoranReserveItems = (p:I_getRestoranReserveItems_param,config?:AIOApis_config)=>Promise<I_getRestoranReserveItems_result>
+type I_getRestoranReserveItems = (p:{restoranId:any},config?:AIOApis_config)=>Promise<I_reserveItem[]>
+type I_removeRestoranReserveItem = (p:{restoranId:any,itemId:any},config?:AIOApis_config)=>Promise<boolean>
+type I_addOrEditRestoranReserveItem = (p:{ restoranId:any, item: I_reserveItem, type:'add'|'edit' },config?:AIOApis_config)=>Promise<{id:any}>
 export type I_pardakhteOnline_param = {deliveryType:I_deliveryType,foods:{foodId:any,count:number}[],restoranId:any,payment:number,selectedCouponIds?:any[],addressId:any}
 type I_pardakhteOnline_result = boolean; 
 type I_pardakhteOnline = (p:I_pardakhteOnline_param,config?:AIOApis_config)=>Promise<I_pardakhteOnline_result>
@@ -54,6 +68,8 @@ type I_profile_setPassword = (password:string,config?:AIOApis_config)=>Promise<b
 type I_profile_getProfile = (p:any,config?:AIOApis_config)=>Promise<I_profile | false>
 type I_profile_addressForm = (p:{address:I_address,type:'add' | 'edit'},config?:AIOApis_config)=>Promise<boolean>
 type I_restoranHayeMahboob = (p:any,config?:AIOApis_config)=>Promise<I_restoran[]>
+type I_getWalletHistory = (p:any,config:AIOApis_config)=>Promise<I_walletHistoryItem[]>
+type I_safheye_sefaresh = (p:any,config?:AIOApis_config)=>Promise<any[]>
 export type I_APIClass = {
     profile_set:I_profile_set,
     profile_get:I_profile_get,
@@ -68,12 +84,15 @@ export type I_APIClass = {
     backOffice_getRestorans:I_bo_getRestorans,
     backOffice_removeRestoran:I_bo_removeRestoran,
     addOrEditImage:I_addOrEditImage,
+    removeImage:I_removeImage,
     backOffice_addOrEditRestoran:I_bo_addOrEditRestoran,
     backOffice_getRestoranFoods:I_bo_getRestoranFoods,
     backOffice_removeFood:I_bo_removeFood,
     backOffice_addOrEditFood:I_bo_addOrEditFood,
     getRestoranCoupons:I_getRestoranCoupons,
     getRestoranReserveItems:I_getRestoranReserveItems,
+    removeRestoranReserveItem:I_removeRestoranReserveItem,
+    addOrEditRestoranReserveItem:I_addOrEditRestoranReserveItem,
     pardakhteOnline:I_pardakhteOnline,
     getReserveCapacity:I_getReserveCapacity,
     getRestoranComments:I_getRestoranComments,
@@ -82,10 +101,37 @@ export type I_APIClass = {
     profile_setPassword:I_profile_setPassword,
     profile_getProfile:I_profile_getProfile,
     profile_addressForm:I_profile_addressForm,
-    restoranHayeMahboob:I_restoranHayeMahboob
+    restoranHayeMahboob:I_restoranHayeMahboob,
+    getWalletHistory:I_getWalletHistory,
+    safheye_sefaresh:I_safheye_sefaresh
 }
 export default class APISClass extends AIOApis{
     mock:boolean = false;
+    getWalletHistory:I_getWalletHistory = (p,config)=>{
+        return this.request({
+            mock:this.mock || true,
+            mockFunction:this.getWalletHistory_mock.bind(this),
+            config:{description:'دریافت تاریخچه کیف پول',...config,errorResult:[]},
+            id:'getWalletHistory',
+            method:'get',
+            url:'',
+            getResult:(response)=>[]
+        })
+    }
+    getWalletHistory_mock = ()=>{
+        let data:{date:number,amount:number,type:'in'|'out'}[] = [
+            { date: new Date().getTime(), amount: 123456789, type: 'in' },
+            { date: new Date().getTime(), amount: 123456789, type: 'out' },
+            { date: new Date().getTime(), amount: 123456789, type: 'in' },
+            { date: new Date().getTime(), amount: 123456789, type: 'out' },
+            { date: new Date().getTime(), amount: 123456789, type: 'in' },
+        ]
+        let result:I_walletHistoryItem[] = data.map((o) => {
+            let [year,month,day,hour,minute] = this.dateToArray(o.date,true)
+            return { ...o, date:`${year}/${month}/${day}`, time:`${hour}:${minute}` }
+        })
+        return result
+    }
     restoranHayeMahboob:I_restoranHayeMahboob = async (p, config) => {
         let {Login} = this.getAppState();
         let {id} = Login.getUserInfo();
@@ -109,8 +155,7 @@ export default class APISClass extends AIOApis{
     restoranHayeMahboob_mock = (p) => {
         let result:I_restoran[] = []
         return result
-    }
-    
+    }  
     profile_addressForm:I_profile_addressForm = async (p,config)=>{
         let {address,type} = p;
         let {Login} = this.getAppState();
@@ -387,10 +432,81 @@ export default class APISClass extends AIOApis{
             }
         })
     }
-    getRestoranReserveItems_mock = (p:I_getRestoranReserveItems_param) => {
+    getRestoranReserveItems_mock = (p) => {
         let {restoranId} = p;
         let restorans_reserveItems = this.getStorage('restorans_reserveItems',{})
         return restorans_reserveItems[`restoran_${restoranId}`]
+    }
+    removeRestoranReserveItem:I_removeRestoranReserveItem = async (p,config) => {
+        let { restoranId, itemId } = p;
+        return await this.request({
+            config:{description:'حذف خدمت رزرو رستوران در پنل ادمین',errorResult:false,...config},
+            parameter:p,
+            mock:this.mock,
+            mockFunction:this.removeRestoranReserveItem_mock.bind(this),
+            id:'removeRestoranReserveItem',
+            url:`${this.baseUrl}/RestaurantReservasionPlan?Id=${itemId.toString()}`,
+            method:'delete',
+            getResult:()=>true
+        })
+    }
+    removeRestoranReserveItem_mock = (p) => {
+        let {itemId} = p
+        let items = this.getStorage('reserveItems',[])
+        items = items.filter((o)=>o.id !== itemId);
+        this.setStorage('reserveItems',items);
+        return true
+    }
+    reserveItemToServer = (item:I_reserveItem,type:'add'|'edit') => {
+        return {
+            "images":item.images.map((o)=>{return {imageId:o.id}}) || [],
+            "id": type === 'edit' ? item.id : undefined,
+            "Id": type === 'edit' ? item.id : undefined,
+            "name": item.name || '',
+            "restaurantId": 30,//restoranId
+            "description": item.description || '',
+            "maxLimitCount": item.data.maxCount || 0,
+            "minLimitCount": item.data.minCount || 0,
+            "countType": item.data.countType || false,
+            "guestCount": 0,
+            "price": item.data.price || 0,
+            "isReturnAmount": item.data.returnAmount || false,
+            "preOrderTime": item.data.preOrderTime || 0,
+            "isDaily": item.data.timeType === 'day'
+        }
+    }
+    addOrEditRestoranReserveItem:I_addOrEditRestoranReserveItem = async (p,config)=>{
+        let { restoranId, item, type } = p;
+        return await this.request({
+            config:{description:`${type === 'add' ? 'ذخیره' : 'ویرایش'} خدمت رزرو رستوران در پنل ادمین`,errorResult:false,...config},
+            parameter:p,
+            mock:this.mock,
+            mockFunction:this.addOrEditRestoranReserveItem_mock.bind(this),
+            id:'addOrEditRestoranReserveItem',
+            url:`${this.baseUrl}/RestaurantReservasionPlan/${type === 'add'?'Create':'Edit'}`,
+            method:type === 'add'?'post':'put',
+            body:this.reserveItemToServer(item,type),
+            getResult:(response)=>{
+                if(type === 'add'){return { id: response.data.data }}
+                return {id:item.id}
+            }
+        })
+    }
+    addOrEditRestoranReserveItem_mock = (p)=>{
+        let {item,type} = p;
+        let items = this.getStorage('reserveItems',[])
+        if(type === 'add'){
+            let id = 'sss' + Math.round(Math.random() * 10000000)
+            item.id = id;
+            items = items.concat(item);
+            this.setStorage('reserveItems',items)
+            return {id}
+        }
+        else {
+            items = items.map((o)=>o.id === item.id?item:o);
+            this.setStorage('reserveItems',items)
+            return {id:item.id}
+        }
     }
     getRestoranCoupons:I_getRestoranCoupons = async (p,config) => {
         let {restoranId} = p;
@@ -513,11 +629,6 @@ export default class APISClass extends AIOApis{
     }
     addOrEditImage:I_addOrEditImage = async (p,config)=>{
         let {imageFile,imageId} = p;
-        // if(this.mock){
-        //     let result = this.addOrEditImage_mock(p);
-        //     if(config.onSuccess){config.onSuccess(result);}
-        //     return result
-        // }
         let formData = new FormData()
         formData.append('imageFile', imageFile, imageFile.name)
         formData.append('title', imageFile.name)
@@ -538,6 +649,24 @@ export default class APISClass extends AIOApis{
     }
     addOrEditImage_mock = (p)=>{
 
+    }
+    removeImage:I_removeImage = async (p,config)=>{
+        let {imageId} = p;
+        return await this.request({
+            config:{errorResult:false,description:'حذف تصویر',...config},
+            parameter:p,
+            mock:this.mock && false,
+            mockFunction:this.removeImage_mock.bind(this),
+            id:'removeImage',method:'post',
+            url:'',
+            getResult:(response)=>true
+        })
+    }
+    removeImage_mock = (imageId:string | number)=>{
+        let images = this.getStorage('images',[])
+        let newImages:I_image[] = images.filter((o:I_image)=>o.id !== imageId);
+        this.setStorage('images',newImages)
+        return true
     }
     backOffice_removeRestoran:I_bo_removeRestoran = async (restoranId,config)=>{
         return await this.request({
@@ -922,6 +1051,145 @@ export default class APISClass extends AIOApis{
         ]
         return result
     }
-    
+    safheye_sefaresh = async (p,config)=> {
+        return await this.request({
+            config:{description:'دریافت اطلاعات صفحه سفارش غذا',...config,errorResult:[]},
+            mock:true,
+            mockFunction:this.safheye_sefaresh_mock.bind(this),
+            body:{},method:'post',id:'safheyeSefaresh',
+            url:`${this.baseUrl}/PageLayout/GetListOfFoodDelivery`,
+            getResult:(response)=>response.data.data
+        })
+    }
+    safheye_sefaresh_mock = ()=>{
+        let result = [
+            {
+                type: 'Billboard',
+                items: [{ src: frame210 }, { src: frame210 }, { src: frame210 }, { src: frame210 }]
+            },
+            {
+                type: 'Categories',
+                items: [
+                    { name: 'فست فود', src: cat_fastfood_src, id: '0' },
+                    { name: 'ایرانی', src: cat_irani_src, id: '1' },
+                    { name: 'صبحانه', src: cat_sobhane_src, id: '2' },
+                    { name: 'سالاد بار', src: cat_saladbar_src, id: '3' },
+                    { name: 'شیرینی', src: cat_shirini_src, id: '4' },
+                    { name: 'آجیل', src: cat_ajil_src, id: '5' },
+                    { name: 'آبمیوه بستنی', src: cat_abmive_src, id: '6' },
+                    { name: 'کافه', src: cat_kafe_src, id: '7' },
+                ]
+            },
+            {
+                type: 'Slider',
+                name: 'رستوران های تخفیف دار',
+                items: [
+                    {
+                        name: 'رستوران شاندیز گالریا', image: shandiz_image, logo: shandiz_logo,
+                        rate: 3.4, distance: 3, time: 35, tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
+                    },
+                    {
+                        name: 'رستوران شاندیز گالریا', image: shandiz_image, logo: shandiz_logo,
+                        rate: 3.4, distance: 3, time: 35, tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
+                    },
+                    {
+                        name: 'رستوران شاندیز گالریا', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                        tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
+                    }
+                ]
+            },
+            {
+                type: 'Slider',
+                name: 'نزدیک ترین ها به شما',
+                items: [
+                    {
+                        name: 'رستوران شاندیز گالریا', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                        tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
+                    },
+                    {
+                        name: 'رستوران شاندیز گالریا', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                        tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
+                    },
+                    {
+                        name: 'رستوران شاندیز گالریا', image: shandiz_image, logo: shandiz_logo, rate: 3.4, distance: 3, time: 35,
+                        tags: ['ایرانی ', 'سنتی', 'فست فود', 'ملل']
+                    }
+                ]
+            },
+            {
+                type: 'Slider', name: 'غذا های تخفیف دار', cardSize: { width: 160 },
+                header: { maxDiscount: 15, endDate: new Date().getTime() + (6 * 60 * 60 * 1000) },
+                items: [
+                    {
+                        name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4,
+                        price: 210000, discount: 15, image: pasta_alferedo, tags: [], id: '4232'
+                    },
+                    {
+                        name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4, id: '423rwe',
+                        price: 210000, discount: 15, image: pasta_alferedo, tags: []
+                    },
+                    {
+                        name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4, id: '423456452',
+                        price: 210000, discount: 15, image: pasta_alferedo, tags: []
+                    },
+                    {
+                        name: 'پاستا آلفردو ', shopName: 'رستوران شاندیز گالریا', rate: 3.4, id: '42354232',
+                        price: 210000, discount: 15, image: pasta_alferedo, tags: []
+                    }
+                ]
+            },
+            {
+                type: 'Slider', name: 'جدید ترین رزروی ها',
+                items: [
+                    {
+                        name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
+                        details: [
+                            { title: 'نوع میز', value: 'میز و آلاچیق' },
+                            { title: 'مدت زمان تاخیر', value: '15 دقیقه' },
+                            { title: 'قابلیت مراسم', value: 'تولد و VIP' }
+                        ],
+                        tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
+                    },
+                    {
+                        name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
+                        details: [
+                            { title: 'نوع میز', value: 'میز و آلاچیق' },
+                            { title: 'مدت زمان تاخیر', value: '15 دقیقه' },
+                            { title: 'قابلیت مراسم', value: 'تولد و VIP' }
+                        ],
+                        tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
+                    },
+                    {
+                        name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
+                        details: [
+                            { title: 'نوع میز', value: 'میز و آلاچیق' },
+                            { title: 'مدت زمان تاخیر', value: '15 دقیقه' },
+                            { title: 'قابلیت مراسم', value: 'تولد و VIP' }
+                        ],
+                        tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
+                    },
+                    {
+                        name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
+                        details: [
+                            { title: 'نوع میز', value: 'میز و آلاچیق' },
+                            { title: 'مدت زمان تاخیر', value: '15 دقیقه' },
+                            { title: 'قابلیت مراسم', value: 'تولد و VIP' }
+                        ],
+                        tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
+                    },
+                    {
+                        name: 'رستوران قایم', distance: 3, rate: 3.4, logo: ghaem_logo, image: ghaem_image,
+                        details: [
+                            { title: 'نوع میز', value: 'میز و آلاچیق' },
+                            { title: 'مدت زمان تاخیر', value: '15 دقیقه' },
+                            { title: 'قابلیت مراسم', value: 'تولد و VIP' }
+                        ],
+                        tags: ['ایرانی', 'فست فود', 'ملل', 'قلیان', 'موسیقی زنده']
+                    }
+                ]
+            }
+        ]
+        return result
+    }
     
 }

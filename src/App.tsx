@@ -2,7 +2,6 @@ import React, { Component, useContext } from 'react';
 import RSA from './npm/react-super-app/react-super-app';
 import BackOffice from './components/back-office/back-office.tsx';
 import AIOStorage from 'aio-storage';
-import AIOService from 'aio-service';
 import RVD, { I_RVD_node } from './npm/react-virtual-dom/index.tsx';
 import AIOLogin,{I_AIOLogin, I_AL_props} from './npm/aio-login/index.tsx';
 import APISClass, { I_APIClass, I_getWalletAmount_result } from './apis/APIClass.tsx';
@@ -11,9 +10,9 @@ import { dictionary } from './dictionary';
 import logo from './images/logo.png';
 import logo2 from './images/logo2.png';
 import { icons } from './icons';
-import Sefareshe_ghaza from './pages/sefareshe_ghaza';
+import Sefareshe_ghaza from './pages/sefareshe_ghaza.tsx';
 import Profile from './pages/profile.tsx';
-import ReservePanel from './components/reserve-panel/reserve-panel';
+import ReservePanel from './components/reserve-panel/reserve-panel.tsx';
 import URL from './npm/aio-functions/url';
 import './App.css';
 import { I_address, I_profile, I_restoran_server, I_tag, I_state, I_state_key, I_food_server, I_food, I_restoranId, I_foodToServer_r, I_rsa_props, I_discount, I_restoran_sort_option } from './typs.tsx';
@@ -194,10 +193,10 @@ class IranFoodGuide extends Component <I_IranFoodGuide,I_state> {
     parentFoodId = parentFoodId === null?undefined:parentFoodId
     let food:I_food = {
       optionType:'product',
-      id,name,images:[image],
+      id,name,images:[{url:image,id:imageId}],
       cartInfo:{price,inStock,discountPercent},
       description,
-      data:{parentId: parentFoodId,menuCategory: menuCategoryTitle,type:'food',imageId,tags: types.map((o)=>o.typeId),dailyInStock}
+      data:{parentId: parentFoodId,menuCategory: menuCategoryTitle,type:'food',tags: types.map((o)=>o.typeId),dailyInStock}
     }
     return food
   }
